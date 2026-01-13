@@ -1,118 +1,21 @@
-import os
-import shutil
 import uuid
 from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from PIL import Image
-from sqlmodel import select
+from sqlmodel import select, Session
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
 from app.core.db import engine
 from app.models import News, NewsImage
 from app.schemas import Message, NewsImageList, NewsImagePublic
-from sqlmodel import Session
+from app.services.image_service import image_service
 
 router = APIRouter(prefix="/news/{news_id}/images", tags=["images"])
 
 public_router = APIRouter(prefix="/news/{news_id}/images", tags=["images"])
-
-UPLOAD_DIR = Path(settings.UPLOAD_DIR)
-if not UPLOAD_DIR.is_absolute():
-    base_dir = Path(__file__).parent.parent.parent.parent
-    if base_dir.name == "app" and base_dir.parent.name == "app":
-        base_dir = base_dir.parent
-    UPLOAD_DIR = base_dir / UPLOAD_DIR
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def get_upload_path(news_id: uuid.UUID) -> Path:
-    """Get upload directory for specific news item."""
-    news_dir = UPLOAD_DIR / "news" / str(news_id)
-    news_dir.mkdir(parents=True, exist_ok=True)
-    return news_dir
-
-
-def validate_image(file: UploadFile) -> None:
-    """Validate uploaded image file."""
-    if file.content_type not in settings.ALLOWED_IMAGE_TYPES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid file type. Allowed types: {', '.join(settings.ALLOWED_IMAGE_TYPES)}",
-        )
-
-
-def save_image(file: UploadFile, news_id: uuid.UUID) -> tuple[str, int]:
-    """
-    Save uploaded image, normalize to JPEG format and standard size.
-    Returns relative path and file size.
-    """
-    validate_image(file)
-    
-    unique_id = uuid.uuid4()
-    file_name = f"{unique_id}.jpg"
-    upload_path = get_upload_path(news_id)
-    file_path = upload_path / file_name
-    
-    temp_path = upload_path / f"{unique_id}_temp{Path(file.filename).suffix}"
-    with open(temp_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    
-    temp_size = temp_path.stat().st_size
-    if temp_size > settings.MAX_UPLOAD_SIZE:
-        temp_path.unlink()
-        raise HTTPException(
-            status_code=400,
-            detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB",
-        )
-    
-    try:
-        with Image.open(temp_path) as img:
-            if img.mode != "RGB":
-                rgb_img = Image.new("RGB", img.size, (255, 255, 255))
-                if img.mode == "P":
-                    img = img.convert("RGBA")
-                if img.mode in ("RGBA", "LA"):
-                    rgb_img.paste(img, mask=img.split()[-1])
-                else:
-                    rgb_img = img.convert("RGB")
-                img = rgb_img
-            
-            MAX_WIDTH = 1920
-            MAX_HEIGHT = 1080
-            
-            if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
-                ratio = min(MAX_WIDTH / img.width, MAX_HEIGHT / img.height)
-                new_size = (int(img.width * ratio), int(img.height * ratio))
-                img = img.resize(new_size, Image.Resampling.LANCZOS)
-                quality = 80
-            else:
-                quality = 85
-            
-            img.save(file_path, "JPEG", quality=quality, optimize=True)
-            
-    except Exception as e:
-        try:
-            with Image.open(temp_path) as img:
-                img.convert("RGB").save(file_path, "JPEG", quality=85)
-        except Exception:
-            if temp_path.exists():
-                temp_path.unlink()
-            raise HTTPException(
-                status_code=400,
-                detail=f"Failed to process image: {str(e)}"
-            )
-    finally:
-        if temp_path.exists() and temp_path != file_path:
-            temp_path.unlink()
-    
-    file_size = file_path.stat().st_size
-    
-    relative_path = f"news/{news_id}/{file_name}"
-    return relative_path, file_size
 
 
 @router.post("/", response_model=NewsImagePublic)
@@ -135,7 +38,7 @@ async def upload_image(
     max_order = max([img.order for img in existing_images], default=-1)
     is_first_image = len(existing_images) == 0
     
-    file_path, file_size = save_image(file, news_id)
+    file_path, file_size = image_service.save_image(file, news_id)
     
     file_ext = Path(file_path).suffix.lower()
     mime_type_map = {
@@ -202,14 +105,15 @@ def get_image_file(
         if not image or image.news_id != news_id:
             raise HTTPException(status_code=404, detail="Image not found")
         
-        file_path = UPLOAD_DIR / image.file_path
+        upload_dir = image_service.UPLOAD_DIR
+        file_path = upload_dir / image.file_path
         
         possible_paths = [
             file_path,
             file_path.with_suffix(".jpg"),
         ]
         
-        news_dir = get_upload_path(news_id)
+        news_dir = image_service.get_upload_path(news_id)
         file_name = Path(image.file_path).name
         possible_paths.append(news_dir / file_name)
         
@@ -259,7 +163,7 @@ def delete_image(
     if not image or image.news_id != news_id:
         raise HTTPException(status_code=404, detail="Image not found")
     
-    file_path = UPLOAD_DIR / image.file_path
+    file_path = image_service.UPLOAD_DIR / image.file_path
     if file_path.exists():
         file_path.unlink()
     

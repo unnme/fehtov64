@@ -105,7 +105,7 @@ export function PublicNewsList() {
 
 	if (isLoading) {
 		return (
-			<div className="container py-12">
+			<div className="container py-6 sm:py-8 lg:py-12 px-4 sm:px-6">
 				<div className="text-center text-muted-foreground">
 					Загрузка новостей...
 				</div>
@@ -115,7 +115,7 @@ export function PublicNewsList() {
 
 	if (error) {
 		return (
-			<div className="container py-12">
+			<div className="container py-6 sm:py-8 lg:py-12 px-4 sm:px-6">
 				<div className="text-center text-destructive">
 					Ошибка загрузки новостей
 				</div>
@@ -125,7 +125,7 @@ export function PublicNewsList() {
 
 	if (!data || data.count === 0) {
 		return (
-			<div className="container py-12">
+			<div className="container py-6 sm:py-8 lg:py-12 px-4 sm:px-6">
 				<div className="text-center text-muted-foreground">
 					Пока нет опубликованных новостей
 				</div>
@@ -136,25 +136,25 @@ export function PublicNewsList() {
 	const totalPages = Math.ceil(data.count / NEWS_PER_PAGE)
 
 	return (
-		<div className="container py-12 mx-auto">
-			<div className="mb-8">
-				<h2 className="text-3xl font-bold tracking-tight mb-2">Новости</h2>
-				<p className="text-muted-foreground">
+		<div className="container py-6 sm:py-8 lg:py-12 mx-auto px-4 sm:px-6">
+			<div className="mb-6 sm:mb-8">
+				<h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Новости</h2>
+				<p className="text-sm sm:text-base text-muted-foreground">
 					Всего опубликовано новостей: {data.count}
 				</p>
 			</div>
 
-			<div className="space-y-6 mb-8">
+			<div className="space-y-4 sm:space-y-6 mb-8">
 				{data.data.map((news: NewsPublic) => (
 					<Card
 						key={news.id}
 						className="hover:shadow-lg transition-shadow"
 					>
-						<div className="flex gap-4 p-6">
+						<div className="flex flex-col sm:flex-row gap-4 p-4 sm:p-6">
 							<NewsPreviewImage newsId={news.id} />
 							<div className="flex-1 min-w-0">
-								<CardHeader className="p-0 pb-4">
-									<CardTitle className="text-2xl mb-2">{news.title}</CardTitle>
+								<CardHeader className="p-0 pb-3 sm:pb-4">
+									<CardTitle className="text-xl sm:text-2xl mb-2">{news.title}</CardTitle>
 									<div className="space-y-1">
 										{news.published_at && (
 											<CardDescription>

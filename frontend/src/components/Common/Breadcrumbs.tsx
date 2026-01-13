@@ -1,5 +1,14 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { ChevronRight } from 'lucide-react'
+import * as React from 'react'
+
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator
+} from '@/components/ui/breadcrumb'
 
 interface BreadcrumbItem {
 	label: string
@@ -64,42 +73,26 @@ export function Breadcrumbs() {
 	}
 
 	return (
-		<nav
-			aria-label="Breadcrumb"
-			className="container mx-auto px-4 sm:px-6 lg:px-8 py-4"
-		>
-			<ol
-				className="flex items-center gap-2 text-sm text-muted-foreground"
-				role="list"
-			>
+		<Breadcrumb className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+			<BreadcrumbList className="flex-wrap">
 				{breadcrumbs.map((item, index) => {
 					const isLast = index === breadcrumbs.length - 1
 					return (
-						<li
-							key={`${item.href}-${index}`}
-							className="flex items-center gap-2"
-							role="listitem"
-						>
-							<ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-							{isLast ? (
-								<span
-									className="font-medium text-foreground"
-									aria-current="page"
-								>
-									{item.label}
-								</span>
-							) : (
-								<Link
-									to={item.href || '/'}
-									className="hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
-								>
-									{item.label}
-								</Link>
-							)}
-						</li>
+						<React.Fragment key={`${item.href}-${index}`}>
+							{index > 0 && <BreadcrumbSeparator />}
+							<BreadcrumbItem>
+								{isLast ? (
+									<BreadcrumbPage>{item.label}</BreadcrumbPage>
+								) : (
+									<BreadcrumbLink asChild>
+										<Link to={item.href || '/'}>{item.label}</Link>
+									</BreadcrumbLink>
+								)}
+							</BreadcrumbItem>
+						</React.Fragment>
 					)
 				})}
-			</ol>
-		</nav>
+			</BreadcrumbList>
+		</Breadcrumb>
 	)
 }

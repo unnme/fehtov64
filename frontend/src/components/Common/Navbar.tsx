@@ -1,7 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { ChevronDown, LayoutDashboard, LogIn, LogOut, Menu } from 'lucide-react'
 
-import { Logo } from '@/components/Common/Logo'
+import { Appearance } from '@/components/Common/Appearance'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -97,11 +97,6 @@ export function Navbar() {
 			role="banner"
 		>
 			<div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-				{/* Logo */}
-				<div className="flex items-center">
-					<Logo />
-				</div>
-
 				{/* Desktop Navigation */}
 				<nav
 					className="hidden md:flex items-center gap-6"
@@ -186,6 +181,8 @@ export function Navbar() {
 
 				{/* Actions */}
 				<div className="flex items-center gap-4">
+					{/* Theme toggle */}
+					<Appearance />
 					{loggedIn ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -254,14 +251,6 @@ export function Navbar() {
 								>
 									<LogIn className="h-4 w-4" />
 									<span>Войти</span>
-								</Button>
-							</Link>
-							<Link to="/auth/signup">
-								<Button
-									variant="default"
-									className="gap-2"
-								>
-									<span>Регистрация</span>
 								</Button>
 							</Link>
 						</div>
@@ -406,19 +395,6 @@ export function Navbar() {
 													>
 														<LogIn className="h-4 w-4" />
 														<span>Войти</span>
-													</Button>
-												</Link>
-											</li>
-											<li>
-												<Link
-													to="/auth/signup"
-													className="block"
-												>
-													<Button
-														variant="default"
-														className="w-full justify-start gap-2"
-													>
-														<span>Регистрация</span>
 													</Button>
 												</Link>
 											</li>

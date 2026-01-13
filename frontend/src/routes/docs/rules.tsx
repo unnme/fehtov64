@@ -21,13 +21,13 @@ export const Route = createFileRoute('/docs/rules')({
 
 function DocsRules() {
 	return (
-		<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-			<div className="max-w-4xl mx-auto space-y-8">
-				<div className="space-y-4">
-					<h1 className="text-4xl font-bold tracking-tight">
+		<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+			<div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+				<div className="space-y-2 sm:space-y-4">
+					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
 						Правила и регламенты
 					</h1>
-					<p className="text-lg text-muted-foreground">
+					<p className="text-base sm:text-lg text-muted-foreground">
 						Правила фехтования, регламенты соревнований и судейские правила
 					</p>
 				</div>

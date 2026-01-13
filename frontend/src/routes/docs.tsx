@@ -64,16 +64,16 @@ function DocsLayout() {
 			<Navbar />
 			<Breadcrumbs />
 			{isIndexPage ? (
-				<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-					<div className="max-w-6xl mx-auto space-y-8">
-						<div className="space-y-4">
-							<h1 className="text-4xl font-bold tracking-tight">Документация</h1>
-							<p className="text-lg text-muted-foreground">
+				<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+					<div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+						<div className="space-y-2 sm:space-y-4">
+							<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Документация</h1>
+							<p className="text-base sm:text-lg text-muted-foreground">
 								Все документы организации в одном месте
 							</p>
 						</div>
 
-						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+						<div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
 							{docCategories.map(category => {
 								const Icon = category.icon
 								return (

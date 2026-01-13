@@ -2,7 +2,13 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Breadcrumbs } from '@/components/Common/Breadcrumbs'
 import { Navbar } from '@/components/Common/Navbar'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '@/components/ui/card'
 
 export const Route = createFileRoute('/about')({
 	component: About,
@@ -20,22 +26,20 @@ function About() {
 		<div className="flex min-h-screen flex-col">
 			<Navbar />
 			<Breadcrumbs />
-			<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div className="max-w-4xl mx-auto space-y-8">
-					<div className="space-y-4">
-						<h1 className="text-4xl font-bold tracking-tight">О нас</h1>
-						<p className="text-lg text-muted-foreground">
+			<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+				<div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+					<div className="space-y-2 sm:space-y-4">
+						<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">О нас</h1>
+						<p className="text-base sm:text-lg text-muted-foreground">
 							Информация о нашем фехтовальном клубе
 						</p>
 					</div>
 
-					<div className="grid gap-6 md:grid-cols-2">
+					<div className="grid gap-4 sm:gap-6 md:grid-cols-2">
 						<Card>
 							<CardHeader>
 								<CardTitle>История клуба</CardTitle>
-								<CardDescription>
-									Наша история и достижения
-								</CardDescription>
+								<CardDescription>Наша история и достижения</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<p className="text-sm text-muted-foreground">
@@ -48,9 +52,7 @@ function About() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Миссия и ценности</CardTitle>
-								<CardDescription>
-									Наши цели и принципы
-								</CardDescription>
+								<CardDescription>Наши цели и принципы</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<p className="text-sm text-muted-foreground">
@@ -62,13 +64,12 @@ function About() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Достижения</CardTitle>
-								<CardDescription>
-									Награды и успехи
-								</CardDescription>
+								<CardDescription>Награды и успехи</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<p className="text-sm text-muted-foreground">
-									Информация о наградах, медалях и достижениях наших спортсменов.
+									Информация о наградах, медалях и достижениях наших
+									спортсменов.
 								</p>
 							</CardContent>
 						</Card>
@@ -76,9 +77,7 @@ function About() {
 						<Card>
 							<CardHeader>
 								<CardTitle>Тренерский состав</CardTitle>
-								<CardDescription>
-									Наши тренеры
-								</CardDescription>
+								<CardDescription>Наши тренеры</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<p className="text-sm text-muted-foreground">

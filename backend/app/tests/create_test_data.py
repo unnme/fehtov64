@@ -13,7 +13,8 @@ from typing import Any
 from PIL import Image
 from sqlmodel import Session, select
 
-from app import crud
+from app.repositories.user_repository import create_user
+from app.repositories.news_repository import create_news
 from app.core.config import settings
 from app.models import News, NewsImage, User
 from app.schemas import NewsCreate, UserCreate
@@ -160,7 +161,7 @@ def create_test_users_and_news(session: Session) -> None:
             full_name=user_data["full_name"],
             is_active=True,
         )
-        test_user = crud.create_user(session=session, user_create=user_in)
+        test_user = create_user(session=session, user_create=user_in)
         session.commit()
         session.refresh(test_user)
         logger.info(f"Created test user: {test_user.email}")
@@ -188,24 +189,8 @@ def create_test_users_and_news(session: Session) -> None:
             is_published=is_published,
         )
 
-        now = datetime.now(timezone.utc)
-        news_dict = news_in.model_dump()
-
-        if news_dict.get("is_published"):
-            news_dict["published_at"] = now
-        else:
-            news_dict["published_at"] = None
-
-        news = News.model_validate(
-            news_dict,
-            update={
-                "owner_id": superuser.id,
-                "created_at": now,
-                "updated_at": now,
-            },
+        news = create_news(
+            session=session, news_in=news_in, owner_id=superuser.id
         )
-        session.add(news)
-        session.commit()
-        session.refresh(news)
 
         logger.info(f"Created news '{news_in.title}' for user {superuser.email}")

@@ -1,12 +1,15 @@
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.config import settings
 from app.models import News, NewsImage
+from app.repositories.news_repository import create_news as create_news_repo
 from app.schemas import (
     Message,
     NewsCreate,
@@ -119,25 +122,9 @@ def create_news(
     """
     Create new news.
     """
-    now = datetime.now(timezone.utc)
-    news_data = news_in.model_dump()
-    
-    if news_data.get("is_published"):
-        news_data["published_at"] = now
-    else:
-        news_data["published_at"] = None
-
-    news = News.model_validate(
-        news_data,
-        update={
-            "owner_id": current_user.id,
-            "created_at": now,
-            "updated_at": now,
-        },
+    news = create_news_repo(
+        session=session, news_in=news_in, owner_id=current_user.id
     )
-    session.add(news)
-    session.commit()
-    session.refresh(news)
     return news
 
 
@@ -181,13 +168,38 @@ def delete_news(
 ) -> Message:
     """
     Delete news. Regular users can only delete their own news, superusers can delete any.
+    Also deletes all associated image files from the server.
     """
     news = session.get(News, id)
     if not news:
         raise HTTPException(status_code=404, detail="News not found")
     if not current_user.is_superuser and news.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    # Get all images for this news item
+    images_statement = select(NewsImage).where(NewsImage.news_id == id)
+    images = session.exec(images_statement).all()
+    
+    # Delete image files from disk
+    upload_dir = Path(settings.UPLOAD_DIR)
+    if not upload_dir.is_absolute():
+        base_dir = Path(__file__).parent.parent.parent.parent
+        if base_dir.name == "app" and base_dir.parent.name == "app":
+            base_dir = base_dir.parent
+        upload_dir = base_dir / upload_dir
+    
+    for image in images:
+        file_path = upload_dir / image.file_path
+        if file_path.exists() and file_path.is_file():
+            try:
+                file_path.unlink()
+            except Exception:
+                # Log error but continue deletion
+                pass
+    
+    # Delete news (images will be deleted from DB via CASCADE)
     session.delete(news)
     session.commit()
+    
     return Message(message="News deleted successfully")
 

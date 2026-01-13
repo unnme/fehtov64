@@ -1,10 +1,9 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlmodel import col, delete, func, select
 
-from app import crud
 from app.api.deps import (
     CurrentUser,
     SessionDep,
@@ -13,6 +12,11 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import News, User
+from app.repositories.user_repository import (
+    create_user as create_user_repo,
+    get_user_by_email,
+    update_user,
+)
 from app.schemas import (
     EmailVerificationCode,
     EmailVerificationRequest,
@@ -20,23 +24,12 @@ from app.schemas import (
     UpdatePassword,
     UserCreate,
     UserPublic,
-    UserRegister,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
 )
-from app.utils import (
-    generate_email_verification_code,
-    generate_email_verification_email,
-    generate_new_account_email,
-    send_email,
-    store_email_verification_code,
-    verify_email_code,
-)
-from app.core.ip_registration import (
-    get_ip_registration_tracker,
-    get_client_ip_from_request,
-)
+from app.services.email_service import email_service
+from app.services.verification_service import verification_service
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -63,28 +56,27 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 @router.post(
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+async def create_user(
+    *, session: SessionDep, background_tasks: BackgroundTasks, user_in: UserCreate
+) -> Any:
     """
     Create new user.
     """
-    user = crud.get_user_by_email(session=session, email=user_in.email)
+    user = get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    user = create_user_repo(session=session, user_create=user_in)
     if settings.emails_enabled and user_in.email:
         # Don't send password in email for security - user should set it themselves
         # or use password reset if needed
-        email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email
-        )
-        send_email(
+        background_tasks.add_task(
+            email_service.send_new_account_email_sync,
             email_to=user_in.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
+            username=user_in.email,
         )
     return user
 
@@ -113,8 +105,12 @@ def update_user_me(
 
 
 @router.post("/me/email/request-code", response_model=Message)
-def request_email_verification_code(
-    *, session: SessionDep, request: EmailVerificationRequest, current_user: CurrentUser
+async def request_email_verification_code(
+    *,
+    session: SessionDep,
+    background_tasks: BackgroundTasks,
+    request: EmailVerificationRequest,
+    current_user: CurrentUser,
 ) -> Any:
     """
     Request email verification code to change email address.
@@ -123,7 +119,7 @@ def request_email_verification_code(
     new_email = request.new_email.lower()
     
     # Check that new email is not taken by another user
-    existing_user = crud.get_user_by_email(session=session, email=new_email)
+    existing_user = get_user_by_email(session=session, email=new_email)
     if existing_user and existing_user.id != current_user.id:
         raise HTTPException(
             status_code=409, detail="This email is already registered to another user"
@@ -136,10 +132,10 @@ def request_email_verification_code(
         )
     
     # Generate verification code
-    code = generate_email_verification_code()
+    code = verification_service.generate_code()
     
     # Store code
-    store_email_verification_code(str(current_user.id), new_email, code)
+    verification_service.store_code(str(current_user.id), new_email, code)
     
     # Send email with code to current email only
     if settings.emails_enabled:
@@ -147,11 +143,10 @@ def request_email_verification_code(
             raise HTTPException(
                 status_code=400, detail="Current email address is not set"
             )
-        email_data = generate_email_verification_email(email_to=current_user.email, code=code)
-        send_email(
+        background_tasks.add_task(
+            email_service.send_email_verification_code_sync,
             email_to=current_user.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
+            code=code,
         )
     
     return Message(message="Verification code has been sent to your current email address")
@@ -169,13 +164,13 @@ def verify_and_update_email(
     code = verification.code
     
     # Verify code
-    if not verify_email_code(str(current_user.id), new_email, code):
+    if not verification_service.verify_code(str(current_user.id), new_email, code):
         raise HTTPException(
             status_code=400, detail="Invalid or expired verification code"
         )
     
     # Check that email is not taken (in case someone registered between requests)
-    existing_user = crud.get_user_by_email(session=session, email=new_email)
+    existing_user = get_user_by_email(session=session, email=new_email)
     if existing_user and existing_user.id != current_user.id:
         raise HTTPException(
             status_code=409, detail="This email is already registered to another user"
@@ -232,47 +227,15 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     return Message(message="User deleted successfully")
 
 
-@router.post("/signup", response_model=UserPublic)
-def register_user(session: SessionDep, user_in: UserRegister, request: Request) -> Any:
-    """
-    Create new user without the need to be logged in.
-    New users are created as inactive and must be activated by an admin before they can log in.
-    Limited to 2 registrations per IP address.
-    """
-    # Get client IP address
-    client_ip = get_client_ip_from_request(request)
-    tracker = get_ip_registration_tracker()
-    
-    # Check if this IP can register a new user
-    if not tracker.can_register(client_ip):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Maximum number of registrations ({tracker.max_registrations_per_ip}) from this IP address has been reached. Please contact support if you need to register more accounts.",
-        )
-    
-    user = crud.get_user_by_email(session=session, email=user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="The user with this email already exists in the system",
-        )
-    # Create UserCreate from UserRegister, explicitly setting is_active=False
-    # is_superuser is always False (protected in crud.create_user)
-    user_create = UserCreate(
-        email=user_in.email,
-        password=user_in.password,
-        full_name=user_in.full_name,
-        is_active=False,  # New users inactive until admin activation
-    )
-    user = crud.create_user(session=session, user_create=user_create)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    
-    # Record registration from this IP
-    tracker.record_registration(client_ip)
-    
-    return user
+# Public registration endpoint disabled - users can only be created by superusers via admin panel
+# @router.post("/signup", response_model=UserPublic)
+# def register_user(session: SessionDep, user_in: UserRegister, request: Request) -> Any:
+#     """
+#     Create new user without the need to be logged in.
+#     New users are created as inactive and must be activated by an admin before they can log in.
+#     Limited to 2 registrations per IP address.
+#     """
+#     ...
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -316,7 +279,7 @@ def update_user(
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = crud.get_user_by_email(session=session, email=user_in.email)
+        existing_user = get_user_by_email(session=session, email=user_in.email)
         if existing_user and existing_user.id != user_id:
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
@@ -340,7 +303,7 @@ def update_user(
             )
 
     # Allow is_superuser change only for superusers
-    db_user = crud.update_user(
+    db_user = update_user(
         session=session, 
         db_user=db_user, 
         user_in=user_in,

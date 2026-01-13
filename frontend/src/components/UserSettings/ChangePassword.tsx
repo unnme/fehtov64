@@ -87,7 +87,7 @@ const ChangePassword = () => {
                 <FormControl>
                   <PasswordInput
                     data-testid="current-password-input"
-                    placeholder="••••••••"
+                    placeholder=""
                     aria-invalid={fieldState.invalid}
                     {...field}
                   />
@@ -106,7 +106,7 @@ const ChangePassword = () => {
                 <FormControl>
                   <PasswordInput
                     data-testid="new-password-input"
-                    placeholder="••••••••"
+                    placeholder=""
                     aria-invalid={fieldState.invalid}
                     {...field}
                   />
@@ -125,7 +125,7 @@ const ChangePassword = () => {
                 <FormControl>
                   <PasswordInput
                     data-testid="confirm-password-input"
-                    placeholder="••••••••"
+                    placeholder=""
                     aria-invalid={fieldState.invalid}
                     {...field}
                   />

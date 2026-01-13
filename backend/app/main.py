@@ -2,6 +2,7 @@ import sentry_sdk
 from fastapi import FastAPI, Response
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
+from slowapi.errors import RateLimitExceeded
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -9,7 +10,7 @@ from starlette.requests import Request
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.ip_blocking import IPBlockingMiddleware
-from app.core.rate_limit import RateLimitMiddleware
+from app.core.rate_limit import limiter, _rate_limit_exceeded_handler
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -17,6 +18,8 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Middleware for adding security headers."""
+
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         # Security headers
@@ -24,6 +27,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Add CSP header
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data:; "
+            "connect-src 'self'"
+        )
+        # Add HSTS only in production
         if settings.ENVIRONMENT != "local":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
@@ -37,6 +50,10 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
 )
+
+# Add rate limiting exception handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Add security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
@@ -58,14 +75,6 @@ else:
         block_duration=3600,  # 1 hour
         window_period=900,  # 15 minutes
     )
-
-# Add rate limiting for auth endpoints
-# In production: 5 requests per minute, 3 login attempts in 5 minutes
-# In local development: 10 requests per minute, 5 login attempts in 5 minutes
-if settings.ENVIRONMENT == "local":
-    app.add_middleware(RateLimitMiddleware, calls=10, period=60, login_calls=5, login_period=300)
-else:
-    app.add_middleware(RateLimitMiddleware, calls=5, period=60, login_calls=3, login_period=300)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:

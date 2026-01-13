@@ -1,14 +1,16 @@
+"""User repository for database operations."""
 import uuid
 from typing import Any
 
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import News, User
-from app.schemas import NewsCreate, UserCreate, UserUpdate
+from app.models import User
+from app.schemas import UserCreate, UserUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
+    """Create a new user."""
     user_data = user_create.model_dump(exclude={"password"})
     user_data["is_superuser"] = False
     db_obj = User.model_validate(
@@ -20,10 +22,16 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
     return db_obj
 
 
-def update_user(*, session: Session, db_user: User, user_in: UserUpdate, allow_superuser_change: bool = False) -> Any:
+def update_user(
+    *,
+    session: Session,
+    db_user: User,
+    user_in: UserUpdate,
+    allow_superuser_change: bool = False,
+) -> Any:
     """
-    Обновить пользователя.
-    allow_superuser_change: если True, позволяет изменять is_superuser (только для суперпользователей).
+    Update user.
+    allow_superuser_change: if True, allows changing is_superuser (only for superusers).
     """
     user_data = user_in.model_dump(exclude_unset=True)
     if "is_superuser" in user_data and not allow_superuser_change:
@@ -41,9 +49,14 @@ def update_user(*, session: Session, db_user: User, user_in: UserUpdate, allow_s
 
 
 def get_user_by_email(*, session: Session, email: str) -> User | None:
+    """Get user by email."""
     statement = select(User).where(User.email == email)
-    session_user = session.exec(statement).first()
-    return session_user
+    return session.exec(statement).first()
+
+
+def get_user_by_id(*, session: Session, user_id: uuid.UUID) -> User | None:
+    """Get user by ID."""
+    return session.get(User, user_id)
 
 
 def authenticate(*, session: Session, email: str, password: str) -> User | None:
@@ -59,27 +72,3 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     if not db_user.is_active:
         return None
     return db_user
-
-
-def create_news(*, session: Session, news_in: NewsCreate, owner_id: uuid.UUID) -> News:
-    from datetime import datetime, timezone
-
-    now = datetime.now(timezone.utc)
-    news_data = news_in.model_dump()
-    if news_data.get("is_published"):
-        news_data["published_at"] = now
-    else:
-        news_data["published_at"] = None
-
-    db_news = News.model_validate(
-        news_data,
-        update={
-            "owner_id": owner_id,
-            "created_at": now,
-            "updated_at": now,
-        },
-    )
-    session.add(db_news)
-    session.commit()
-    session.refresh(db_news)
-    return db_news

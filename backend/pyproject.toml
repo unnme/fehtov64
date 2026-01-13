@@ -10,7 +10,6 @@ dependencies = [
     "passlib[bcrypt]<2.0.0,>=1.7.4",
     "tenacity<9.0.0,>=8.2.3",
     "pydantic>2.0",
-    "emails<1.0,>=0.6",
     "jinja2<4.0.0,>=3.1.4",
     "alembic<2.0.0,>=1.12.1",
     "httpx<1.0.0,>=0.25.1",
@@ -23,6 +22,10 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "pillow<11.0.0,>=10.0.0",
     "aiofiles<24.0.0,>=23.0.0",
+    # New dependencies for refactoring
+    "slowapi<1.0.0,>=0.1.9",
+    "fastapi-mail<2.0.0,>=1.4.1",
+    "redis<6.0.0,>=5.0.0",
 ]
 
 [tool.uv]

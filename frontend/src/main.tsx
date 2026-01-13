@@ -9,7 +9,7 @@ import {
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 
 import { ApiError, OpenAPI } from "./client"
-import { ThemeProvider } from "./components/ThemeProvider"
+import { ThemeProvider } from "./providers/ThemeProvider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"

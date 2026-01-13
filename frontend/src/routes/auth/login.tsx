@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
-import { getCachedClientIP } from "@/utils/getClientIP"
+import { getCachedClientIP } from "@/utils"
 
 const formSchema = z.object({
   username: z.email(),
@@ -187,12 +187,6 @@ function Login() {
             </LoadingButton>
           </div>
 
-          <div className="text-center text-sm">
-            Don't have an account yet?{" "}
-            <RouterLink to="/auth/signup" className="underline underline-offset-4">
-              Sign up
-            </RouterLink>
-          </div>
         </form>
       </Form>
     </AuthLayout>
