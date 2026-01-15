@@ -6,14 +6,14 @@ dist/
 dist-ssr/
 build/
 .vite/
-.svelte-kit/
-.next/
 *.tsbuildinfo
 out/
 storybook-static/
 
-# Generated OpenAPI schema (generated automatically)
+# Generated files (generated automatically)
 frontend/openapi.json
+frontend/src/routeTree.gen.ts
+frontend/src/client/
 
 # ---------------------------------------------------------
 # ENV files
@@ -26,16 +26,30 @@ frontend/openapi.json
 # BACKEND (Python + FastAPI + SQLAlchemy + uv)
 # ---------------------------------------------------------
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pdb
+*.py[cod]
+*$py.class
+*.so
+.Python
 *.egg-info/
 .eggs/
 .uv/
 .venv/
 venv/
 env/
+ENV/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+
+# Testing
+.pytest_cache/
+.tox/
+.nox/
+.hypothesis/
 
 # SQLite
 *.sqlite
@@ -45,6 +59,16 @@ env/
 # Alembic migrations cache
 alembic/versions/*.pyc
 alembic/versions/*__pycache__/
+app/alembic/versions/*.pyc
+app/alembic/versions/*__pycache__/
+
+# Generated email templates (generated from .mjml)
+backend/app/email-templates/build/
+app/email-templates/build/
+
+# User uploads (should not be in git)
+backend/static/uploads/
+static/uploads/
 
 # ---------------------------------------------------------
 # LOGS
@@ -61,6 +85,10 @@ lerna-debug.log*
 # OS / EDITORS
 # ---------------------------------------------------------
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
 ehthumbs.db
 Desktop.ini
@@ -73,6 +101,9 @@ Desktop.ini
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
 
 # ---------------------------------------------------------
 # DOCKER
@@ -83,8 +114,22 @@ Desktop.ini
 # TEST COVERAGE
 # ---------------------------------------------------------
 coverage/
+.nyc_output/
+htmlcov/
+.coverage
+.coverage.*
+
+# ---------------------------------------------------------
+# TEMPORARY FILES
+# ---------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+.cache/
 
 # ---------------------------------------------------------
 # OPTIONAL GLOBAL NPM CACHE
 # ---------------------------------------------------------
 .npm/
+.yarn/
+.pnpm-store/

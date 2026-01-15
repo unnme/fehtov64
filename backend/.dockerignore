@@ -1,8 +1,108 @@
-# Python
-__pycache__
-app.egg-info
-*.pyc
-.mypy_cache
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.uv/
+
+# Testing & Coverage
+.pytest_cache/
 .coverage
-htmlcov
-.venv
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+app/tests/
+test_*.py
+*_test.py
+tests/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+
+# IDE & Editor
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.*.backup
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Static uploads (не нужны в образе, монтируются через volume)
+static/uploads/
+static/uploads/**/*
+
+# Database files (SQLite, если используется локально)
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.cache/
+
+# Documentation (опционально)
+*.md
+docs/
+README*
+
+# Alembic versions (миграции нужны для продакшена)
+# Оставляем app/alembic/versions/ в образе
