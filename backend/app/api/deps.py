@@ -1,3 +1,4 @@
+"""FastAPI dependencies for authentication and database access."""
 from collections.abc import Generator
 from typing import Annotated
 
@@ -25,6 +26,12 @@ optional_oauth2 = OAuth2PasswordBearer(
 
 
 def get_db() -> Generator[Session, None, None]:
+    """
+    Database session dependency.
+    
+    Yields:
+        Database session
+    """
     with Session(engine) as session:
         yield session
 
@@ -34,6 +41,19 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
+    """
+    Get current authenticated user from JWT token.
+    
+    Args:
+        session: Database session
+        token: JWT access token
+        
+    Returns:
+        Current authenticated user
+        
+    Raises:
+        HTTPException: If token is invalid, user not found, or user is inactive
+    """
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
@@ -56,6 +76,18 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def get_current_active_superuser(current_user: CurrentUser) -> User:
+    """
+    Get current user and verify superuser privileges.
+    
+    Args:
+        current_user: Current authenticated user
+        
+    Returns:
+        Current user if superuser
+        
+    Raises:
+        HTTPException: If user is not a superuser
+    """
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=403, detail="The user doesn't have enough privileges"

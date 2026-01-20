@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { Newspaper, Search } from "lucide-react";
 
 import { NewsService } from "@/client";
-import { Breadcrumbs } from "@/components/Common/Breadcrumbs";
 import { DataTable } from "@/components/Common/DataTable";
 import AddNews from "@/components/News/AddNews";
 import { columns } from "@/components/News/columns";
@@ -59,10 +58,12 @@ function NewsTable() {
 function News() {
   return (
     <div className="flex flex-col h-full">
-      <Breadcrumbs />
       <div className="flex items-center justify-between shrink-0 px-4 py-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Новости</h1>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Newspaper className="h-6 w-6" />
+            Новости
+          </h1>
           <p className="text-muted-foreground">
             Создавайте и управляйте своими новостями
           </p>

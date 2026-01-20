@@ -69,3 +69,34 @@ class NewsImage(NewsImageBase, table=True):
     news: "News" = Relationship(back_populates="images")
 
 
+
+class DocumentCategory(SQLModel, table=True):
+    """Document category model in database."""
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(unique=True, index=True, max_length=100)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    documents: list["Document"] = Relationship(back_populates="category")
+
+
+class DocumentBase(SQLModel):
+    """Base document properties for database table."""
+    name: str = Field(min_length=1, max_length=255)
+    file_name: str = Field(max_length=255)
+    file_path: str = Field(max_length=512)
+    file_size: int
+    mime_type: str = Field(max_length=100)
+
+
+class Document(DocumentBase, table=True):
+    """Document model in database."""
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    category_id: uuid.UUID | None = Field(
+        foreign_key="documentcategory.id", nullable=True, default=None, ondelete="SET NULL"
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    category: "DocumentCategory" = Relationship(back_populates="documents")
+    owner: "User" = Relationship()

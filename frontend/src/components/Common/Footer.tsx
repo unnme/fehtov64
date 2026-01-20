@@ -1,4 +1,4 @@
-import { FaTelegram } from "react-icons/fa"
+import { Send } from "lucide-react"
 
 // Footer component with copyright and social links
 export function Footer() {
@@ -20,7 +20,7 @@ export function Footer() {
             aria-label="Telegram"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            <FaTelegram className="h-6 w-6" />
+            <Send className="h-6 w-6" />
           </a>
         </div>
       </div>

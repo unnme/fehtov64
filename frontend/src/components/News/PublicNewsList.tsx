@@ -23,6 +23,7 @@ import {
 	PaginationPrevious
 } from '@/components/ui/pagination'
 import { ImagesService } from '@/services/imagesService'
+import { cn } from '@/lib/utils'
 
 const NEWS_PER_PAGE = 10
 
@@ -190,7 +191,7 @@ export function PublicNewsList() {
 									e.preventDefault()
 									if (page > 1) setPage(page - 1)
 								}}
-								className={page === 1 ? 'pointer-events-none opacity-50' : ''}
+								className={cn(page === 1 && 'pointer-events-none opacity-50')}
 							/>
 						</PaginationItem>
 						{Array.from({ length: totalPages }, (_, i) => i + 1).map(

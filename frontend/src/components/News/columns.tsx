@@ -97,7 +97,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
               isPublished ? "bg-green-500" : "bg-gray-400",
             )}
           />
-          <span className={isPublished ? "" : "text-muted-foreground"}>
+          <span className={cn(!isPublished && "text-muted-foreground")}>
             {isPublished ? "Да" : "Нет"}
           </span>
         </div>

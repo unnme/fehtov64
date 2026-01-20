@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Users as UsersIcon } from "lucide-react";
 
 import { type UserPublic, UsersService } from "@/client";
 import AddUser from "@/components/Admin/AddUser";
 import { columns, type UserTableData } from "@/components/Admin/columns";
-import { Breadcrumbs } from "@/components/Common/Breadcrumbs";
 import { DataTable } from "@/components/Common/DataTable";
 import PendingUsers from "@/components/Pending/PendingUsers";
 import useAuth from "@/hooks/useAuth";
@@ -51,10 +51,12 @@ function UsersTable() {
 function Users() {
   return (
     <div className="flex flex-col h-full">
-      <Breadcrumbs />
       <div className="flex items-center justify-between shrink-0 px-4 py-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Пользователи</h1>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <UsersIcon className="h-6 w-6" />
+            Пользователи
+          </h1>
           <p className="text-muted-foreground">
             Управление учетными записями и правами доступа
           </p>

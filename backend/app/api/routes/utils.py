@@ -1,3 +1,4 @@
+"""Utility routes for health checks and IP blocking management."""
 from time import time
 from typing import Any
 
@@ -12,6 +13,12 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 
 @router.get("/health-check/")
 async def health_check() -> bool:
+    """
+    Health check endpoint.
+    
+    Returns:
+        True if service is healthy
+    """
     return True
 
 
@@ -22,8 +29,12 @@ async def health_check() -> bool:
 )
 def get_blocked_ips() -> Any:
     """
-    Получить список заблокированных IP-адресов.
-    Только для суперпользователей.
+    Get list of blocked IP addresses.
+    
+    Only accessible by superusers.
+    
+    Returns:
+        List of blocked IPs with their information
     """
     middleware = get_ip_blocking_middleware()
     if not middleware:
@@ -57,8 +68,18 @@ def get_blocked_ips() -> Any:
 )
 def unblock_ip(ip_address: str) -> Any:
     """
-    Разблокировать IP-адрес.
-    Только для суперпользователей.
+    Unblock IP address.
+    
+    Only accessible by superusers.
+    
+    Args:
+        ip_address: IP address to unblock
+        
+    Returns:
+        Success message
+        
+    Raises:
+        HTTPException: If middleware is not available or IP is not blocked
     """
     middleware = get_ip_blocking_middleware()
     if not middleware:

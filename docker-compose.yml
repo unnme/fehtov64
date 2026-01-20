@@ -153,16 +153,25 @@ services:
 
       - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
 
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=Host(`dashboard.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.entrypoints=http
+      # Dashboard subdomain router
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-http.rule=Host(`dashboard.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-http.middlewares=https-redirect
 
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.rule=Host(`dashboard.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.entrypoints=https
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.tls=true
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.tls.certresolver=le
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-https.rule=Host(`dashboard.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-dashboard-https.tls.certresolver=le
 
-      # Enable redirection for HTTP and HTTPS
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
+      # Main domain router (for public news)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-http.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-http.middlewares=https-redirect
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-https.rule=Host(`${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-main-https.tls.certresolver=le
 volumes:
   app-db-data:
   app-uploads-data:

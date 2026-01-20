@@ -94,7 +94,22 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "static/uploads"
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024
+    MAX_DOCUMENT_SIZE: int = 50 * 1024 * 1024  # 50MB
     ALLOWED_IMAGE_TYPES: list[str] = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    ALLOWED_DOCUMENT_TYPES: list[str] = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # .pptx
+        "text/plain",
+        "application/rtf",
+        "application/vnd.oasis.opendocument.text",  # .odt
+        "application/vnd.oasis.opendocument.spreadsheet",  # .ods
+        "application/vnd.oasis.opendocument.presentation",  # .odp
+    ]
 
     # Redis configuration (optional, falls back to in-memory if not set)
     REDIS_URL: str | None = None

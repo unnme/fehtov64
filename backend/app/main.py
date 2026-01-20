@@ -1,3 +1,4 @@
+"""FastAPI application setup and configuration."""
 import sentry_sdk
 from fastapi import FastAPI, Response
 from fastapi.routing import APIRoute
@@ -14,6 +15,15 @@ from app.core.rate_limit import limiter, _rate_limit_exceeded_handler
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
+    """
+    Generate unique ID for OpenAPI route.
+    
+    Args:
+        route: FastAPI route
+        
+    Returns:
+        Unique route ID in format "{tag}-{name}"
+    """
     return f"{route.tags[0]}-{route.name}"
 
 

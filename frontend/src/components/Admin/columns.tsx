@@ -58,7 +58,7 @@ export const columns: ColumnDef<UserTableData>[] = [
             row.original.is_active ? "bg-green-500" : "bg-gray-400",
           )}
         />
-        <span className={row.original.is_active ? "" : "text-muted-foreground"}>
+        <span className={cn(!row.original.is_active && "text-muted-foreground")}>
           {row.original.is_active ? "Active" : "Inactive"}
         </span>
       </div>

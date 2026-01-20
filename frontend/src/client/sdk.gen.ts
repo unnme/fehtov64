@@ -3,12 +3,13 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, NewsReadNewsData, NewsReadNewsResponse, NewsCreateNewsData, NewsCreateNewsResponse, NewsUpdateNewsData, NewsUpdateNewsResponse, NewsDeleteNewsData, NewsDeleteNewsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenResponse, AuthRecoverPasswordData, AuthRecoverPasswordResponse, AuthResetPasswordData, AuthResetPasswordResponse, DocumentsReadCategoriesData, DocumentsReadCategoriesResponse, DocumentsCreateCategoryData, DocumentsCreateCategoryResponse, DocumentsDeleteCategoryData, DocumentsDeleteCategoryResponse, DocumentsReadDocumentsData, DocumentsReadDocumentsResponse, DocumentsCreateDocumentData, DocumentsCreateDocumentResponse, DocumentsReadDocumentData, DocumentsReadDocumentResponse, DocumentsUpdateDocumentData, DocumentsUpdateDocumentResponse, DocumentsDeleteDocumentData, DocumentsDeleteDocumentResponse, DocumentsGetDocumentFileData, DocumentsGetDocumentFileResponse, ImagesUploadImageData, ImagesUploadImageResponse, ImagesGetImagesData, ImagesGetImagesResponse, ImagesDeleteImageData, ImagesDeleteImageResponse, ImagesReorderImageData, ImagesReorderImageResponse, ImagesSetMainImageData, ImagesSetMainImageResponse, ImagesGetImageFileData, ImagesGetImageFileResponse, NewsReadPublicNewsData, NewsReadPublicNewsResponse, NewsReadNewsData, NewsReadNewsResponse, NewsCreateNewsData, NewsCreateNewsResponse, NewsReadNewsItemData, NewsReadNewsItemResponse, NewsUpdateNewsData, NewsUpdateNewsResponse, NewsDeleteNewsData, NewsDeleteNewsResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersRequestEmailVerificationCodeData, UsersRequestEmailVerificationCodeResponse, UsersVerifyAndUpdateEmailData, UsersVerifyAndUpdateEmailResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsHealthCheckResponse, UtilsGetBlockedIpsResponse, UtilsUnblockIpData, UtilsUnblockIpResponse } from './types.gen';
 
 export class AuthService {
     /**
      * Login Access Token
-     * OAuth2 compatible token login, get an access token for future requests
+     * OAuth2 compatible token login, get an access token for future requests.
+     * Protected against timing attacks and rate limited.
      * @param data The data for the request.
      * @param data.formData
      * @returns Token Successful Response
@@ -28,7 +29,8 @@ export class AuthService {
     
     /**
      * Recover Password
-     * Password Recovery
+     * Password Recovery.
+     * Always returns success to prevent email enumeration attacks.
      * @param data The data for the request.
      * @param data.email
      * @returns Message Successful Response
@@ -49,7 +51,7 @@ export class AuthService {
     
     /**
      * Reset Password
-     * Reset password
+     * Reset password using token from email.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns Message Successful Response
@@ -68,10 +70,375 @@ export class AuthService {
     }
 }
 
+export class DocumentsService {
+    /**
+     * Read Categories
+     * Get all document categories.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns DocumentCategoriesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCategories(data: DocumentsReadCategoriesData = {}): CancelablePromise<DocumentsReadCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/categories',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Category
+     * Create a new document category.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns DocumentCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static createCategory(data: DocumentsCreateCategoryData): CancelablePromise<DocumentsCreateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/categories',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Category
+     * Delete a document category. Only for superusers.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteCategory(data: DocumentsDeleteCategoryData): CancelablePromise<DocumentsDeleteCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/documents/categories/{category_id}',
+            path: {
+                category_id: data.categoryId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Documents
+     * Get all documents, optionally filtered by category.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @param data.skip
+     * @param data.limit
+     * @returns DocumentsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDocuments(data: DocumentsReadDocumentsData = {}): CancelablePromise<DocumentsReadDocumentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/',
+            query: {
+                category_id: data.categoryId,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Document
+     * Upload a new document.
+     * @param data The data for the request.
+     * @param data.formData
+     * @returns DocumentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createDocument(data: DocumentsCreateDocumentData): CancelablePromise<DocumentsCreateDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/documents/',
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Document
+     * Get a specific document.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns DocumentPublic Successful Response
+     * @throws ApiError
+     */
+    public static readDocument(data: DocumentsReadDocumentData): CancelablePromise<DocumentsReadDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{document_id}',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Document
+     * Update document (name or category).
+     * @param data The data for the request.
+     * @param data.documentId
+     * @param data.requestBody
+     * @returns DocumentPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateDocument(data: DocumentsUpdateDocumentData): CancelablePromise<DocumentsUpdateDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/documents/{document_id}',
+            path: {
+                document_id: data.documentId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Document
+     * Delete document and its file.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteDocument(data: DocumentsDeleteDocumentData): CancelablePromise<DocumentsDeleteDocumentResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/documents/{document_id}',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Document File
+     * Download document file. Public endpoint.
+     * @param data The data for the request.
+     * @param data.documentId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getDocumentFile(data: DocumentsGetDocumentFileData): CancelablePromise<DocumentsGetDocumentFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/documents/{document_id}/file',
+            path: {
+                document_id: data.documentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ImagesService {
+    /**
+     * Upload Image
+     * Upload an image for a news item.
+     * @param data The data for the request.
+     * @param data.newsId
+     * @param data.formData
+     * @returns NewsImagePublic Successful Response
+     * @throws ApiError
+     */
+    public static uploadImage(data: ImagesUploadImageData): CancelablePromise<ImagesUploadImageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/news/{news_id}/images/',
+            path: {
+                news_id: data.newsId
+            },
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Images
+     * Get all images for a news item.
+     * @param data The data for the request.
+     * @param data.newsId
+     * @returns NewsImageList Successful Response
+     * @throws ApiError
+     */
+    public static getImages(data: ImagesGetImagesData): CancelablePromise<ImagesGetImagesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/news/{news_id}/images/',
+            path: {
+                news_id: data.newsId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Image
+     * Delete an image.
+     * @param data The data for the request.
+     * @param data.newsId
+     * @param data.imageId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteImage(data: ImagesDeleteImageData): CancelablePromise<ImagesDeleteImageResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/news/{news_id}/images/{image_id}',
+            path: {
+                news_id: data.newsId,
+                image_id: data.imageId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reorder Image
+     * Change image order.
+     * @param data The data for the request.
+     * @param data.newsId
+     * @param data.imageId
+     * @param data.newOrder
+     * @returns NewsImagePublic Successful Response
+     * @throws ApiError
+     */
+    public static reorderImage(data: ImagesReorderImageData): CancelablePromise<ImagesReorderImageResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/news/{news_id}/images/{image_id}/reorder',
+            path: {
+                news_id: data.newsId,
+                image_id: data.imageId
+            },
+            query: {
+                new_order: data.newOrder
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Set Main Image
+     * Set image as main (for preview).
+     * @param data The data for the request.
+     * @param data.newsId
+     * @param data.imageId
+     * @returns NewsImagePublic Successful Response
+     * @throws ApiError
+     */
+    public static setMainImage(data: ImagesSetMainImageData): CancelablePromise<ImagesSetMainImageResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/news/{news_id}/images/{image_id}/set-main',
+            path: {
+                news_id: data.newsId,
+                image_id: data.imageId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Image File
+     * Get image file.
+     * Public endpoint - no authentication required as images are part of public news.
+     * @param data The data for the request.
+     * @param data.newsId
+     * @param data.imageId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static getImageFile(data: ImagesGetImageFileData): CancelablePromise<ImagesGetImageFileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/news/{news_id}/images/{image_id}/file',
+            path: {
+                news_id: data.newsId,
+                image_id: data.imageId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class NewsService {
     /**
+     * Read Public News
+     * Retrieve published news. Public endpoint - no authentication required.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns NewsPublicList Successful Response
+     * @throws ApiError
+     */
+    public static readPublicNews(data: NewsReadPublicNewsData = {}): CancelablePromise<NewsReadPublicNewsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/news/public',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Read News
-     * Retrieve news. Users can only see their own news.
+     * Retrieve news. All users can see all news.
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
@@ -113,8 +480,29 @@ export class NewsService {
     }
     
     /**
+     * Read News Item
+     * Get news by ID. All users can read all news.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns NewsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readNewsItem(data: NewsReadNewsItemData): CancelablePromise<NewsReadNewsItemResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/news/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Update News
-     * Update news.
+     * Update news. Regular users can only update their own news, superusers can update any.
      * @param data The data for the request.
      * @param data.id
      * @param data.requestBody
@@ -138,7 +526,8 @@ export class NewsService {
     
     /**
      * Delete News
-     * Delete news.
+     * Delete news. Regular users can only delete their own news, superusers can delete any.
+     * Also deletes all associated image files from the server.
      * @param data The data for the request.
      * @param data.id
      * @returns Message Successful Response
@@ -231,6 +620,7 @@ export class UsersService {
     /**
      * Update User Me
      * Update own user.
+     * Note: Email cannot be changed through this endpoint. Use /users/me/email/verify instead.
      * @param data The data for the request.
      * @param data.requestBody
      * @returns UserPublic Successful Response
@@ -240,6 +630,48 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/v1/users/me',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Request Email Verification Code
+     * Request email verification code to change email address.
+     * Sends a 4-character code to the new email address.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static requestEmailVerificationCode(data: UsersRequestEmailVerificationCodeData): CancelablePromise<UsersRequestEmailVerificationCodeResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/users/me/email/request-code',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Verify And Update Email
+     * Verify email change with code and update email address.
+     * Requires the 4-character code sent to the new email address.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns UserPublic Successful Response
+     * @throws ApiError
+     */
+    public static verifyAndUpdateEmail(data: UsersVerifyAndUpdateEmailData): CancelablePromise<UsersVerifyAndUpdateEmailResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/users/me/email/verify',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -269,19 +701,20 @@ export class UsersService {
     }
     
     /**
-     * Register User
-     * Create new user without the need to be logged in.
+     * Read User By Id
+     * Get a specific user by id.
      * @param data The data for the request.
-     * @param data.requestBody
+     * @param data.userId
      * @returns UserPublic Successful Response
      * @throws ApiError
      */
-    public static registerUser(data: UsersRegisterUserData): CancelablePromise<UsersRegisterUserResponse> {
+    public static readUserById(data: UsersReadUserByIdData): CancelablePromise<UsersReadUserByIdResponse> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/users/signup',
-            body: data.requestBody,
-            mediaType: 'application/json',
+            method: 'GET',
+            url: '/api/v1/users/{user_id}',
+            path: {
+                user_id: data.userId
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -335,4 +768,69 @@ export class UsersService {
 }
 
 export class UtilsService {
+    /**
+     * Health Check
+     * Health check endpoint.
+     *
+     * Returns:
+     * True if service is healthy
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static healthCheck(): CancelablePromise<UtilsHealthCheckResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/utils/health-check/'
+        });
+    }
+    
+    /**
+     * Get Blocked Ips
+     * Get list of blocked IP addresses.
+     *
+     * Only accessible by superusers.
+     *
+     * Returns:
+     * List of blocked IPs with their information
+     * @returns BlockedIPsList Successful Response
+     * @throws ApiError
+     */
+    public static getBlockedIps(): CancelablePromise<UtilsGetBlockedIpsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/utils/blocked-ips/'
+        });
+    }
+    
+    /**
+     * Unblock Ip
+     * Unblock IP address.
+     *
+     * Only accessible by superusers.
+     *
+     * Args:
+     * ip_address: IP address to unblock
+     *
+     * Returns:
+     * Success message
+     *
+     * Raises:
+     * HTTPException: If middleware is not available or IP is not blocked
+     * @param data The data for the request.
+     * @param data.ipAddress
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static unblockIp(data: UtilsUnblockIpData): CancelablePromise<UtilsUnblockIpResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/utils/unblock-ip/{ip_address}',
+            path: {
+                ip_address: data.ipAddress
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
