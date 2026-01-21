@@ -1,6 +1,6 @@
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 
-import type { Document } from "@/services/documentsService"
+import type { DocumentPublic } from "@/client"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import { EditDocument } from "./EditDocument"
 import { DeleteDocument } from "./DeleteDocument"
 import { useState } from "react"
 
-export function DocumentsActionsMenu({ document }: { document: Document }) {
+export function DocumentsActionsMenu({ document }: { document: DocumentPublic }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
 

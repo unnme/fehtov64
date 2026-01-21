@@ -16,6 +16,7 @@ from app.schemas import (
     NewsPublic,
     NewsPublicList,
     NewsUpdate,
+    UserPublic,
 )
 
 router = APIRouter(prefix="/news", tags=["news"])
@@ -46,18 +47,50 @@ def read_public_news(
         )
         news_list = session.exec(statement).all()
         
+        from app.models import User
+        from app.core.config import settings as app_settings
+        from app.schemas import NewsImagePublic
+        
+        # Build news list with owner and images
+        news_public_list = []
         for news_item in news_list:
+            # Load owner and convert to UserPublic
+            owner_public = None
+            if news_item.owner_id:
+                owner = session.get(User, news_item.owner_id)
+                if owner:
+                    owner_dict = owner.model_dump()
+                    owner_dict["is_first_superuser"] = owner.email == app_settings.FIRST_SUPERUSER
+                    owner_public = UserPublic.model_validate(owner_dict)
+            
+            # Load images
+            images = []
             try:
                 images_statement = (
                     select(NewsImage)
                     .where(NewsImage.news_id == news_item.id)
                     .order_by(NewsImage.order)
                 )
-                news_item.images = session.exec(images_statement).all()
+                images = session.exec(images_statement).all()
             except Exception:
-                news_item.images = []
+                images = []
             
-        return NewsPublicList(data=news_list, count=count)
+            # Create NewsPublic object
+            news_public = NewsPublic(
+                id=news_item.id,
+                title=news_item.title,
+                content=news_item.content,
+                is_published=news_item.is_published,
+                owner_id=news_item.owner_id,
+                owner=owner_public,
+                published_at=news_item.published_at,
+                created_at=news_item.created_at,
+                updated_at=news_item.updated_at,
+                images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+            )
+            news_public_list.append(news_public)
+            
+        return NewsPublicList(data=news_public_list, count=count)
 
 
 @router.get("/", response_model=NewsPublicList)
@@ -77,18 +110,49 @@ def read_news(
     )
     news_list = session.exec(statement).all()
     
+    from app.models import User
+    from app.schemas import NewsImagePublic
+    
+    # Build news list with owner and images
+    news_public_list = []
     for news_item in news_list:
+        # Load owner and convert to UserPublic
+        owner_public = None
+        if news_item.owner_id:
+            owner = session.get(User, news_item.owner_id)
+            if owner:
+                owner_dict = owner.model_dump()
+                owner_dict["is_first_superuser"] = owner.email == settings.FIRST_SUPERUSER
+                owner_public = UserPublic.model_validate(owner_dict)
+        
+        # Load images
+        images = []
         try:
             images_statement = (
                 select(NewsImage)
                 .where(NewsImage.news_id == news_item.id)
                 .order_by(NewsImage.order)
             )
-            news_item.images = session.exec(images_statement).all()
+            images = session.exec(images_statement).all()
         except Exception:
-            news_item.images = []
+            images = []
         
-        return NewsPublicList(data=news_list, count=count)
+        # Create NewsPublic object
+        news_public = NewsPublic(
+            id=news_item.id,
+            title=news_item.title,
+            content=news_item.content,
+            is_published=news_item.is_published,
+            owner_id=news_item.owner_id,
+            owner=owner_public,
+            published_at=news_item.published_at,
+            created_at=news_item.created_at,
+            updated_at=news_item.updated_at,
+            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+        )
+        news_public_list.append(news_public)
+    
+    return NewsPublicList(data=news_public_list, count=count)
 
 
 @router.get("/{id}", response_model=NewsPublic)
@@ -102,17 +166,43 @@ def read_news_item(
     if not news_item:
         raise HTTPException(status_code=404, detail="News not found")
     
+    # Load owner and convert to UserPublic
+    from app.models import User
+    from app.schemas import NewsImagePublic
+    
+    owner_public = None
+    if news_item.owner_id:
+        owner = session.get(User, news_item.owner_id)
+        if owner:
+            owner_dict = owner.model_dump()
+            owner_dict["is_first_superuser"] = owner.email == settings.FIRST_SUPERUSER
+            owner_public = UserPublic.model_validate(owner_dict)
+    
+    # Load images
+    images = []
     try:
         images_statement = (
             select(NewsImage)
             .where(NewsImage.news_id == news_item.id)
             .order_by(NewsImage.order)
         )
-        news_item.images = session.exec(images_statement).all()
+        images = session.exec(images_statement).all()
     except Exception:
-        news_item.images = []
+        images = []
     
-    return news_item
+    # Create NewsPublic object
+    return NewsPublic(
+        id=news_item.id,
+        title=news_item.title,
+        content=news_item.content,
+        is_published=news_item.is_published,
+        owner_id=news_item.owner_id,
+        owner=owner_public,
+        published_at=news_item.published_at,
+        created_at=news_item.created_at,
+        updated_at=news_item.updated_at,
+        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+    )
 
 
 @router.post("/", response_model=NewsPublic)
@@ -148,6 +238,18 @@ def update_news(
     update_dict = news_in.model_dump(exclude_unset=True)
     now = datetime.now(timezone.utc)
 
+    # Only superusers can change owner
+    # Check if owner_id is explicitly provided (even if None)
+    if hasattr(news_in, 'owner_id') and news_in.owner_id is not None:
+        if not current_user.is_superuser:
+            raise HTTPException(status_code=403, detail="Only superusers can change news owner")
+        # Validate that the new owner exists
+        from app.models import User
+        new_owner = session.get(User, news_in.owner_id)
+        if not new_owner:
+            raise HTTPException(status_code=404, detail="Owner user not found")
+        update_dict["owner_id"] = news_in.owner_id
+
     if "is_published" in update_dict:
         if update_dict["is_published"] and not news.published_at:
             update_dict["published_at"] = now
@@ -159,7 +261,42 @@ def update_news(
     session.add(news)
     session.commit()
     session.refresh(news)
-    return news
+    
+    # Load owner and images for response
+    from app.models import User
+    from app.schemas import NewsImagePublic
+    
+    owner_public = None
+    if news.owner_id:
+        owner = session.get(User, news.owner_id)
+        if owner:
+            owner_dict = owner.model_dump()
+            owner_dict["is_first_superuser"] = owner.email == settings.FIRST_SUPERUSER
+            owner_public = UserPublic.model_validate(owner_dict)
+    
+    images = []
+    try:
+        images_statement = (
+            select(NewsImage)
+            .where(NewsImage.news_id == news.id)
+            .order_by(NewsImage.order)
+        )
+        images = session.exec(images_statement).all()
+    except Exception:
+        images = []
+    
+    return NewsPublic(
+        id=news.id,
+        title=news.title,
+        content=news.content,
+        is_published=news.is_published,
+        owner_id=news.owner_id,
+        owner=owner_public,
+        published_at=news.published_at,
+        created_at=news.created_at,
+        updated_at=news.updated_at,
+        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+    )
 
 
 @router.delete("/{id}")

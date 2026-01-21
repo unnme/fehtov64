@@ -1,8 +1,8 @@
-import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useForm } from "react-hook-form"
 import { Pencil } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { type UserPublic, UsersService } from "@/client"
@@ -28,18 +28,20 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  full_name: z.string().optional(),
+  full_name: z.string().min(1, { message: "Full name is required" }),
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters" })
     .optional()
     .or(z.literal("")),
   is_active: z.boolean().optional(),
+  is_superuser: z.boolean().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -53,6 +55,7 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const { user: currentUser } = useAuth()
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,21 +63,29 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
     criteriaMode: "all",
     defaultValues: {
       email: user.email,
-      full_name: user.full_name ?? undefined,
+      full_name: user.full_name || "",
       is_active: user.is_active,
+      is_superuser: user.is_superuser,
     },
   })
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => {
+    mutationFn: async (data: FormData) => {
       const requestBody: any = {}
       if (data.email) requestBody.email = data.email
-      if (data.full_name !== undefined) requestBody.full_name = data.full_name || null
+      if (data.full_name) requestBody.full_name = data.full_name
       if (data.password && data.password !== "") {
         requestBody.password = data.password
       }
       if (data.is_active !== undefined) requestBody.is_active = data.is_active
-      return UsersService.updateUser({ userId: user.id, requestBody })
+      if (data.is_superuser !== undefined && currentUser?.is_superuser) {
+        requestBody.is_superuser = data.is_superuser
+      }
+      const response = await UsersService.usersUpdateUser({ path: { user_id: user.id }, body: requestBody })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data
     },
     onSuccess: () => {
       showSuccessToast("Пользователь успешно обновлен")
@@ -136,9 +147,11 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Полное имя</FormLabel>
+                    <FormLabel>
+                      Полное имя <span className="text-destructive">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Full name" type="text" {...field} />
+                      <Input placeholder="Full name" type="text" {...field} required />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -181,6 +194,24 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
                   </FormItem>
                 )}
               />
+
+              {currentUser?.is_superuser && (
+                <FormField
+                  control={form.control}
+                  name="is_superuser"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="font-normal">Is superuser</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <DialogFooter>

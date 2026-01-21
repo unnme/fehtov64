@@ -2,25 +2,18 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { Download } from "lucide-react"
 
+import { type DocumentPublic } from "@/client"
 import { Button } from "@/components/ui/button"
-import type { Document } from "@/services/documentsService"
-import { DocumentsService } from "@/services/documentsService"
+import { getDocumentFileUrl } from "@/utils/fileUrls"
 import { DocumentsActionsMenu } from "./DocumentsActionsMenu"
 import { FileTypeIcon } from "./FileTypeIcon"
 
-export const columns: ColumnDef<Document>[] = [
+export const columns: ColumnDef<DocumentPublic>[] = [
   {
     accessorKey: "name",
     header: "Название",
     cell: ({ row }) => (
       <span className="font-medium">{row.original.name}</span>
-    ),
-  },
-  {
-    accessorKey: "file_name",
-    header: "Имя файла",
-    cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">{row.original.file_name}</span>
     ),
   },
   {
@@ -56,7 +49,7 @@ export const columns: ColumnDef<Document>[] = [
       const createdAt = row.original.created_at
       return (
         <span className="text-sm text-muted-foreground/70">
-          {format(new Date(createdAt), "dd.MM.yyyy HH:mm")}
+          {format(new Date(createdAt), "dd.MM.yyyy")}
         </span>
       )
     },
@@ -70,7 +63,7 @@ export const columns: ColumnDef<Document>[] = [
           variant="ghost"
           size="sm"
           onClick={() => {
-            const url = DocumentsService.getDocumentFileUrl(row.original.id)
+            const url = getDocumentFileUrl(row.original.id)
             window.open(url, "_blank")
           }}
         >

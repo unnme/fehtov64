@@ -35,7 +35,7 @@ import { handleError } from "@/utils"
 const formSchema = z
   .object({
     email: z.string().email({ message: "Invalid email address" }),
-    full_name: z.string().optional(),
+    full_name: z.string().min(1, { message: "Full name is required" }),
     password: z
       .string()
       .min(1, { message: "Password is required" })
@@ -44,6 +44,7 @@ const formSchema = z
       .string()
       .min(1, { message: "Please confirm your password" }),
     is_active: z.boolean(),
+    is_superuser: z.boolean(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "The passwords don't match",
@@ -67,18 +68,24 @@ const AddUser = () => {
       password: "",
       confirm_password: "",
       is_active: true,
+      is_superuser: false,
     },
   })
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => {
+    mutationFn: async (data: FormData) => {
       const requestBody: UserCreate = {
         email: data.email,
         password: data.password,
-        full_name: data.full_name || undefined,
+        full_name: data.full_name,
         is_active: data.is_active,
+        is_superuser: data.is_superuser,
       }
-      return UsersService.createUser({ requestBody })
+      const response = await UsersService.usersCreateUser({ body: requestBody })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data
     },
     onSuccess: () => {
       showSuccessToast("User created successfully")
@@ -139,9 +146,11 @@ const AddUser = () => {
                 name="full_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>
+                      Full Name <span className="text-destructive">*</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Full name" type="text" {...field} />
+                      <Input placeholder="Full name" type="text" {...field} required />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -203,6 +212,22 @@ const AddUser = () => {
                       />
                     </FormControl>
                     <FormLabel className="font-normal">Is active</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_superuser"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">Is superuser</FormLabel>
                   </FormItem>
                 )}
               />

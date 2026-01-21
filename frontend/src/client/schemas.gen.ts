@@ -65,7 +65,13 @@ export const BlockedIPInfoSchema = {
         }
     },
     type: 'object',
-    required: ['ip', 'blocked_until', 'remaining_seconds', 'failed_attempts_count', 'block_reason'],
+    required: [
+        'ip',
+        'blocked_until',
+        'remaining_seconds',
+        'failed_attempts_count',
+        'block_reason'
+    ],
     title: 'BlockedIPInfo',
     description: 'Blocked IP address information.'
 } as const;
@@ -74,7 +80,7 @@ export const BlockedIPsListSchema = {
     properties: {
         blocked_ips: {
             items: {
-                '$ref': '#/components/schemas/BlockedIPInfo'
+                $ref: '#/components/schemas/BlockedIPInfo'
             },
             type: 'array',
             title: 'Blocked Ips'
@@ -85,7 +91,10 @@ export const BlockedIPsListSchema = {
         }
     },
     type: 'object',
-    required: ['blocked_ips', 'count'],
+    required: [
+        'blocked_ips',
+        'count'
+    ],
     title: 'BlockedIPsList',
     description: 'List of blocked IP addresses.'
 } as const;
@@ -141,7 +150,10 @@ export const Body_auth_login_access_tokenSchema = {
         }
     },
     type: 'object',
-    required: ['username', 'password'],
+    required: [
+        'username',
+        'password'
+    ],
     title: 'Body_auth-login_access_token'
 } as const;
 
@@ -173,21 +185,12 @@ export const Body_documents_create_documentSchema = {
                 }
             ],
             title: 'Category Id'
-        },
-        category_name: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Category Name'
         }
     },
     type: 'object',
-    required: ['file'],
+    required: [
+        'file'
+    ],
     title: 'Body_documents-create_document'
 } as const;
 
@@ -200,7 +203,9 @@ export const Body_images_upload_imageSchema = {
         }
     },
     type: 'object',
-    required: ['file'],
+    required: [
+        'file'
+    ],
     title: 'Body_images-upload_image'
 } as const;
 
@@ -208,7 +213,7 @@ export const DocumentCategoriesPublicSchema = {
     properties: {
         data: {
             items: {
-                '$ref': '#/components/schemas/DocumentCategoryPublic'
+                $ref: '#/components/schemas/DocumentCategoryPublic'
             },
             type: 'array',
             title: 'Data'
@@ -219,7 +224,10 @@ export const DocumentCategoriesPublicSchema = {
         }
     },
     type: 'object',
-    required: ['data', 'count'],
+    required: [
+        'data',
+        'count'
+    ],
     title: 'DocumentCategoriesPublic',
     description: 'Document category list with count.'
 } as const;
@@ -234,7 +242,9 @@ export const DocumentCategoryCreateSchema = {
         }
     },
     type: 'object',
-    required: ['name'],
+    required: [
+        'name'
+    ],
     title: 'DocumentCategoryCreate',
     description: 'Schema for creating document category.'
 } as const;
@@ -257,9 +267,34 @@ export const DocumentCategoryPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'name', 'created_at'],
+    required: [
+        'id',
+        'name',
+        'created_at'
+    ],
     title: 'DocumentCategoryPublic',
     description: 'Public document category schema for API responses.'
+} as const;
+
+export const DocumentCategoryUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 100,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    title: 'DocumentCategoryUpdate',
+    description: 'Schema for updating document category (all fields optional).'
 } as const;
 
 export const DocumentPublicSchema = {
@@ -304,7 +339,7 @@ export const DocumentPublicSchema = {
         category: {
             anyOf: [
                 {
-                    '$ref': '#/components/schemas/DocumentCategoryPublic'
+                    $ref: '#/components/schemas/DocumentCategoryPublic'
                 },
                 {
                     type: 'null'
@@ -319,7 +354,7 @@ export const DocumentPublicSchema = {
         owner: {
             anyOf: [
                 {
-                    '$ref': '#/components/schemas/UserPublic'
+                    $ref: '#/components/schemas/UserPublic'
                 },
                 {
                     type: 'null'
@@ -338,7 +373,17 @@ export const DocumentPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'name', 'file_name', 'file_path', 'file_size', 'mime_type', 'owner_id', 'created_at', 'updated_at'],
+    required: [
+        'id',
+        'name',
+        'file_name',
+        'file_path',
+        'file_size',
+        'mime_type',
+        'owner_id',
+        'created_at',
+        'updated_at'
+    ],
     title: 'DocumentPublic',
     description: 'Public document schema for API responses.'
 } as const;
@@ -380,7 +425,7 @@ export const DocumentsPublicSchema = {
     properties: {
         data: {
             items: {
-                '$ref': '#/components/schemas/DocumentPublic'
+                $ref: '#/components/schemas/DocumentPublic'
             },
             type: 'array',
             title: 'Data'
@@ -391,7 +436,10 @@ export const DocumentsPublicSchema = {
         }
     },
     type: 'object',
-    required: ['data', 'count'],
+    required: [
+        'data',
+        'count'
+    ],
     title: 'DocumentsPublic',
     description: 'Document list with count.'
 } as const;
@@ -412,7 +460,10 @@ export const EmailVerificationCodeSchema = {
         }
     },
     type: 'object',
-    required: ['new_email', 'code'],
+    required: [
+        'new_email',
+        'code'
+    ],
     title: 'EmailVerificationCode',
     description: 'Schema for email verification with code.'
 } as const;
@@ -427,7 +478,9 @@ export const EmailVerificationRequestSchema = {
         }
     },
     type: 'object',
-    required: ['new_email'],
+    required: [
+        'new_email'
+    ],
     title: 'EmailVerificationRequest',
     description: 'Schema for requesting email verification code.'
 } as const;
@@ -436,7 +489,7 @@ export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
             items: {
-                '$ref': '#/components/schemas/ValidationError'
+                $ref: '#/components/schemas/ValidationError'
             },
             type: 'array',
             title: 'Detail'
@@ -454,7 +507,9 @@ export const MessageSchema = {
         }
     },
     type: 'object',
-    required: ['message'],
+    required: [
+        'message'
+    ],
     title: 'Message',
     description: 'Generic message for API responses.'
 } as const;
@@ -473,7 +528,10 @@ export const NewPasswordSchema = {
         }
     },
     type: 'object',
-    required: ['token', 'new_password'],
+    required: [
+        'token',
+        'new_password'
+    ],
     title: 'NewPassword',
     description: 'Schema for password reset.'
 } as const;
@@ -498,7 +556,10 @@ export const NewsCreateSchema = {
         }
     },
     type: 'object',
-    required: ['title', 'content'],
+    required: [
+        'title',
+        'content'
+    ],
     title: 'NewsCreate',
     description: 'Schema for creating news.'
 } as const;
@@ -507,7 +568,7 @@ export const NewsImageListSchema = {
     properties: {
         data: {
             items: {
-                '$ref': '#/components/schemas/NewsImagePublic'
+                $ref: '#/components/schemas/NewsImagePublic'
             },
             type: 'array',
             title: 'Data'
@@ -518,7 +579,10 @@ export const NewsImageListSchema = {
         }
     },
     type: 'object',
-    required: ['data', 'count'],
+    required: [
+        'data',
+        'count'
+    ],
     title: 'NewsImageList',
     description: 'News image list with count.'
 } as const;
@@ -571,7 +635,15 @@ export const NewsImagePublicSchema = {
         }
     },
     type: 'object',
-    required: ['file_name', 'file_path', 'file_size', 'mime_type', 'id', 'news_id', 'created_at'],
+    required: [
+        'file_name',
+        'file_path',
+        'file_size',
+        'mime_type',
+        'id',
+        'news_id',
+        'created_at'
+    ],
     title: 'NewsImagePublic',
     description: 'Public news image schema for API responses.'
 } as const;
@@ -630,7 +702,7 @@ export const NewsPublicSchema = {
             anyOf: [
                 {
                     items: {
-                        '$ref': '#/components/schemas/NewsImagePublic'
+                        $ref: '#/components/schemas/NewsImagePublic'
                     },
                     type: 'array'
                 },
@@ -642,7 +714,15 @@ export const NewsPublicSchema = {
         }
     },
     type: 'object',
-    required: ['title', 'content', 'id', 'owner_id', 'published_at', 'created_at', 'updated_at'],
+    required: [
+        'title',
+        'content',
+        'id',
+        'owner_id',
+        'published_at',
+        'created_at',
+        'updated_at'
+    ],
     title: 'NewsPublic',
     description: 'Public news schema for API responses.'
 } as const;
@@ -651,7 +731,7 @@ export const NewsPublicListSchema = {
     properties: {
         data: {
             items: {
-                '$ref': '#/components/schemas/NewsPublic'
+                $ref: '#/components/schemas/NewsPublic'
             },
             type: 'array',
             title: 'Data'
@@ -662,7 +742,10 @@ export const NewsPublicListSchema = {
         }
     },
     type: 'object',
-    required: ['data', 'count'],
+    required: [
+        'data',
+        'count'
+    ],
     title: 'NewsPublicList',
     description: 'News list with count.'
 } as const;
@@ -724,7 +807,9 @@ export const TokenSchema = {
         }
     },
     type: 'object',
-    required: ['access_token'],
+    required: [
+        'access_token'
+    ],
     title: 'Token',
     description: 'Access token schema.'
 } as const;
@@ -745,7 +830,10 @@ export const UpdatePasswordSchema = {
         }
     },
     type: 'object',
-    required: ['current_password', 'new_password'],
+    required: [
+        'current_password',
+        'new_password'
+    ],
     title: 'UpdatePassword',
     description: 'Schema for password update.'
 } as const;
@@ -783,7 +871,10 @@ export const UserCreateSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'password'],
+    required: [
+        'email',
+        'password'
+    ],
     title: 'UserCreate',
     description: 'Schema for creating user via API.'
 } as const;
@@ -825,7 +916,10 @@ export const UserPublicSchema = {
         }
     },
     type: 'object',
-    required: ['email', 'id'],
+    required: [
+        'email',
+        'id'
+    ],
     title: 'UserPublic',
     description: 'Public user schema for API responses.'
 } as const;
@@ -895,8 +989,7 @@ export const UserUpdateSchema = {
     },
     type: 'object',
     title: 'UserUpdate',
-    description: `Schema for updating user (all fields optional).
-is_superuser can only be changed by superuser.`
+    description: 'Schema for updating user (all fields optional).\nis_superuser can only be changed by superuser.'
 } as const;
 
 export const UserUpdateMeSchema = {
@@ -935,7 +1028,7 @@ export const UsersPublicSchema = {
     properties: {
         data: {
             items: {
-                '$ref': '#/components/schemas/UserPublic'
+                $ref: '#/components/schemas/UserPublic'
             },
             type: 'array',
             title: 'Data'
@@ -946,7 +1039,10 @@ export const UsersPublicSchema = {
         }
     },
     type: 'object',
-    required: ['data', 'count'],
+    required: [
+        'data',
+        'count'
+    ],
     title: 'UsersPublic',
     description: 'User list with count.'
 } as const;
@@ -977,6 +1073,10 @@ export const ValidationErrorSchema = {
         }
     },
     type: 'object',
-    required: ['loc', 'msg', 'type'],
+    required: [
+        'loc',
+        'msg',
+        'type'
+    ],
     title: 'ValidationError'
 } as const;

@@ -17,7 +17,7 @@ export const Route = createFileRoute('/')({
 				// Check authentication
 				if (isLoggedIn()) {
 					try {
-						await UsersService.readUserMe()
+						await UsersService.usersReadUserMe()
 						// Authenticated - redirect to dashboard
 						throw redirect({ to: '/dashboard' })
 					} catch (error: any) {

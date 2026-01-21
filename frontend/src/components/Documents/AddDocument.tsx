@@ -32,16 +32,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic } from "@/client"
 import useCustomToast from "@/hooks/useCustomToast"
 import { cn } from "@/lib/utils"
-import { DocumentsService } from "@/services/documentsService"
 import { handleError } from "@/utils"
 import { useDropzone } from "react-dropzone"
 
 const formSchema = z.object({
   name: z.string().optional(),
   category_id: z.string().uuid().optional(),
-  category_name: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -49,29 +48,17 @@ type FormData = z.infer<typeof formSchema>
 export function AddDocument() {
   const [isOpen, setIsOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
-  const [isNewCategory, setIsNewCategory] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
-  const { data: categories = { data: [], count: 0 } } = useQuery({
+  const { data: categories = { data: [], count: 0 } } = useQuery<DocumentCategoriesPublic>({
     queryKey: ["document-categories"],
-    queryFn: () => DocumentsService.getCategories(),
-  })
-
-  const createCategoryMutation = useMutation({
-    mutationFn: async (name: string) => {
-      return DocumentsService.createCategory(name)
-    },
-    onSuccess: (newCategory) => {
-      queryClient.invalidateQueries({ queryKey: ["document-categories"] })
-      // Switch to select mode and select the newly created category
-      setIsNewCategory(false)
-      form.setValue("category_id", newCategory.id)
-      form.clearErrors("category_id")
-      form.clearErrors("category_name")
-    },
-    onError: (error: any) => {
-      showErrorToast(error.message || "Ошибка при создании категории")
+    queryFn: async () => {
+      const response = await DocumentsService.documentsReadCategories()
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentCategoriesPublic
     },
   })
 
@@ -81,22 +68,26 @@ export function AddDocument() {
     defaultValues: {
       name: "",
       category_id: undefined,
-      category_name: undefined,
     },
   })
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       if (!file) {
-        throw new Error("Файл не выбран")
+        throw new Error("File not selected")
       }
 
-      return DocumentsService.uploadDocument(
-        file,
-        data.name || undefined,
-        data.category_id || undefined,
-        data.category_name || undefined
-      )
+      const response = await DocumentsService.documentsCreateDocument({
+        body: {
+          file,
+          name: data.name || null,
+          category_id: data.category_id || null,
+        },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentPublic
     },
     onSuccess: () => {
       showSuccessToast("Документ загружен успешно")
@@ -104,7 +95,6 @@ export function AddDocument() {
       setIsOpen(false)
       form.reset()
       setFile(null)
-      setIsNewCategory(false)
     },
     onError: handleError.bind(showErrorToast),
   })
@@ -144,7 +134,6 @@ export function AddDocument() {
       setIsOpen(false)
       form.reset()
       setFile(null)
-      setIsNewCategory(false)
     }
   }
 
@@ -153,7 +142,7 @@ export function AddDocument() {
       showErrorToast("Выберите файл для загрузки")
       return
     }
-    
+
     mutation.mutate(data)
   }
 
@@ -238,107 +227,36 @@ export function AddDocument() {
               )}
             />
 
-            {!isNewCategory ? (
-              <FormField
-                control={form.control}
-                name="category_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Категория</FormLabel>
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <Select
-                          onValueChange={(value) => {
-                            field.onChange(value === "__none__" ? undefined : value)
-                            // Clear error for category_name when category_id is selected
-                            form.clearErrors("category_name")
-                          }}
-                          value={field.value || "__none__"}
-                        >
-                          <FormControl>
-                            <SelectTrigger className={cn(form.formState.errors.category_id && "border-destructive")}>
-                              <SelectValue placeholder="Выберите категорию" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="__none__">Без категории</SelectItem>
-                            {categories.data.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setIsNewCategory(true)
-                          form.clearErrors("category_id")
-                        }}
-                        className="mt-0"
-                      >
-                        Создать категорию
-                      </Button>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="category_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Название категории</FormLabel>
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1">
-                        <FormControl>
-                          <Input 
-                            placeholder="Введите название категории" 
-                            {...field}
-                            onChange={(e) => {
-                              field.onChange(e)
-                              // Clear error for category_id when category_name is entered
-                              form.clearErrors("category_id")
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && field.value && field.value.trim().length > 0) {
-                                e.preventDefault()
-                                createCategoryMutation.mutate(field.value.trim())
-                              }
-                            }}
-                            className={cn(form.formState.errors.category_name && "border-destructive")}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const categoryName = field.value?.trim()
-                          if (!categoryName || categoryName.length === 0) {
-                            form.setError("category_name", {
-                              type: "manual",
-                              message: "Введите название категории"
-                            })
-                            return
-                          }
-                          createCategoryMutation.mutate(categoryName)
-                        }}
-                        disabled={createCategoryMutation.isPending}
-                        className="mt-0"
-                      >
-                        {createCategoryMutation.isPending ? "..." : "+"}
-                      </Button>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="category_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Категория</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value === "__none__" ? undefined : value)
+                    }}
+                    value={field.value || "__none__"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите категорию" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="__none__">Без категории</SelectItem>
+                      {categories.data.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter>
               <Button

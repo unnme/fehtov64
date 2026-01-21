@@ -54,6 +54,8 @@ services:
       db:
         condition: service_healthy
     command: bash scripts/prestart.sh
+    volumes:
+      - app-uploads-data:/app/static/uploads
     env_file:
       - .env
     environment:

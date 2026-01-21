@@ -31,7 +31,10 @@ const DeleteNews = ({ id, onSuccess }: DeleteNewsProps) => {
   const { handleSubmit } = useForm()
 
   const deleteNews = async (id: string) => {
-    await NewsService.deleteNews({ id: id })
+    const response = await NewsService.newsDeleteNews({ path: { id } })
+    if ('error' in response && response.error) {
+      throw response
+    }
   }
 
   const mutation = useMutation({

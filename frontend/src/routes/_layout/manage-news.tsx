@@ -1,17 +1,23 @@
-import { Suspense } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Newspaper, Search } from "lucide-react";
+import { Newspaper } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
 
-import { NewsService } from "@/client";
+import { NewsService, type NewsPublic } from "@/client";
 import { DataTable } from "@/components/Common/DataTable";
 import AddNews from "@/components/News/AddNews";
-import { columns } from "@/components/News/columns";
+import { columns, NewsFilters } from "@/components/News";
 import PendingNews from "@/components/Pending/PendingNews";
 
 function getNewsQueryOptions() {
   return {
-    queryFn: () => NewsService.readNews({ skip: 0, limit: 100 }),
+    queryFn: async () => {
+      const response = await NewsService.newsReadNews({ query: { skip: 0, limit: 100 } })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data
+    },
     queryKey: ["news"],
   };
 }
@@ -29,12 +35,17 @@ export const Route = createFileRoute("/_layout/manage-news")({
 
 function NewsTableContent() {
   const { data: news } = useSuspenseQuery(getNewsQueryOptions());
+  const [filteredNews, setFilteredNews] = useState<NewsPublic[]>(news.data || []);
 
-  if (news.data.length === 0) {
+  useEffect(() => {
+    setFilteredNews(news.data || []);
+  }, [news.data]);
+
+  if (!news.data || news.data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-12">
         <div className="rounded-full bg-muted p-4 mb-4">
-          <Search className="h-8 w-8 text-muted-foreground" />
+          <Newspaper className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-semibold">У вас пока нет новостей</h3>
         <p className="text-muted-foreground">
@@ -44,7 +55,24 @@ function NewsTableContent() {
     );
   }
 
-  return <DataTable columns={columns} data={news.data} />;
+  return (
+    <>
+      <NewsFilters news={news.data} onFilterChange={setFilteredNews} />
+      {filteredNews.length === 0 ? (
+        <div className="flex flex-col items-center justify-center text-center py-12">
+          <div className="rounded-full bg-muted p-4 mb-4">
+            <Newspaper className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold">Новости не найдены</h3>
+          <p className="text-muted-foreground">
+            Попробуйте изменить параметры поиска
+          </p>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={filteredNews} />
+      )}
+    </>
+  );
 }
 
 function NewsTable() {
@@ -64,8 +92,8 @@ function News() {
             <Newspaper className="h-6 w-6" />
             Новости
           </h1>
-          <p className="text-muted-foreground">
-            Создавайте и управляйте своими новостями
+          <p className="text-sm text-muted-foreground mt-1">
+            Управление новостями и публикациями
           </p>
         </div>
         <AddNews />

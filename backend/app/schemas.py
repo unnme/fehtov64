@@ -4,6 +4,7 @@ All schemas for API data serialization are located here.
 """
 import uuid
 from datetime import datetime
+from typing import Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
@@ -21,16 +22,16 @@ class UserCreate(SQLModel):
     """Schema for creating user via API."""
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
+    full_name: str = Field(min_length=1, max_length=255)
     is_active: bool = Field(default=True)
-    # is_superuser cannot be set via API - only through DB or migrations
+    is_superuser: bool = Field(default=False)
 
 
 class UserRegister(SQLModel):
     """Schema for new user registration."""
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
+    full_name: str = Field(min_length=1, max_length=255)
 
 
 class UserUpdate(SQLModel):
@@ -39,14 +40,14 @@ class UserUpdate(SQLModel):
     """
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
     is_active: bool | None = None
     is_superuser: bool | None = None  # Only superuser can change this field
 
 
 class UserUpdateMe(SQLModel):
     """Schema for updating own user profile."""
-    full_name: str | None = Field(default=None, max_length=255)
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
     # Email cannot be changed through this endpoint - use /users/me/email/verify
     email: EmailStr | None = None
 
@@ -65,6 +66,7 @@ class EmailVerificationCode(SQLModel):
 class UserPublic(UserBase):
     """Public user schema for API responses."""
     id: uuid.UUID
+    is_first_superuser: bool = False
 
 
 class UsersPublic(SQLModel):
@@ -88,12 +90,14 @@ class NewsUpdate(SQLModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
     content: str | None = Field(default=None, min_length=1)  # type: ignore
     is_published: bool | None = None
+    owner_id: uuid.UUID | None = None
 
 
 class NewsPublic(NewsBase):
     """Public news schema for API responses."""
     id: uuid.UUID
     owner_id: uuid.UUID
+    owner: Optional["UserPublic"] = None
     published_at: datetime | None
     created_at: datetime
     updated_at: datetime
@@ -215,6 +219,11 @@ class PrivateUserCreate(SQLModel):
 class DocumentCategoryCreate(SQLModel):
     """Schema for creating document category."""
     name: str = Field(min_length=1, max_length=100)
+
+
+class DocumentCategoryUpdate(SQLModel):
+    """Schema for updating document category (all fields optional)."""
+    name: str | None = Field(default=None, min_length=1, max_length=100)  # type: ignore
 
 
 class DocumentCategoryPublic(SQLModel):

@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import {
   createFileRoute,
-  Link as RouterLink,
   redirect,
+  Link as RouterLink,
   useNavigate,
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
@@ -83,7 +83,7 @@ function ResetPassword() {
 
   const mutation = useMutation({
     mutationFn: (data: { new_password: string; token: string }) =>
-      AuthService.resetPassword({ requestBody: data }),
+      AuthService.authResetPassword({ body: data }),
     onSuccess: () => {
       showSuccessToast("Password updated successfully")
       form.reset()

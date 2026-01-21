@@ -18,28 +18,19 @@ import { Image as ImageIcon, Star, Upload, X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
+import { type NewsImagePublic } from '@/client'
 import { Button } from '@/components/ui/button'
 import useCustomToast from '@/hooks/useCustomToast'
 import { cn } from '@/lib/utils'
-import { ImagesService } from '@/services/imagesService'
+import { getImageFileUrl } from '@/utils/fileUrls'
 
-// Temporary type until OpenAPI client is regenerated
-type NewsImagePublic = {
-	id: string
-	news_id: string
-	file_name: string
-	file_path: string
-	file_size: number
-	mime_type: string
-	order: number
-	is_main: boolean
-	created_at: string
+type NewsImagePublicWithPreview = NewsImagePublic & {
 	previewUrl?: string // For new images not yet uploaded
 }
 
 interface ImageUploaderProps {
 	newsId: string
-	images: NewsImagePublic[]
+	images: NewsImagePublicWithPreview[]
 	onUpload: (file: File) => void | Promise<void>
 	onDelete: (imageId: string) => void | Promise<void>
 	onReorder: (imageId: string, newOrder: number) => void | Promise<void>
@@ -54,7 +45,7 @@ function SortableImageItem({
 	onDelete,
 	isDeleting
 }: {
-	image: NewsImagePublic
+	image: NewsImagePublicWithPreview
 	newsId: string
 	onDelete: (e?: React.MouseEvent) => void
 	isDeleting: boolean
@@ -76,7 +67,7 @@ function SortableImageItem({
 
 	// Use preview URL for new images, otherwise use service URL
 	const imageUrl =
-		image.previewUrl || ImagesService.getImageUrl(newsId, image.id)
+		image.previewUrl || getImageFileUrl(newsId, image.id)
 
 	return (
 		<div

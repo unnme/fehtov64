@@ -10,12 +10,13 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.core.config import settings
+from app.core.config import settings as app_settings
 from app.core.security import get_password_hash, verify_password
 from app.models import News, User
 from app.repositories.user_repository import (
     create_user as create_user_repo,
     get_user_by_email,
-    update_user,
+    update_user as update_user_repo,
 )
 from app.schemas import (
     EmailVerificationCode,
@@ -39,15 +40,31 @@ router = APIRouter(prefix="/users", tags=["users"])
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+def read_users(
+    session: SessionDep, 
+    skip: int = 0, 
+    limit: int = 100,
+    include_guardian: bool = False
+) -> Any:
     """
     Retrieve users.
+    By default excludes system users (Guardian).
+    Set include_guardian=True to include Guardian user (useful for news owner selection).
     """
 
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = select(User).offset(skip).limit(limit)
+    guardian_email = "guardian@system.example.com"
+    
+    if include_guardian:
+        # Include all users including Guardian
+        count_statement = select(func.count()).select_from(User)
+        count = session.exec(count_statement).one()
+        statement = select(User).offset(skip).limit(limit)
+    else:
+        # Exclude guardian system user
+        count_statement = select(func.count()).select_from(User).where(User.email != guardian_email)
+        count = session.exec(count_statement).one()
+        statement = select(User).where(User.email != guardian_email).offset(skip).limit(limit)
+    
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)
@@ -57,16 +74,35 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
 )
 async def create_user(
-    *, session: SessionDep, background_tasks: BackgroundTasks, user_in: UserCreate
+    *, session: SessionDep, background_tasks: BackgroundTasks, user_in: UserCreate, current_user: CurrentUser
 ) -> Any:
     """
     Create new user.
+    Only superusers can set is_superuser flag.
     """
     user = get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system.",
+        )
+    
+    # Check if full_name is already taken
+    existing_user_by_name = session.exec(
+        select(User).where(User.full_name == user_in.full_name)
+    ).first()
+    if existing_user_by_name:
+        raise HTTPException(
+            status_code=400,
+            detail="The user with this name already exists in the system.",
+        )
+
+    # Only allow superusers to create other superusers
+    # Note: endpoint is already protected by get_current_active_superuser, but we check explicitly
+    if user_in.is_superuser and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="Only superusers can create other superusers.",
         )
 
     user = create_user_repo(session=session, user_create=user_in)
@@ -95,6 +131,16 @@ def update_user_me(
             status_code=400,
             detail="Email cannot be changed through this endpoint. Use /users/me/email/request-code to request a verification code, then /users/me/email/verify to confirm.",
         )
+    
+    # Check if full_name is already taken (if being updated)
+    if user_in.full_name:
+        existing_user_by_name = session.exec(
+            select(User).where(User.full_name == user_in.full_name)
+        ).first()
+        if existing_user_by_name and existing_user_by_name.id != current_user.id:
+            raise HTTPException(
+                status_code=409, detail="User with this name already exists"
+            )
     
     user_data = user_in.model_dump(exclude_unset=True)
     current_user.sqlmodel_update(user_data)
@@ -210,21 +256,56 @@ def read_user_me(current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
-    return current_user
+    # Add is_first_superuser field to response
+    user_dict = current_user.model_dump()
+    user_dict["is_first_superuser"] = current_user.email == settings.FIRST_SUPERUSER
+    return UserPublic.model_validate(user_dict)
 
 
 @router.delete("/me", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
+    First superuser and Guardian cannot be deleted.
+    All news owned by the user will be reassigned to the Guardian system user.
     """
-    if current_user.is_superuser:
+    # Check if this is the first superuser (created automatically)
+    if current_user.email == settings.FIRST_SUPERUSER:
         raise HTTPException(
-            status_code=403, detail="Super users are not allowed to delete themselves"
+            status_code=403, 
+            detail="The first superuser account cannot be deleted. This is a system account required for initial setup."
         )
+    
+    # Prevent deletion of Guardian system user
+    guardian_email = "guardian@system.example.com"
+    if current_user.email == guardian_email:
+        raise HTTPException(
+            status_code=403,
+            detail="Guardian system user cannot be deleted. This is a system account required for data integrity."
+        )
+    
+    # Get guardian user for reassigning news
+    guardian = session.exec(
+        select(User).where(User.email == guardian_email)
+    ).first()
+    
+    if not guardian:
+        raise HTTPException(
+            status_code=500,
+            detail="Guardian system user not found. Please run database initialization."
+        )
+    
+    # Reassign all news from deleted user to guardian
+    news_statement = select(News).where(News.owner_id == current_user.id)
+    news_items = session.exec(news_statement).all()
+    for news_item in news_items:
+        news_item.owner_id = guardian.id
+        session.add(news_item)
+    
+    # Delete user (news are now owned by guardian, so CASCADE won't delete them)
     session.delete(current_user)
     session.commit()
-    return Message(message="User deleted successfully")
+    return Message(message="User deleted successfully. All news have been reassigned to Guardian.")
 
 
 # Public registration endpoint disabled - users can only be created by superusers via admin panel
@@ -303,7 +384,7 @@ def update_user(
             )
 
     # Allow is_superuser change only for superusers
-    db_user = update_user(
+    db_user = update_user_repo(
         session=session, 
         db_user=db_user, 
         user_in=user_in,
@@ -318,6 +399,7 @@ def delete_user(
 ) -> Message:
     """
     Delete a user.
+    All news owned by the user will be reassigned to the Guardian system user.
     """
     user = session.get(User, user_id)
     if not user:
@@ -326,9 +408,42 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    statement = delete(News).where(col(News.owner_id) == user_id)
-    session.exec(statement)  # type: ignore
+    
+    # Check if this is the first superuser
+    if user.email == settings.FIRST_SUPERUSER:
+        raise HTTPException(
+            status_code=403,
+            detail="The first superuser account cannot be deleted. This is a system account required for initial setup."
+        )
+    
+    # Prevent deletion of Guardian system user
+    guardian_email = "guardian@system.example.com"
+    if user.email == guardian_email:
+        raise HTTPException(
+            status_code=403,
+            detail="Guardian system user cannot be deleted. This is a system account required for data integrity."
+        )
+    
+    # Get guardian user (system user for orphaned news)
+    guardian = session.exec(
+        select(User).where(User.email == guardian_email)
+    ).first()
+    
+    if not guardian:
+        raise HTTPException(
+            status_code=500,
+            detail="Guardian system user not found. Please run database initialization."
+        )
+    
+    # Reassign all news from deleted user to guardian
+    news_statement = select(News).where(News.owner_id == user_id)
+    news_items = session.exec(news_statement).all()
+    for news_item in news_items:
+        news_item.owner_id = guardian.id
+        session.add(news_item)
+    
+    # Delete user (news are now owned by guardian, so CASCADE won't delete them)
     session.delete(user)
     session.commit()
-    return Message(message="User deleted successfully")
+    return Message(message="User deleted successfully. All news have been reassigned to Guardian.")
 

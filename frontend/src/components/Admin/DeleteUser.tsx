@@ -31,7 +31,10 @@ const DeleteUser = ({ id, onSuccess }: DeleteUserProps) => {
   const { handleSubmit } = useForm()
 
   const deleteUser = async (userId: string) => {
-    await UsersService.deleteUser({ userId })
+    const response = await UsersService.usersDeleteUser({ path: { user_id: userId } })
+    if ('error' in response && response.error) {
+      throw response
+    }
   }
 
   const mutation = useMutation({

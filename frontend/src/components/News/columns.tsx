@@ -3,16 +3,24 @@ import { format } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { Image as ImageIcon } from "lucide-react"
 
-import type { NewsPublic } from "@/client"
-import { ImagesService } from "@/services/imagesService"
+import { ImagesService, type NewsImagePublic, type NewsPublic } from "@/client"
 import { cn } from "@/lib/utils"
+import { getImageFileUrl } from "@/utils/fileUrls"
 import { NewsActionsMenu } from "./NewsActionsMenu"
 
 // Cell component for displaying news preview image
 function PreviewCell({ newsId }: { newsId: string }) {
-  const { data: images = [], isLoading, error } = useQuery({
+  const { data: images = [], isLoading, error } = useQuery<NewsImagePublic[]>({
     queryKey: ["news", newsId, "images"],
-    queryFn: () => ImagesService.getImages(newsId),
+    queryFn: async () => {
+      const response = await ImagesService.imagesGetImages({
+        path: { news_id: newsId },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data.data as NewsImagePublic[]
+    },
     staleTime: 60000, // Cache for 1 minute
     retry: 1,
   })
@@ -34,7 +42,7 @@ function PreviewCell({ newsId }: { newsId: string }) {
     )
   }
   
-  const imageUrl = ImagesService.getImageUrl(newsId, firstImage.id)
+  const imageUrl = getImageFileUrl(newsId, firstImage.id)
   
   return (
     <div className="w-16 h-16 rounded overflow-hidden border bg-muted">
@@ -125,6 +133,21 @@ export const columns: ColumnDef<NewsPublic>[] = [
       return (
         <span className="text-sm text-muted-foreground/70">
           {format(new Date(createdAt), "dd.MM.yyyy")}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: "owner",
+    header: "Автор",
+    cell: ({ row }) => {
+      const owner = row.original.owner
+      if (!owner) {
+        return <span className="text-muted-foreground">—</span>
+      }
+      return (
+        <span className="text-sm">
+          {owner.full_name || owner.email}
         </span>
       )
     },

@@ -4,9 +4,7 @@ import { ru } from 'date-fns/locale'
 import { Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import type { NewsPublic, NewsPublicList } from '@/client'
-// TODO: Import NewsService after client regeneration
-// import { NewsService } from "@/client";
+import { ImagesService, type NewsImagePublic, type NewsPublic, type NewsPublicList } from '@/client'
 import {
 	Card,
 	CardContent,
@@ -22,15 +20,23 @@ import {
 	PaginationNext,
 	PaginationPrevious
 } from '@/components/ui/pagination'
-import { ImagesService } from '@/services/imagesService'
 import { cn } from '@/lib/utils'
+import { getImageFileUrl } from '@/utils/fileUrls'
 
 const NEWS_PER_PAGE = 10
 
 function NewsPreviewImage({ newsId }: { newsId: string }) {
-	const { data: images = [], isLoading } = useQuery({
+	const { data: images = [], isLoading } = useQuery<NewsImagePublic[]>({
 		queryKey: ['news', newsId, 'images'],
-		queryFn: () => ImagesService.getImages(newsId),
+		queryFn: async () => {
+			const response = await ImagesService.imagesGetImages({
+				path: { news_id: newsId },
+			})
+			if ('error' in response && response.error) {
+				throw response
+			}
+			return (response as any).data.data as NewsImagePublic[]
+		},
 		staleTime: 60000,
 		retry: 1
 	})
@@ -56,7 +62,7 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 		)
 	}
 
-	const imageUrl = ImagesService.getImageUrl(newsId, firstImage.id)
+	const imageUrl = getImageFileUrl(newsId, firstImage.id)
 
 	return (
 		<div className="w-32 h-32 sm:w-40 sm:h-40 rounded-lg overflow-hidden border bg-muted flex-shrink-0">

@@ -58,7 +58,7 @@ const ChangePassword = () => {
         current_password: data.current_password,
         new_password: data.new_password,
       }
-      return UsersService.updatePasswordMe({ requestBody })
+      return UsersService.usersUpdatePasswordMe({ body: requestBody })
     },
     onSuccess: () => {
       showSuccessToast("Password updated successfully")

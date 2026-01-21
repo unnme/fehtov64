@@ -1,30 +1,29 @@
-import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useForm } from "react-hook-form"
 import { Plus, Upload, X } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import { type NewsCreate, NewsService } from "@/client"
-import { ImagesService } from "@/services/imagesService"
+import { ImagesService, NewsService, type NewsCreate, type NewsImagePublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog"
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
@@ -155,21 +154,40 @@ const AddNews = () => {
   const [createdNewsId, setCreatedNewsId] = useState<string | null>(null)
   const [pendingImages, setPendingImages] = useState<File[]>([])
 
-  const { data: images = [] } = useQuery({
+  const { data: images = [] } = useQuery<NewsImagePublic[]>({
     queryKey: ["news", createdNewsId, "images"],
-    queryFn: () => (createdNewsId ? ImagesService.getImages(createdNewsId) : []),
+    queryFn: async () => {
+      if (!createdNewsId) return []
+      const response = await ImagesService.imagesGetImages({
+        path: { news_id: createdNewsId },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data.data as NewsImagePublic[]
+    },
     enabled: !!createdNewsId && isOpen,
   })
 
   // Component for creating new news with image upload support
   const mutation = useMutation({
     mutationFn: async (data: NewsCreate) => {
-      const news = await NewsService.createNews({ requestBody: data })
+      const response = await NewsService.newsCreateNews({ body: data })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      const news = (response as any).data
       // Upload all selected images after news creation
       if (pendingImages.length > 0) {
         try {
           for (const file of pendingImages) {
-            await ImagesService.uploadImage(news.id, file)
+            const uploadResponse = await ImagesService.imagesUploadImage({
+              path: { news_id: news.id },
+              body: { file },
+            })
+            if ('error' in uploadResponse && uploadResponse.error) {
+              throw uploadResponse
+            }
           }
           showSuccessToast(
             `Новость создана успешно. Загружено ${pendingImages.length} изображений`,
@@ -196,9 +214,16 @@ const AddNews = () => {
   })
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: async (file: File) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      return ImagesService.uploadImage(createdNewsId, file)
+      const response = await ImagesService.imagesUploadImage({
+        path: { news_id: createdNewsId },
+        body: { file },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as NewsImagePublic
     },
     onSuccess: () => {
       if (createdNewsId) {
@@ -210,9 +235,14 @@ const AddNews = () => {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (imageId: string) => {
+    mutationFn: async (imageId: string) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      return ImagesService.deleteImage(createdNewsId, imageId)
+      const response = await ImagesService.imagesDeleteImage({
+        path: { news_id: createdNewsId, image_id: imageId },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
     },
     onSuccess: () => {
       if (createdNewsId) {
@@ -224,9 +254,16 @@ const AddNews = () => {
   })
 
   const reorderMutation = useMutation({
-    mutationFn: ({ imageId, newOrder }: { imageId: string; newOrder: number }) => {
+    mutationFn: async ({ imageId, newOrder }: { imageId: string; newOrder: number }) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      return ImagesService.reorderImage(createdNewsId, imageId, newOrder)
+      const response = await ImagesService.imagesReorderImage({
+        path: { news_id: createdNewsId, image_id: imageId },
+        query: { new_order: newOrder },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as NewsImagePublic
     },
     onSuccess: () => {
       if (createdNewsId) {

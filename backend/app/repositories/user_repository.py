@@ -12,7 +12,9 @@ from app.schemas import UserCreate, UserUpdate
 def create_user(*, session: Session, user_create: UserCreate) -> User:
     """Create a new user."""
     user_data = user_create.model_dump(exclude={"password"})
-    user_data["is_superuser"] = False
+    # Use is_superuser from user_create if provided, otherwise default to False
+    if "is_superuser" not in user_data:
+        user_data["is_superuser"] = False
     db_obj = User.model_validate(
         user_data, update={"hashed_password": get_password_hash(user_create.password)}
     )

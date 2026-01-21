@@ -16,6 +16,7 @@ from app.schemas import (
     DocumentCategoriesPublic,
     DocumentCategoryCreate,
     DocumentCategoryPublic,
+    DocumentCategoryUpdate,
     DocumentCreate,
     DocumentsPublic,
     DocumentPublic,
@@ -77,6 +78,73 @@ def create_category(
     return DocumentCategoryPublic(id=category.id, name=category.name, created_at=category.created_at)
 
 
+@router.patch("/categories/{category_id}", response_model=DocumentCategoryPublic)
+def update_category(
+    category_id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser,
+    category_in: DocumentCategoryUpdate,
+) -> Any:
+    """Update a document category."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    category = session.get(DocumentCategory, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    # Update name if provided
+    if category_in.name is not None:
+        # Check if category with this name already exists (excluding current category)
+        existing = session.exec(
+            select(DocumentCategory).where(
+                DocumentCategory.name == category_in.name,
+                DocumentCategory.id != category_id
+            )
+        ).first()
+        if existing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Category with name '{category_in.name}' already exists",
+            )
+        category.name = category_in.name
+
+    session.add(category)
+    session.commit()
+    session.refresh(category)
+
+    return DocumentCategoryPublic(id=category.id, name=category.name, created_at=category.created_at)
+
+
+@router.delete("/categories/{category_id}", response_model=Message)
+def delete_category(
+    category_id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser,
+) -> Any:
+    """Delete a document category. Sets category_id to None for all associated documents."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    category = session.get(DocumentCategory, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    # Set category_id to None for all documents with this category
+    documents = session.exec(
+        select(Document).where(Document.category_id == category_id)
+    ).all()
+    for document in documents:
+        document.category_id = None
+        session.add(document)
+
+    # Delete category
+    session.delete(category)
+    session.commit()
+
+    return Message(message="Category deleted successfully")
+
+
 # ============================================================================
 # Document Routes
 # ============================================================================
@@ -91,22 +159,25 @@ def read_documents(
 ) -> Any:
     """Get all documents, optionally filtered by category."""
     statement = select(Document)
-    
+
+    # Filter by category if provided
     if category_id:
         statement = statement.where(Document.category_id == category_id)
-    
+
+    # All users can see all documents (no filtering by owner)
+
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
-    
+
     statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)
     documents = session.exec(statement).all()
-    
+
     # Load relationships
     for doc in documents:
         if doc.category_id:
             doc.category = session.get(DocumentCategory, doc.category_id)
         doc.owner = session.get(type(current_user), doc.owner_id)
-    
+
     return DocumentsPublic(
         data=[DocumentPublic(
             id=d.id,
@@ -137,14 +208,13 @@ async def create_document(
     file: Annotated[UploadFile, File()],
     name: Annotated[str | None, Form()] = None,
     category_id: Annotated[str | None, Form()] = None,
-    category_name: Annotated[str | None, Form()] = None,
 ) -> Any:
     """Upload a new document."""
     # Determine document name (default to filename without extension)
     if not name:
         filename = file.filename or "document"
         name = Path(filename).stem
-    
+
     # Determine category (optional)
     category: DocumentCategory | None = None
     if category_id and category_id.strip():
@@ -155,16 +225,6 @@ async def create_document(
                 raise HTTPException(status_code=404, detail="Category not found")
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid category_id format")
-    elif category_name and category_name.strip():
-        # Find or create category
-        category = session.exec(
-            select(DocumentCategory).where(DocumentCategory.name == category_name)
-        ).first()
-        if not category:
-            category = DocumentCategory(name=category_name)
-            session.add(category)
-            session.flush()
-    # If neither category_id nor category_name provided, category remains None
     
     # Save file
     file_path, file_size = document_service.save_document(file)
@@ -304,15 +364,15 @@ def update_document(
     document = session.get(Document, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     # Only owner or superuser can update
     if not current_user.is_superuser and document.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
+
     # Update name if provided
     if document_in.name:
         document.name = document_in.name
-    
+
     # Update category if provided (can be set to None to remove category)
     # Check if category_id was explicitly provided in the request
     update_data = document_in.model_dump(exclude_unset=True)

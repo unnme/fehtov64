@@ -42,7 +42,7 @@ export const Route = createFileRoute("/auth/login")({
     // Validate token existence and authenticity
     if (isLoggedIn()) {
       try {
-        await UsersService.readUserMe()
+        await UsersService.usersReadUserMe()
         // Redirect to dashboard if token is valid
         throw redirect({
           to: "/dashboard",

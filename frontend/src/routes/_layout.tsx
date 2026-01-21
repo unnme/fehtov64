@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_layout")({
     }
     // Validate token authenticity
     try {
-      await UsersService.readUserMe();
+      await UsersService.usersReadUserMe();
     } catch (error: any) {
       // Clear invalid token and redirect to login on auth errors
       if (error?.status === 401 || error?.status === 403) {

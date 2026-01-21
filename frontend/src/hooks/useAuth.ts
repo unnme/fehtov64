@@ -2,10 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 
 import {
-  type Body_auth_login_access_token as AccessToken,
+  type BodyAuthLoginAccessToken as AccessToken,
   AuthService,
+  client,
+  type UserCreate,
   type UserPublic,
-  type UserRegister,
   UsersService,
 } from "@/client"
 import { handleError } from "@/utils"
@@ -39,13 +40,19 @@ const useAuth = () => {
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: UsersService.readUserMe,
+    queryFn: async () => {
+      const response = await UsersService.usersReadUserMe()
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as UserPublic
+    },
     enabled: isLoggedIn(),
   })
 
   const signUpMutation = useMutation({
-    mutationFn: (data: UserRegister) =>
-      UsersService.registerUser({ requestBody: data }),
+    mutationFn: (data: UserCreate) =>
+      UsersService.usersCreateUser({ body: data }),
     onSuccess: () => {
       navigate({ to: "/auth/login" })
     },
@@ -56,13 +63,28 @@ const useAuth = () => {
   })
 
   const login = async (data: AccessToken) => {
-    const response = await AuthService.loginAccessToken({
-      formData: data,
+    // Use the generated method - operationId: "auth-login_access_token" -> method: "authLoginAccessToken"
+    const response = await AuthService.authLoginAccessToken({
+      body: data,
     })
     // Save token and expiration time (24 hours)
-    localStorage.setItem("access_token", response.access_token)
+    if ('error' in response && response.error) {
+      throw response
+    }
+    const token = (response as any).data.access_token
+    localStorage.setItem("access_token", token)
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     localStorage.setItem("token_expires_at", expiresAt.toString())
+    
+    // Update client config with new token
+    client.setConfig({
+      auth: async (auth) => {
+        if (auth.scheme === 'bearer') {
+          return token
+        }
+        return undefined
+      }
+    })
   }
 
   const loginMutation = useMutation({

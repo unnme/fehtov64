@@ -1,5 +1,3 @@
-import { StrictMode } from "react"
-import ReactDOM from "react-dom/client"
 import {
   MutationCache,
   QueryCache,
@@ -7,34 +5,54 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
+import { StrictMode } from "react"
+import ReactDOM from "react-dom/client"
 
-import { ApiError, OpenAPI } from "./client"
-import { ThemeProvider } from "./providers/ThemeProvider"
+import { ApiError, client } from "./client"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
+import { ThemeProvider } from "./providers/ThemeProvider"
 import { routeTree } from "./routeTree.gen"
 
-OpenAPI.BASE = import.meta.env.VITE_API_URL
-OpenAPI.TOKEN = async () => {
-  return localStorage.getItem("access_token") || ""
-}
+// Configure client base URL and auth - OpenAPI.BASE is automatically updated
+// Auth function reads from localStorage dynamically, so no need to update on every change
+client.setConfig({
+  baseURL: import.meta.env.VITE_API_URL || "",
+  auth: async (auth) => {
+    // Return token for bearer auth scheme
+    if (auth.scheme === 'bearer') {
+      return localStorage.getItem("access_token") || undefined
+    }
+    return undefined
+  }
+})
 
 // Global API error handler for query and mutation errors
 const handleApiError = (error: Error) => {
+  // Check if it's an ApiError or AxiosError
+  let status: number | undefined
   if (error instanceof ApiError) {
-    // Handle authentication errors - clear token and redirect
-    if ([401, 403].includes(error.status)) {
-      localStorage.removeItem("access_token")
-      localStorage.removeItem("token_expires_at")
-      // Use window.location for reliable redirect
-      if (window.location.pathname !== "/auth/login") {
-        window.location.href = "/auth/login"
-      }
+    status = error.status
+  } else if ("response" in error && error.response) {
+    status = (error.response as any)?.status
+  }
+
+  // Handle authentication errors - clear token and redirect
+  if (status === 401 || status === 403) {
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("token_expires_at")
+    // Update client config to remove auth
+    client.setConfig({
+      auth: async () => undefined
+    })
+    // Use window.location for reliable redirect
+    if (window.location.pathname !== "/auth/login") {
+      window.location.href = "/auth/login"
     }
-    // Handle rate limiting errors
-    if (error.status === 429) {
-      console.error("Rate limit exceeded. Please wait before trying again.")
-    }
+  }
+  // Handle rate limiting errors
+  if (status === 429) {
+    console.error("Rate limit exceeded. Please wait before trying again.")
   }
 }
 const queryClient = new QueryClient({

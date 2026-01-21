@@ -1,48 +1,48 @@
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
+import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import type { Document } from "@/services/documentsService"
-import { DocumentsService } from "@/services/documentsService"
+import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic } from "@/client"
+import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { LoadingButton } from "@/components/ui/loading-button"
-import { Button } from "@/components/ui/button"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
-  name: z.string().min(1, "Название обязательно"),
+  name: z.string().min(1, "Name is required"),
   category_id: z.string().optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
 
 interface EditDocumentProps {
-  document: Document
+  document: DocumentPublic
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -51,9 +51,15 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
-  const { data: categories = { data: [], count: 0 } } = useQuery({
+  const { data: categories = { data: [], count: 0 } } = useQuery<DocumentCategoriesPublic>({
     queryKey: ["document-categories"],
-    queryFn: () => DocumentsService.getCategories(),
+    queryFn: async () => {
+      const response = await DocumentsService.documentsReadCategories()
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentCategoriesPublic
+    },
   })
 
   const form = useForm<FormData>({
@@ -64,12 +70,29 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
     },
   })
 
+  // Update form values when document changes or dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: document.name,
+        category_id: document.category_id || "__none__",
+      })
+    }
+  }, [document, isOpen, form])
+
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return DocumentsService.updateDocument(document.id, {
-        name: data.name,
-        category_id: data.category_id === "__none__" || !data.category_id ? null : data.category_id,
+      const response = await DocumentsService.documentsUpdateDocument({
+        path: { document_id: document.id },
+        body: {
+          name: data.name,
+          category_id: data.category_id === "__none__" || !data.category_id ? null : data.category_id,
+        },
       })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentPublic
     },
     onSuccess: () => {
       showSuccessToast("Документ обновлен успешно")
@@ -116,7 +139,7 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
                   <FormLabel>Категория</FormLabel>
                   <Select
                     onValueChange={(value) => {
-                      field.onChange(value)
+                      field.onChange(value === "__none__" ? undefined : value)
                     }}
                     value={field.value || "__none__"}
                   >

@@ -1,17 +1,28 @@
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { File } from "lucide-react"
-import { Suspense } from "react"
+import { Suspense, useEffect, useState } from "react"
 
+import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic, type DocumentsPublic } from "@/client"
 import { DataTable } from "@/components/Common/DataTable"
-import { AddDocument, columns } from "@/components/Documents"
+import { AddDocument, columns, DocumentsFilters, ManageCategoriesDialog } from "@/components/Documents"
 import PendingDocuments from "@/components/Pending/PendingDocuments"
-import useAuth from "@/hooks/useAuth"
-import { DocumentsService } from "@/services/documentsService"
 
 function getDocumentsQueryOptions(categoryId?: string) {
   return {
-    queryFn: () => DocumentsService.getDocuments(categoryId),
+    queryFn: async () => {
+      const response = await DocumentsService.documentsReadDocuments({
+        query: {
+          category_id: categoryId || undefined,
+          skip: 0,
+          limit: 100,
+        },
+      })
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentsPublic
+    },
     queryKey: ["documents", categoryId],
   }
 }
@@ -28,15 +39,57 @@ export const Route = createFileRoute("/_layout/documents")({
 })
 
 function DocumentsTableContent() {
-  const { user: currentUser } = useAuth()
   const { data: documents } = useSuspenseQuery(getDocumentsQueryOptions())
+  const { data: categories = { data: [], count: 0 } } = useQuery<DocumentCategoriesPublic>({
+    queryKey: ["document-categories"],
+    queryFn: async () => {
+      const response = await DocumentsService.documentsReadCategories()
+      if ('error' in response && response.error) {
+        throw response
+      }
+      return (response as any).data as DocumentCategoriesPublic
+    },
+  })
 
-  // Filter documents - only show user's documents unless superuser
-  const filteredDocuments = currentUser?.is_superuser
-    ? documents.data
-    : documents.data.filter((doc) => doc.owner_id === currentUser?.id)
+  const [filteredDocuments, setFilteredDocuments] = useState<DocumentPublic[]>(documents.data || [])
 
-  return <DataTable columns={columns} data={filteredDocuments} />
+  // Update filtered documents when documents change
+  useEffect(() => {
+    setFilteredDocuments(documents.data || [])
+  }, [documents.data])
+
+  if (!documents.data || documents.data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <div className="text-center">
+          <File className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-lg font-medium">Нет документов</p>
+          <p className="text-sm">Загрузите документ, чтобы начать</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <DocumentsFilters
+        documents={documents.data}
+        categories={categories.data}
+        onFilterChange={setFilteredDocuments}
+      />
+      {filteredDocuments.length === 0 ? (
+        <div className="flex items-center justify-center h-64 text-muted-foreground">
+          <div className="text-center">
+            <File className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium">Документы не найдены</p>
+            <p className="text-sm">Попробуйте изменить параметры поиска</p>
+          </div>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={filteredDocuments} />
+      )}
+    </>
+  )
 }
 
 function DocumentsTable() {
@@ -56,11 +109,14 @@ function Documents() {
             <File className="h-6 w-6" />
             Документы
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             Управление документами и файлами
           </p>
         </div>
-        <AddDocument />
+        <div className="flex items-center gap-2">
+          <ManageCategoriesDialog />
+          <AddDocument />
+        </div>
       </div>
       <DocumentsTable />
     </div>

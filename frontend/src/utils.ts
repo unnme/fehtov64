@@ -1,19 +1,33 @@
 import { AxiosError } from "axios"
-import type { ApiError } from "./client"
+import { ApiError } from "./client"
 
 /**
  * Extract error message from API error response
  */
-function extractErrorMessage(err: ApiError): string {
+function extractErrorMessage(err: ApiError | Error): string {
+  if (err instanceof ApiError) {
+    const errDetail = err.body as any
+    if (errDetail?.detail) {
+      if (Array.isArray(errDetail.detail) && errDetail.detail.length > 0) {
+        return errDetail.detail[0].msg || errDetail.detail[0]
+      }
+      return errDetail.detail
+    }
+    return err.message || "Something went wrong."
+  }
+  
   if (err instanceof AxiosError) {
-    return err.message
+    const errorData = err.response?.data as any
+    if (errorData?.detail) {
+      if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
+        return errorData.detail[0].msg || errorData.detail[0]
+      }
+      return errorData.detail
+    }
+    return err.message || "Something went wrong."
   }
 
-  const errDetail = (err.body as any)?.detail
-  if (Array.isArray(errDetail) && errDetail.length > 0) {
-    return errDetail[0].msg
-  }
-  return errDetail || "Something went wrong."
+  return err.message || "Something went wrong."
 }
 
 /**

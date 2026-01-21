@@ -14,18 +14,21 @@ import useAuth from '@/hooks/useAuth'
 import { type Item, Main } from './Main'
 import { User } from './User'
 
-const baseItems: Item[] = [
-	{ icon: Home, title: 'Панель управления', path: '/dashboard' },
+const mainItems: Item[] = [
+	{ icon: Home, title: 'Панель управления', path: '/dashboard' }
+]
+
+const contentItems: Item[] = [
 	{ icon: Newspaper, title: 'Новости', path: '/manage-news' },
 	{ icon: File, title: 'Документы', path: '/documents' }
 ]
 
+const adminItems: Item[] = [
+	{ icon: Users, title: 'Пользователи', path: '/users' }
+]
+
 export function AppSidebar() {
 	const { user: currentUser } = useAuth()
-
-	const items = currentUser?.is_superuser
-		? [...baseItems, { icon: Users, title: 'Пользователи', path: '/users' }]
-		: baseItems
 
 	return (
 		<Sidebar collapsible="icon">
@@ -36,7 +39,11 @@ export function AppSidebar() {
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				<Main items={items} />
+				<Main 
+					mainItems={mainItems}
+					contentItems={contentItems}
+					adminItems={currentUser?.is_superuser ? adminItems : []}
+				/>
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarAppearance />

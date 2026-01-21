@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 import { handleError } from '@/utils'
 
 const formSchema = z.object({
-	full_name: z.string().max(30).optional()
+	full_name: z.string().min(1, { message: "Full name is required" }).max(255)
 })
 
 const emailRequestSchema = z.object({
@@ -59,7 +59,7 @@ const UserInformation = () => {
 		mode: 'onBlur',
 		criteriaMode: 'all',
 		defaultValues: {
-			full_name: currentUser?.full_name ?? undefined
+			full_name: currentUser?.full_name || ""
 		}
 	})
 
@@ -94,7 +94,13 @@ const UserInformation = () => {
 
 	const mutation = useMutation({
 		mutationFn: (data: UserUpdateMe) =>
-			UsersService.updateUserMe({ requestBody: data }),
+			async (data) => {
+				const response = await UsersService.usersUpdateUserMe({ body: data })
+				if ('error' in response && response.error) {
+					throw response
+				}
+				return (response as any).data
+			},
 		onSuccess: () => {
 			showSuccessToast('User updated successfully')
 			toggleEditMode()
@@ -179,7 +185,7 @@ const UserInformation = () => {
 	const onSubmit = (data: FormData) => {
 		const updateData: UserUpdateMe = {}
 
-		if (data.full_name !== currentUser?.full_name) {
+		if (data.full_name && data.full_name !== currentUser?.full_name) {
 			updateData.full_name = data.full_name
 		}
 
@@ -253,11 +259,14 @@ const UserInformation = () => {
 							render={({ field }) =>
 								editMode ? (
 									<FormItem>
-										<FormLabel className="text-base">Полное имя</FormLabel>
+										<FormLabel className="text-base">
+											Полное имя <span className="text-destructive">*</span>
+										</FormLabel>
 										<FormControl>
 											<Input
 												type="text"
 												{...field}
+												required
 											/>
 										</FormControl>
 										<FormMessage />
