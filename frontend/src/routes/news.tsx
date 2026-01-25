@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { Breadcrumbs } from '@/components/Common/Breadcrumbs'
-import { Navbar } from '@/components/Common/Navbar'
+import { Breadcrumbs, Navbar } from '@/components/Common'
 import { PublicNewsList } from '@/components/News/PublicNewsList'
 
 export const Route = createFileRoute('/news')({

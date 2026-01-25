@@ -1,11 +1,25 @@
 """Main API router combining all route modules."""
 from fastapi import APIRouter
 
-from app.api.routes import auth, documents, images, news, users, utils
+from app.api.routes import (
+    auth,
+    documents,
+    images,
+    news,
+    person_images,
+    persons,
+    positions,
+    users,
+    utils,
+)
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
+api_router.include_router(positions.router)
+api_router.include_router(persons.router)
+api_router.include_router(person_images.router)
+api_router.include_router(person_images.public_router)
 api_router.include_router(utils.router)
 api_router.include_router(news.router)
 api_router.include_router(news.public_router)

@@ -1,7 +1,6 @@
-import { File, Home, Newspaper, Users } from 'lucide-react'
+import { File, Home, Newspaper, UserCheck, Users } from 'lucide-react'
 
-import { SidebarAppearance } from '@/components/Common/Appearance'
-import { Logo } from '@/components/Common/Logo'
+import { Logo } from '@/components/Common'
 import {
 	Sidebar,
 	SidebarContent,
@@ -24,7 +23,8 @@ const contentItems: Item[] = [
 ]
 
 const adminItems: Item[] = [
-	{ icon: Users, title: 'Пользователи', path: '/users' }
+	{ icon: Users, title: 'Пользователи', path: '/users' },
+	{ icon: UserCheck, title: 'Персонал', path: '/persons' }
 ]
 
 export function AppSidebar() {
@@ -39,14 +39,13 @@ export function AppSidebar() {
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				<Main 
+				<Main
 					mainItems={mainItems}
 					contentItems={contentItems}
 					adminItems={currentUser?.is_superuser ? adminItems : []}
 				/>
 			</SidebarContent>
 			<SidebarFooter>
-				<SidebarAppearance />
 				<User user={currentUser} />
 			</SidebarFooter>
 		</Sidebar>

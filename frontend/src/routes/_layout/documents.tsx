@@ -4,9 +4,9 @@ import { File } from "lucide-react"
 import { Suspense, useEffect, useState } from "react"
 
 import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic, type DocumentsPublic } from "@/client"
-import { DataTable } from "@/components/Common/DataTable"
+import { DataTable } from "@/components/Common"
 import { AddDocument, columns, DocumentsFilters, ManageCategoriesDialog } from "@/components/Documents"
-import PendingDocuments from "@/components/Pending/PendingDocuments"
+import { PendingDocuments } from "@/components/Pending"
 
 function getDocumentsQueryOptions(categoryId?: string) {
   return {

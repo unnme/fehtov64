@@ -90,6 +90,8 @@ export function Navbar() {
 	const { user, logout } = useAuth()
 	const router = useRouterState()
 	const currentPath = router.location.pathname
+	const navItemBaseClass =
+		'inline-flex items-center h-9 px-3 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md'
 
 	return (
 		<header
@@ -103,7 +105,7 @@ export function Navbar() {
 					aria-label="Main navigation"
 				>
 					<ul
-						className="flex items-center gap-6"
+						className="flex items-center gap-6 -ml-3"
 						role="list"
 					>
 						{navigationItems.map(item => (
@@ -116,7 +118,7 @@ export function Navbar() {
 										<DropdownMenuTrigger asChild>
 											<button
 												className={cn(
-													'text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1 flex items-center gap-1',
+													`${navItemBaseClass} gap-1`,
 													isActivePath(item.href, currentPath)
 														? 'text-foreground'
 														: 'text-muted-foreground'
@@ -162,7 +164,7 @@ export function Navbar() {
 									<Link
 										to={item.href}
 										className={cn(
-											'text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-2 py-1',
+											navItemBaseClass,
 											isActivePath(item.href, currentPath)
 												? 'text-foreground'
 												: 'text-muted-foreground'

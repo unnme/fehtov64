@@ -1,5 +1,5 @@
 import { DocumentsService, type DocumentPublic } from "@/client"
-import { DeleteConfirmationDialog } from "@/components/Common/DeleteConfirmationDialog"
+import { DeleteConfirmationDialog } from "@/components/Common"
 
 interface DeleteDocumentProps {
   document: DocumentPublic

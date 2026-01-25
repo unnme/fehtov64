@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet, useRouterState } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
 
-import { Breadcrumbs } from '@/components/Common/Breadcrumbs'
-import { Navbar } from '@/components/Common/Navbar'
+import { Breadcrumbs, Navbar } from '@/components/Common'
 import {
 	Card,
 	CardContent,

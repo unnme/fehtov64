@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { DocumentsService, type DocumentCategoryPublic } from "@/client"
-import { DeleteConfirmationDialog } from "@/components/Common/DeleteConfirmationDialog"
+import { DeleteConfirmationDialog } from "@/components/Common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

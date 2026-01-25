@@ -45,6 +45,13 @@ class ImageService:
         return news_dir
 
     @staticmethod
+    def get_person_upload_path(person_id: uuid.UUID) -> Path:
+        """Get upload directory for specific person."""
+        person_dir = UPLOAD_DIR / "persons" / str(person_id)
+        person_dir.mkdir(parents=True, exist_ok=True)
+        return person_dir
+
+    @staticmethod
     def validate_image(file: UploadFile) -> None:
         """Validate uploaded image file."""
         if file.content_type not in settings.ALLOWED_IMAGE_TYPES:
@@ -119,6 +126,83 @@ class ImageService:
 
         file_size = file_path.stat().st_size
         relative_path = f"news/{news_id}/{file_name}"
+        return relative_path, file_size
+
+    @classmethod
+    def save_person_image(
+        cls, file: UploadFile, person_id: uuid.UUID
+    ) -> Tuple[str, int]:
+        """
+        Save uploaded person image, enforce portrait orientation.
+        Returns relative path and file size.
+        """
+        cls.validate_image(file)
+
+        unique_id = uuid.uuid4()
+        file_name = f"{unique_id}.jpg"
+        upload_path = cls.get_person_upload_path(person_id)
+        file_path = upload_path / file_name
+
+        temp_path = upload_path / f"{unique_id}_temp{Path(file.filename).suffix}"
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        temp_size = temp_path.stat().st_size
+        if temp_size > settings.MAX_UPLOAD_SIZE:
+            temp_path.unlink()
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large. Maximum size: {settings.MAX_UPLOAD_SIZE / 1024 / 1024}MB",
+            )
+
+        try:
+            with Image.open(temp_path) as img:
+                if img.width >= img.height:
+                    raise HTTPException(
+                        status_code=400, detail="Фото должно быть вертикальным"
+                    )
+
+                if img.mode != "RGB":
+                    rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+                    if img.mode == "P":
+                        img = img.convert("RGBA")
+                    if img.mode in ("RGBA", "LA"):
+                        rgb_img.paste(img, mask=img.split()[-1])
+                    else:
+                        rgb_img = img.convert("RGB")
+                    img = rgb_img
+
+                if img.width > cls.MAX_WIDTH or img.height > cls.MAX_HEIGHT:
+                    ratio = min(cls.MAX_WIDTH / img.width, cls.MAX_HEIGHT / img.height)
+                    new_size = (int(img.width * ratio), int(img.height * ratio))
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+                    quality = cls.RESIZED_QUALITY
+                else:
+                    quality = cls.DEFAULT_QUALITY
+
+                img.save(file_path, "JPEG", quality=quality, optimize=True)
+
+        except HTTPException:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+        except Exception as e:
+            try:
+                with Image.open(temp_path) as img:
+                    img.convert("RGB").save(file_path, "JPEG", quality=cls.DEFAULT_QUALITY)
+            except Exception:
+                if temp_path.exists():
+                    temp_path.unlink()
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to process image: {str(e)}",
+                )
+        finally:
+            if temp_path.exists() and temp_path != file_path:
+                temp_path.unlink()
+
+        file_size = file_path.stat().st_size
+        relative_path = f"persons/{person_id}/{file_name}"
         return relative_path, file_size
 
 

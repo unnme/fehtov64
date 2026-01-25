@@ -2,11 +2,12 @@
 Pydantic schemas for API requests and responses.
 All schemas for API data serialization are located here.
 """
+import re
 import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from sqlmodel import Field, SQLModel
 
 # Import base classes from models for inheritance
@@ -72,6 +73,183 @@ class UserPublic(UserBase):
 class UsersPublic(SQLModel):
     """User list with count."""
     data: list[UserPublic]
+    count: int
+
+
+# ============================================================================
+# Position Schemas
+# ============================================================================
+
+
+class PositionCreate(SQLModel):
+    """Schema for creating position."""
+    name: str = Field(min_length=1, max_length=255)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        return _normalize_position_name(value=value)
+
+
+class PositionUpdate(SQLModel):
+    """Schema for updating position (all fields optional)."""
+    name: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return _normalize_position_name(value=value)
+
+
+class PositionPublic(SQLModel):
+    """Public position schema for API responses."""
+    id: uuid.UUID
+    name: str
+    created_at: datetime
+
+
+class PositionsPublic(SQLModel):
+    """Position list with count."""
+    data: list[PositionPublic]
+    count: int
+
+
+# ============================================================================
+# Person Schemas
+# ============================================================================
+
+
+_NAME_PART_PATTERN = re.compile(r"^[A-Za-zА-Яа-яЁё]+$")
+
+
+def _capitalize_name_part(value: str) -> str:
+    if not value:
+        return value
+    lower_value = value.lower()
+    return lower_value[0].upper() + lower_value[1:]
+
+
+def _normalize_person_name(*, value: str, allow_hyphen: bool) -> str:
+    if not isinstance(value, str):
+        raise ValueError("Имя должно быть строкой")
+    trimmed = value.strip()
+    if not trimmed:
+        raise ValueError("Значение не должно быть пустым")
+    if re.search(r"\s", trimmed):
+        raise ValueError("Допускается одно слово без пробелов")
+
+    if not allow_hyphen:
+        if not _NAME_PART_PATTERN.match(trimmed):
+            raise ValueError("Допускаются только буквы")
+        return _capitalize_name_part(trimmed)
+
+    parts = trimmed.split("-")
+    if len(parts) > 2 or any(part == "" for part in parts):
+        raise ValueError("Допускается одно тире в фамилии")
+    if not all(_NAME_PART_PATTERN.match(part) for part in parts):
+        raise ValueError("Допускаются только буквы и одно тире")
+    return "-".join(_capitalize_name_part(part) for part in parts)
+
+
+def _normalize_position_name(*, value: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError("Название должно быть строкой")
+    trimmed = value.strip()
+    if not trimmed:
+        raise ValueError("Название не должно быть пустым")
+    if re.search(r"\s", trimmed):
+        raise ValueError("Название: одно слово без пробелов")
+
+    parts = trimmed.split("-")
+    if len(parts) > 2 or any(part == "" for part in parts):
+        raise ValueError("Название: допускается одно тире")
+    if not all(_NAME_PART_PATTERN.match(part) for part in parts):
+        raise ValueError("Название: допускаются только буквы и одно тире")
+    lower_value = trimmed.lower()
+    parts = lower_value.split("-")
+    first = parts[0]
+    if first:
+        parts[0] = first[0].upper() + first[1:]
+    return "-".join(parts)
+
+
+class PersonCreate(SQLModel):
+    """Schema for creating person."""
+    last_name: str = Field(min_length=1, max_length=255)
+    first_name: str = Field(min_length=1, max_length=255)
+    middle_name: str = Field(min_length=1, max_length=255)
+    phone: str = Field(min_length=1, max_length=50)
+    email: EmailStr = Field(max_length=255)
+    description: str = Field(default="", max_length=2000)
+    position_id: uuid.UUID
+
+    @field_validator("last_name", mode="before")
+    @classmethod
+    def normalize_last_name(cls, value: str) -> str:
+        return _normalize_person_name(value=value, allow_hyphen=True)
+
+    @field_validator("first_name", "middle_name", mode="before")
+    @classmethod
+    def normalize_single_names(cls, value: str) -> str:
+        return _normalize_person_name(value=value, allow_hyphen=False)
+
+
+class PersonUpdate(SQLModel):
+    """Schema for updating person (all fields optional)."""
+    last_name: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    first_name: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    middle_name: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+    phone: str | None = Field(default=None, min_length=1, max_length=50)  # type: ignore
+    email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
+    description: str | None = Field(default=None, max_length=2000)  # type: ignore
+    position_id: uuid.UUID | None = None
+
+    @field_validator("last_name", mode="before")
+    @classmethod
+    def normalize_last_name(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return _normalize_person_name(value=value, allow_hyphen=True)
+
+    @field_validator("first_name", "middle_name", mode="before")
+    @classmethod
+    def normalize_single_names(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return _normalize_person_name(value=value, allow_hyphen=False)
+
+
+class PersonImagePublic(SQLModel):
+    """Public person image schema for API responses."""
+    id: uuid.UUID
+    person_id: uuid.UUID
+    file_name: str
+    file_path: str
+    file_size: int
+    mime_type: str
+    created_at: datetime
+
+
+class PersonPublic(SQLModel):
+    """Public person schema for API responses."""
+    id: uuid.UUID
+    last_name: str
+    first_name: str
+    middle_name: str
+    phone: str
+    email: EmailStr
+    description: str
+    position: PositionPublic
+    image: PersonImagePublic | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PersonsPublic(SQLModel):
+    """Person list with count."""
+    data: list[PersonPublic]
     count: int
 
 

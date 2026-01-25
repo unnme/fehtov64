@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { UsersService } from "@/client";
-import AppSidebar from "@/components/Sidebar/AppSidebar";
+import { AppSidebar } from "@/components/Sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { isLoggedIn } from "@/hooks/useAuth";
 

@@ -7,7 +7,7 @@ import {
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { AuthLayout } from '@/components/Common/AuthLayout'
+import { AuthLayout } from '@/components/Common'
 import {
 	Form,
 	FormControl,

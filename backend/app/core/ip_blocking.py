@@ -56,18 +56,29 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
         """Get client IP address considering proxy headers."""
         if not request:
             return "unknown"
-        # Check proxy headers
+        
+        # Check X-Forwarded-For header (priority 1)
         forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
             # Take first IP from list (real client IP)
-            return forwarded_for.split(",")[0].strip()
+            first_ip = forwarded_for.split(",")[0].strip()
+            # Only return if we got a non-empty IP address
+            if first_ip:
+                return first_ip
         
+        # Check X-Real-IP header (priority 2)
         real_ip = request.headers.get("X-Real-IP")
         if real_ip:
-            return real_ip.strip()
+            real_ip_clean = real_ip.strip()
+            # Only return if we got a non-empty IP address
+            if real_ip_clean:
+                return real_ip_clean
         
-        # Fallback to direct IP
-        return request.client.host if request.client else "unknown"
+        # Fallback to direct IP (priority 3)
+        if request.client and request.client.host:
+            return request.client.host
+        
+        return "unknown"
 
     def _is_ip_blocked(self, ip: str) -> bool:
         """Check if IP is blocked."""

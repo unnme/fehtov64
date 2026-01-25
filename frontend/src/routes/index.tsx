@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 import { UsersService } from '@/client'
-import { Navbar } from '@/components/Common/Navbar'
+import { Navbar } from '@/components/Common'
 import { PublicNewsList } from '@/components/News/PublicNewsList'
 import { isLoggedIn } from '@/hooks/useAuth'
 
@@ -52,7 +52,7 @@ export const Route = createFileRoute('/')({
 // Landing page with public news list
 function Landing() {
 	return (
-		<div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/20">
+		<div className="flex min-h-screen flex-col bg-linear-to-b from-background to-muted/20">
 			<Navbar />
 			<main className="flex flex-1 flex-col">
 				{/* Public news section */}

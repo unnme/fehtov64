@@ -1,4 +1,4 @@
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react"
+import { BadgeCheck, ChevronsUpDown, LogOut, Monitor, Moon, Sun } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -6,7 +6,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -16,8 +21,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
+import { type Theme, useTheme } from "@/providers/ThemeProvider"
 import { getInitials } from "@/utils"
-import EditProfile from "@/components/UserSettings/EditProfile"
+import { EditProfile } from "@/components/UserSettings"
 
 interface UserInfoProps {
   fullName?: string
@@ -38,7 +44,7 @@ function UserInfo({ fullName, email, isSuperuser }: UserInfoProps) {
         <div className="flex items-center gap-1.5 min-w-0">
           <p className="text-xs text-muted-foreground truncate">{email}</p>
           {isSuperuser && (
-            <BadgeCheck className="size-3.5 text-blue-500 flex-shrink-0" />
+            <BadgeCheck className="size-3.5 text-blue-500 shrink-0" />
           )}
         </div>
       </div>
@@ -49,6 +55,7 @@ function UserInfo({ fullName, email, isSuperuser }: UserInfoProps) {
 export function User({ user }: { user: any }) {
   const { logout } = useAuth()
   const { isMobile } = useSidebar()
+  const { setTheme, theme } = useTheme()
 
   if (!user) return null
 
@@ -88,10 +95,36 @@ export function User({ user }: { user: any }) {
               />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="gap-2 [&_svg]:text-muted-foreground">
+                <Sun className="h-4 w-4" />
+                Тема
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={theme}
+                  onValueChange={(value) => setTheme(value as Theme)}
+                >
+                  <DropdownMenuRadioItem value="light">
+                    <Sun className="h-4 w-4" />
+                    Светлая
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="dark">
+                    <Moon className="h-4 w-4" />
+                    Темная
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="system">
+                    <Monitor className="h-4 w-4" />
+                    Системная
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <EditProfile />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Log Out
+              Выйти
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

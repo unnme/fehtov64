@@ -33,7 +33,9 @@ const breadcrumbConfig: Record<string, { label: string; parent?: string }> = {
 	'/contacts': { label: 'Контакты', parent: '/' },
 	'/dashboard': { label: 'Панель управления', parent: '/' },
 	'/manage-news': { label: 'Управление новостями', parent: '/dashboard' },
-	'/users': { label: 'Пользователи', parent: '/dashboard' }
+	'/users': { label: 'Пользователи', parent: '/dashboard' },
+	'/persons': { label: 'Персонал', parent: '/dashboard' },
+	'/positions': { label: 'Должности', parent: '/dashboard' }
 }
 
 // Build breadcrumb trail recursively

@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.models import User
 from app.repositories.user_repository import create_user
 from app.schemas import UserCreate
+from app.services.position_service import ensure_default_position
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -57,6 +58,8 @@ def init_db(session: Session) -> None:
         session.add(guardian)
         session.commit()
         session.refresh(guardian)
+
+    ensure_default_position(session)
 
     if settings.ENVIRONMENT == "local":
         import logging

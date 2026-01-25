@@ -1,0 +1,5 @@
+export { default as ChangePassword } from "./ChangePassword"
+export { default as DeleteAccount } from "./DeleteAccount"
+export { default as DeleteConfirmation } from "./DeleteConfirmation"
+export { default as EditProfile } from "./EditProfile"
+export { default as UserInformation } from "./UserInformation"

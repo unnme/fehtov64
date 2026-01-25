@@ -4,10 +4,9 @@ import { Newspaper } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
 import { NewsService, type NewsPublic } from "@/client";
-import { DataTable } from "@/components/Common/DataTable";
-import AddNews from "@/components/News/AddNews";
-import { columns, NewsFilters } from "@/components/News";
-import PendingNews from "@/components/Pending/PendingNews";
+import { DataTable } from "@/components/Common";
+import { AddNews, columns, NewsFilters } from "@/components/News";
+import { PendingNews } from "@/components/Pending";
 
 function getNewsQueryOptions() {
   return {

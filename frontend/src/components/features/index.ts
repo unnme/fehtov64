@@ -1,0 +1,7 @@
+export * as Admin from "../Admin"
+export * as Documents from "../Documents"
+export * as News from "../News"
+export * as Pending from "../Pending"
+export * as Persons from "../Persons"
+export * as Positions from "../Positions"
+export * as UserSettings from "../UserSettings"

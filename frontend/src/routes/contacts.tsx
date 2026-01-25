@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 
-import { Breadcrumbs } from '@/components/Common/Breadcrumbs'
-import { Navbar } from '@/components/Common/Navbar'
+import { Breadcrumbs, Navbar } from '@/components/Common'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

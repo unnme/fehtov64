@@ -4,10 +4,9 @@ import { Users as UsersIcon } from "lucide-react"
 import { Suspense } from "react"
 
 import { type UserPublic, UsersService } from "@/client"
-import AddUser from "@/components/Admin/AddUser"
-import { columns, type UserTableData } from "@/components/Admin/columns"
-import { DataTable } from "@/components/Common/DataTable"
-import PendingUsers from "@/components/Pending/PendingUsers"
+import { AddUser, columns, type UserTableData } from "@/components/Admin"
+import { DataTable } from "@/components/Common"
+import { PendingUsers } from "@/components/Pending"
 import useAuth from "@/hooks/useAuth"
 
 function getUsersQueryOptions() {

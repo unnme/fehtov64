@@ -15,3 +15,11 @@ export const getImageFileUrl = (newsId: string, imageId: string): string => {
   const baseURL = client.getConfig().baseURL || ""
   return `${baseURL}/api/v1/news/${newsId}/images/${imageId}/file`
 }
+
+/**
+ * Get person image file URL
+ */
+export const getPersonImageFileUrl = (personId: string): string => {
+  const baseURL = client.getConfig().baseURL || ""
+  return `${baseURL}/api/v1/persons/${personId}/image/file`
+}
