@@ -33,26 +33,30 @@ const navigationItems = [
 		id: 'nav-docs',
 		submenu: [
 			{
-				href: '/docs/rules',
+				category: 'Правила и регламенты',
 				label: 'Правила и регламенты',
 				id: 'nav-docs-rules'
 			},
 			{
-				href: '/docs/education',
+				category: 'Образовательные документы',
 				label: 'Образовательные документы',
 				id: 'nav-docs-education'
 			},
 			{
-				href: '/docs/organizational',
+				category: 'Организационные документы',
 				label: 'Организационные документы',
 				id: 'nav-docs-organizational'
 			},
 			{
-				href: '/docs/financial',
+				category: 'Финансовые документы',
 				label: 'Финансовые документы',
 				id: 'nav-docs-financial'
 			},
-			{ href: '/docs/legal', label: 'Правовые документы', id: 'nav-docs-legal' }
+			{
+				category: 'Правовые документы',
+				label: 'Правовые документы',
+				id: 'nav-docs-legal'
+			}
 		]
 	},
 	{ href: '/federation', label: 'Федерация', id: 'nav-federation' },
@@ -90,6 +94,11 @@ export function Navbar() {
 	const { user, logout } = useAuth()
 	const router = useRouterState()
 	const currentPath = router.location.pathname
+	const currentSearch = router.location.search as { category?: string }
+	const activeDocsCategory =
+		currentPath === '/docs' && typeof currentSearch.category === 'string'
+			? currentSearch.category.trim()
+			: ''
 	const navItemBaseClass =
 		'inline-flex items-center h-9 px-3 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md'
 
@@ -133,9 +142,12 @@ export function Navbar() {
 											<DropdownMenuItem asChild>
 												<Link
 													to={item.href}
+													search={{}}
 													className={cn(
 														'cursor-pointer',
-														currentPath === item.href && 'bg-accent'
+														currentPath === item.href &&
+															!activeDocsCategory &&
+															'bg-accent'
 													)}
 												>
 													Все документы
@@ -148,10 +160,13 @@ export function Navbar() {
 													asChild
 												>
 													<Link
-														to={subItem.href}
+														to={item.href}
+														search={{ category: subItem.category }}
 														className={cn(
 															'cursor-pointer',
-															currentPath === subItem.href && 'bg-accent'
+															activeDocsCategory.toLowerCase() ===
+																subItem.category.toLowerCase() &&
+																'bg-accent'
 														)}
 													>
 														{subItem.label}
@@ -295,6 +310,7 @@ export function Navbar() {
 												<div className="space-y-2">
 													<Link
 														to={item.href}
+														search={{}}
 														className={cn(
 															'block text-base font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-3 py-2',
 															isActivePath(item.href, currentPath)
@@ -308,10 +324,12 @@ export function Navbar() {
 														{item.submenu.map(subItem => (
 															<li key={subItem.id}>
 																<Link
-																	to={subItem.href}
+																	to={item.href}
+																	search={{ category: subItem.category }}
 																	className={cn(
 																		'block text-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md px-3 py-1.5',
-																		currentPath === subItem.href
+																		activeDocsCategory.toLowerCase() ===
+																			subItem.category.toLowerCase()
 																			? 'text-foreground font-medium'
 																			: 'text-muted-foreground'
 																	)}

@@ -1,4 +1,4 @@
-import { File, Home, Newspaper, UserCheck, Users } from 'lucide-react'
+import { File, Home, Newspaper, UserCheck, Users, IdCard } from 'lucide-react'
 
 import { Logo } from '@/components/Common'
 import {
@@ -24,7 +24,8 @@ const contentItems: Item[] = [
 
 const adminItems: Item[] = [
 	{ icon: Users, title: 'Пользователи', path: '/users' },
-	{ icon: UserCheck, title: 'Персонал', path: '/persons' }
+	{ icon: UserCheck, title: 'Персонал', path: '/persons' },
+	{ icon: IdCard, title: 'Карточка организации', path: '/organization-card' }
 ]
 
 export function AppSidebar() {

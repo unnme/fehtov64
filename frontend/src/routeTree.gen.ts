@@ -16,6 +16,7 @@ import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as NewsNewsIdRouteImport } from './routes/news/$newsId'
 import { Route as DocsRulesRouteImport } from './routes/docs/rules'
 import { Route as DocsOrganizationalRouteImport } from './routes/docs/organizational'
 import { Route as DocsLegalRouteImport } from './routes/docs/legal'
@@ -26,7 +27,11 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-passw
 import { Route as AuthRecoverPasswordRouteImport } from './routes/auth/recover-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as LayoutUsersRouteImport } from './routes/_layout/users'
+import { Route as LayoutPositionsRouteImport } from './routes/_layout/positions'
+import { Route as LayoutPersonsRouteImport } from './routes/_layout/persons'
+import { Route as LayoutOrganizationCardRouteImport } from './routes/_layout/organization-card'
 import { Route as LayoutManageNewsRouteImport } from './routes/_layout/manage-news'
+import { Route as LayoutDocumentsRouteImport } from './routes/_layout/documents'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 
 const NewsRoute = NewsRouteImport.update({
@@ -62,6 +67,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const NewsNewsIdRoute = NewsNewsIdRouteImport.update({
+  id: '/$newsId',
+  path: '/$newsId',
+  getParentRoute: () => NewsRoute,
 } as any)
 const DocsRulesRoute = DocsRulesRouteImport.update({
   id: '/rules',
@@ -113,9 +123,29 @@ const LayoutUsersRoute = LayoutUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutPositionsRoute = LayoutPositionsRouteImport.update({
+  id: '/positions',
+  path: '/positions',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPersonsRoute = LayoutPersonsRouteImport.update({
+  id: '/persons',
+  path: '/persons',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutOrganizationCardRoute = LayoutOrganizationCardRouteImport.update({
+  id: '/organization-card',
+  path: '/organization-card',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutManageNewsRoute = LayoutManageNewsRouteImport.update({
   id: '/manage-news',
   path: '/manage-news',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutDocumentsRoute = LayoutDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
@@ -130,9 +160,13 @@ export interface FileRoutesByFullPath {
   '/contacts': typeof ContactsRoute
   '/docs': typeof DocsRouteWithChildren
   '/federation': typeof FederationRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/dashboard': typeof LayoutDashboardRoute
+  '/documents': typeof LayoutDocumentsRoute
   '/manage-news': typeof LayoutManageNewsRoute
+  '/organization-card': typeof LayoutOrganizationCardRoute
+  '/persons': typeof LayoutPersonsRoute
+  '/positions': typeof LayoutPositionsRoute
   '/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -143,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/docs/legal': typeof DocsLegalRoute
   '/docs/organizational': typeof DocsOrganizationalRoute
   '/docs/rules': typeof DocsRulesRoute
+  '/news/$newsId': typeof NewsNewsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,9 +185,13 @@ export interface FileRoutesByTo {
   '/contacts': typeof ContactsRoute
   '/docs': typeof DocsRouteWithChildren
   '/federation': typeof FederationRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/dashboard': typeof LayoutDashboardRoute
+  '/documents': typeof LayoutDocumentsRoute
   '/manage-news': typeof LayoutManageNewsRoute
+  '/organization-card': typeof LayoutOrganizationCardRoute
+  '/persons': typeof LayoutPersonsRoute
+  '/positions': typeof LayoutPositionsRoute
   '/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -163,6 +202,7 @@ export interface FileRoutesByTo {
   '/docs/legal': typeof DocsLegalRoute
   '/docs/organizational': typeof DocsOrganizationalRoute
   '/docs/rules': typeof DocsRulesRoute
+  '/news/$newsId': typeof NewsNewsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -172,9 +212,13 @@ export interface FileRoutesById {
   '/contacts': typeof ContactsRoute
   '/docs': typeof DocsRouteWithChildren
   '/federation': typeof FederationRoute
-  '/news': typeof NewsRoute
+  '/news': typeof NewsRouteWithChildren
   '/_layout/dashboard': typeof LayoutDashboardRoute
+  '/_layout/documents': typeof LayoutDocumentsRoute
   '/_layout/manage-news': typeof LayoutManageNewsRoute
+  '/_layout/organization-card': typeof LayoutOrganizationCardRoute
+  '/_layout/persons': typeof LayoutPersonsRoute
+  '/_layout/positions': typeof LayoutPositionsRoute
   '/_layout/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -185,6 +229,7 @@ export interface FileRoutesById {
   '/docs/legal': typeof DocsLegalRoute
   '/docs/organizational': typeof DocsOrganizationalRoute
   '/docs/rules': typeof DocsRulesRoute
+  '/news/$newsId': typeof NewsNewsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -196,7 +241,11 @@ export interface FileRouteTypes {
     | '/federation'
     | '/news'
     | '/dashboard'
+    | '/documents'
     | '/manage-news'
+    | '/organization-card'
+    | '/persons'
+    | '/positions'
     | '/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -207,6 +256,7 @@ export interface FileRouteTypes {
     | '/docs/legal'
     | '/docs/organizational'
     | '/docs/rules'
+    | '/news/$newsId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -216,7 +266,11 @@ export interface FileRouteTypes {
     | '/federation'
     | '/news'
     | '/dashboard'
+    | '/documents'
     | '/manage-news'
+    | '/organization-card'
+    | '/persons'
+    | '/positions'
     | '/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -227,6 +281,7 @@ export interface FileRouteTypes {
     | '/docs/legal'
     | '/docs/organizational'
     | '/docs/rules'
+    | '/news/$newsId'
   id:
     | '__root__'
     | '/'
@@ -237,7 +292,11 @@ export interface FileRouteTypes {
     | '/federation'
     | '/news'
     | '/_layout/dashboard'
+    | '/_layout/documents'
     | '/_layout/manage-news'
+    | '/_layout/organization-card'
+    | '/_layout/persons'
+    | '/_layout/positions'
     | '/_layout/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -248,6 +307,7 @@ export interface FileRouteTypes {
     | '/docs/legal'
     | '/docs/organizational'
     | '/docs/rules'
+    | '/news/$newsId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,7 +317,7 @@ export interface RootRouteChildren {
   ContactsRoute: typeof ContactsRoute
   DocsRoute: typeof DocsRouteWithChildren
   FederationRoute: typeof FederationRoute
-  NewsRoute: typeof NewsRoute
+  NewsRoute: typeof NewsRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRecoverPasswordRoute: typeof AuthRecoverPasswordRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
@@ -314,6 +374,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/news/$newsId': {
+      id: '/news/$newsId'
+      path: '/$newsId'
+      fullPath: '/news/$newsId'
+      preLoaderRoute: typeof NewsNewsIdRouteImport
+      parentRoute: typeof NewsRoute
     }
     '/docs/rules': {
       id: '/docs/rules'
@@ -385,11 +452,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUsersRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/positions': {
+      id: '/_layout/positions'
+      path: '/positions'
+      fullPath: '/positions'
+      preLoaderRoute: typeof LayoutPositionsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/persons': {
+      id: '/_layout/persons'
+      path: '/persons'
+      fullPath: '/persons'
+      preLoaderRoute: typeof LayoutPersonsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/organization-card': {
+      id: '/_layout/organization-card'
+      path: '/organization-card'
+      fullPath: '/organization-card'
+      preLoaderRoute: typeof LayoutOrganizationCardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/manage-news': {
       id: '/_layout/manage-news'
       path: '/manage-news'
       fullPath: '/manage-news'
       preLoaderRoute: typeof LayoutManageNewsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/documents': {
+      id: '/_layout/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof LayoutDocumentsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/dashboard': {
@@ -404,13 +499,21 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutDashboardRoute: typeof LayoutDashboardRoute
+  LayoutDocumentsRoute: typeof LayoutDocumentsRoute
   LayoutManageNewsRoute: typeof LayoutManageNewsRoute
+  LayoutOrganizationCardRoute: typeof LayoutOrganizationCardRoute
+  LayoutPersonsRoute: typeof LayoutPersonsRoute
+  LayoutPositionsRoute: typeof LayoutPositionsRoute
   LayoutUsersRoute: typeof LayoutUsersRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutDocumentsRoute: LayoutDocumentsRoute,
   LayoutManageNewsRoute: LayoutManageNewsRoute,
+  LayoutOrganizationCardRoute: LayoutOrganizationCardRoute,
+  LayoutPersonsRoute: LayoutPersonsRoute,
+  LayoutPositionsRoute: LayoutPositionsRoute,
   LayoutUsersRoute: LayoutUsersRoute,
 }
 
@@ -435,6 +538,16 @@ const DocsRouteChildren: DocsRouteChildren = {
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 
+interface NewsRouteChildren {
+  NewsNewsIdRoute: typeof NewsNewsIdRoute
+}
+
+const NewsRouteChildren: NewsRouteChildren = {
+  NewsNewsIdRoute: NewsNewsIdRoute,
+}
+
+const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
@@ -442,7 +555,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactsRoute: ContactsRoute,
   DocsRoute: DocsRouteWithChildren,
   FederationRoute: FederationRoute,
-  NewsRoute: NewsRoute,
+  NewsRoute: NewsRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
   AuthRecoverPasswordRoute: AuthRecoverPasswordRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,

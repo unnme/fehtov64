@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenErrors, AuthLoginAccessTokenResponses, AuthRecoverPasswordData, AuthRecoverPasswordErrors, AuthRecoverPasswordResponses, AuthResetPasswordData, AuthResetPasswordErrors, AuthResetPasswordResponses, DocumentsCreateCategoryData, DocumentsCreateCategoryErrors, DocumentsCreateCategoryResponses, DocumentsCreateDocumentData, DocumentsCreateDocumentErrors, DocumentsCreateDocumentResponses, DocumentsDeleteCategoryData, DocumentsDeleteCategoryErrors, DocumentsDeleteCategoryResponses, DocumentsDeleteDocumentData, DocumentsDeleteDocumentErrors, DocumentsDeleteDocumentResponses, DocumentsGetDocumentFileData, DocumentsGetDocumentFileErrors, DocumentsGetDocumentFileResponses, DocumentsReadCategoriesData, DocumentsReadCategoriesErrors, DocumentsReadCategoriesResponses, DocumentsReadDocumentData, DocumentsReadDocumentErrors, DocumentsReadDocumentResponses, DocumentsReadDocumentsData, DocumentsReadDocumentsErrors, DocumentsReadDocumentsResponses, DocumentsUpdateCategoryData, DocumentsUpdateCategoryErrors, DocumentsUpdateCategoryResponses, DocumentsUpdateDocumentData, DocumentsUpdateDocumentErrors, DocumentsUpdateDocumentResponses, ImagesDeleteImageData, ImagesDeleteImageErrors, ImagesDeleteImageResponses, ImagesGetImageFileData, ImagesGetImageFileErrors, ImagesGetImageFileResponses, ImagesGetImagesData, ImagesGetImagesErrors, ImagesGetImagesResponses, ImagesReorderImageData, ImagesReorderImageErrors, ImagesReorderImageResponses, ImagesSetMainImageData, ImagesSetMainImageErrors, ImagesSetMainImageResponses, ImagesUploadImageData, ImagesUploadImageErrors, ImagesUploadImageResponses, NewsCreateNewsData, NewsCreateNewsErrors, NewsCreateNewsResponses, NewsDeleteNewsData, NewsDeleteNewsErrors, NewsDeleteNewsResponses, NewsReadNewsData, NewsReadNewsErrors, NewsReadNewsItemData, NewsReadNewsItemErrors, NewsReadNewsItemResponses, NewsReadNewsResponses, NewsReadPublicNewsData, NewsReadPublicNewsErrors, NewsReadPublicNewsResponses, NewsUpdateNewsData, NewsUpdateNewsErrors, NewsUpdateNewsResponses, UsersCreateUserData, UsersCreateUserErrors, UsersCreateUserResponses, UsersDeleteUserData, UsersDeleteUserErrors, UsersDeleteUserMeData, UsersDeleteUserMeResponses, UsersDeleteUserResponses, UsersReadUserByIdData, UsersReadUserByIdErrors, UsersReadUserByIdResponses, UsersReadUserMeData, UsersReadUserMeResponses, UsersReadUsersData, UsersReadUsersErrors, UsersReadUsersResponses, UsersRequestEmailVerificationCodeData, UsersRequestEmailVerificationCodeErrors, UsersRequestEmailVerificationCodeResponses, UsersUpdatePasswordMeData, UsersUpdatePasswordMeErrors, UsersUpdatePasswordMeResponses, UsersUpdateUserData, UsersUpdateUserErrors, UsersUpdateUserMeData, UsersUpdateUserMeErrors, UsersUpdateUserMeResponses, UsersUpdateUserResponses, UsersVerifyAndUpdateEmailData, UsersVerifyAndUpdateEmailErrors, UsersVerifyAndUpdateEmailResponses, UtilsGetBlockedIpsData, UtilsGetBlockedIpsResponses, UtilsHealthCheckData, UtilsHealthCheckResponses, UtilsUnblockIpData, UtilsUnblockIpErrors, UtilsUnblockIpResponses } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenErrors, AuthLoginAccessTokenResponses, AuthRecoverPasswordData, AuthRecoverPasswordErrors, AuthRecoverPasswordResponses, AuthResetPasswordData, AuthResetPasswordErrors, AuthResetPasswordResponses, DocumentsCreateCategoryData, DocumentsCreateCategoryErrors, DocumentsCreateCategoryResponses, DocumentsCreateDocumentData, DocumentsCreateDocumentErrors, DocumentsCreateDocumentResponses, DocumentsDeleteCategoryData, DocumentsDeleteCategoryErrors, DocumentsDeleteCategoryResponses, DocumentsDeleteDocumentData, DocumentsDeleteDocumentErrors, DocumentsDeleteDocumentResponses, DocumentsGetDocumentFileData, DocumentsGetDocumentFileErrors, DocumentsGetDocumentFileResponses, DocumentsReadCategoriesData, DocumentsReadCategoriesErrors, DocumentsReadCategoriesResponses, DocumentsReadDocumentData, DocumentsReadDocumentErrors, DocumentsReadDocumentResponses, DocumentsReadDocumentsData, DocumentsReadDocumentsErrors, DocumentsReadDocumentsResponses, DocumentsReadPublicCategoriesData, DocumentsReadPublicCategoriesErrors, DocumentsReadPublicCategoriesResponses, DocumentsReadPublicDocumentsData, DocumentsReadPublicDocumentsErrors, DocumentsReadPublicDocumentsResponses, DocumentsUpdateCategoryData, DocumentsUpdateCategoryErrors, DocumentsUpdateCategoryResponses, DocumentsUpdateDocumentData, DocumentsUpdateDocumentErrors, DocumentsUpdateDocumentResponses, ImagesDeleteImageData, ImagesDeleteImageErrors, ImagesDeleteImageResponses, ImagesGetImageFileData, ImagesGetImageFileErrors, ImagesGetImageFileResponses, ImagesGetImagesData, ImagesGetImagesErrors, ImagesGetImagesResponses, ImagesReorderImageData, ImagesReorderImageErrors, ImagesReorderImageResponses, ImagesSetMainImageData, ImagesSetMainImageErrors, ImagesSetMainImageResponses, ImagesUploadImageData, ImagesUploadImageErrors, ImagesUploadImageResponses, NewsCreateNewsData, NewsCreateNewsErrors, NewsCreateNewsResponses, NewsDeleteNewsData, NewsDeleteNewsErrors, NewsDeleteNewsResponses, NewsReadNewsData, NewsReadNewsErrors, NewsReadNewsItemData, NewsReadNewsItemErrors, NewsReadNewsItemResponses, NewsReadNewsResponses, NewsReadPublicNewsData, NewsReadPublicNewsErrors, NewsReadPublicNewsItemData, NewsReadPublicNewsItemErrors, NewsReadPublicNewsItemResponses, NewsReadPublicNewsResponses, NewsUpdateNewsData, NewsUpdateNewsErrors, NewsUpdateNewsResponses, PersonImagesDeletePersonImageData, PersonImagesDeletePersonImageErrors, PersonImagesDeletePersonImageResponses, PersonImagesGetPersonImageData, PersonImagesGetPersonImageErrors, PersonImagesGetPersonImageFileData, PersonImagesGetPersonImageFileErrors, PersonImagesGetPersonImageFileResponses, PersonImagesGetPersonImageResponses, PersonImagesUploadPersonImageData, PersonImagesUploadPersonImageErrors, PersonImagesUploadPersonImageResponses, PersonsCreatePersonData, PersonsCreatePersonErrors, PersonsCreatePersonResponses, PersonsDeletePersonData, PersonsDeletePersonErrors, PersonsDeletePersonResponses, PersonsReadPersonByIdData, PersonsReadPersonByIdErrors, PersonsReadPersonByIdResponses, PersonsReadPersonsData, PersonsReadPersonsErrors, PersonsReadPersonsResponses, PersonsUpdatePersonData, PersonsUpdatePersonErrors, PersonsUpdatePersonResponses, PositionsCreatePositionData, PositionsCreatePositionErrors, PositionsCreatePositionResponses, PositionsDeletePositionData, PositionsDeletePositionErrors, PositionsDeletePositionResponses, PositionsReadPositionsData, PositionsReadPositionsErrors, PositionsReadPositionsResponses, PositionsUpdatePositionData, PositionsUpdatePositionErrors, PositionsUpdatePositionResponses, UsersCreateUserData, UsersCreateUserErrors, UsersCreateUserResponses, UsersDeleteUserData, UsersDeleteUserErrors, UsersDeleteUserMeData, UsersDeleteUserMeResponses, UsersDeleteUserResponses, UsersReadUserByIdData, UsersReadUserByIdErrors, UsersReadUserByIdResponses, UsersReadUserMeData, UsersReadUserMeResponses, UsersReadUsersData, UsersReadUsersErrors, UsersReadUsersResponses, UsersRequestEmailVerificationCodeData, UsersRequestEmailVerificationCodeErrors, UsersRequestEmailVerificationCodeResponses, UsersUpdatePasswordMeData, UsersUpdatePasswordMeErrors, UsersUpdatePasswordMeResponses, UsersUpdateUserData, UsersUpdateUserErrors, UsersUpdateUserMeData, UsersUpdateUserMeErrors, UsersUpdateUserMeResponses, UsersUpdateUserResponses, UsersVerifyAndUpdateEmailData, UsersVerifyAndUpdateEmailErrors, UsersVerifyAndUpdateEmailResponses, UtilsGetBlockedIpsData, UtilsGetBlockedIpsResponses, UtilsHealthCheckData, UtilsHealthCheckResponses, UtilsUnblockIpData, UtilsUnblockIpErrors, UtilsUnblockIpResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -28,6 +28,19 @@ export class NewsService {
         return (options?.client ?? client).get<NewsReadPublicNewsResponses, NewsReadPublicNewsErrors, ThrowOnError>({
             responseType: 'json',
             url: '/api/v1/news/public',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Public News Item
+     *
+     * Get published news by ID. Public endpoint - no authentication required.
+     */
+    public static newsReadPublicNewsItem<ThrowOnError extends boolean = false>(options: Options<NewsReadPublicNewsItemData, ThrowOnError>) {
+        return (options.client ?? client).get<NewsReadPublicNewsItemResponses, NewsReadPublicNewsItemErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/news/public/{id}',
             ...options
         });
     }
@@ -169,6 +182,8 @@ export class UsersService {
      * Read Users
      *
      * Retrieve users.
+     * By default excludes system users (Guardian).
+     * Set include_guardian=True to include Guardian user (useful for news owner selection).
      */
     public static usersReadUsers<ThrowOnError extends boolean = false>(options?: Options<UsersReadUsersData, ThrowOnError>) {
         return (options?.client ?? client).get<UsersReadUsersResponses, UsersReadUsersErrors, ThrowOnError>({
@@ -183,6 +198,7 @@ export class UsersService {
      * Create User
      *
      * Create new user.
+     * Only superusers can set is_superuser flag.
      */
     public static usersCreateUser<ThrowOnError extends boolean = false>(options: Options<UsersCreateUserData, ThrowOnError>) {
         return (options.client ?? client).post<UsersCreateUserResponses, UsersCreateUserErrors, ThrowOnError>({
@@ -201,6 +217,8 @@ export class UsersService {
      * Delete User Me
      *
      * Delete own user.
+     * First superuser and Guardian cannot be deleted.
+     * All news owned by the user will be reassigned to the Guardian system user.
      */
     public static usersDeleteUserMe<ThrowOnError extends boolean = false>(options?: Options<UsersDeleteUserMeData, ThrowOnError>) {
         return (options?.client ?? client).delete<UsersDeleteUserMeResponses, unknown, ThrowOnError>({
@@ -304,6 +322,7 @@ export class UsersService {
      * Delete User
      *
      * Delete a user.
+     * All news owned by the user will be reassigned to the Guardian system user.
      */
     public static usersDeleteUser<ThrowOnError extends boolean = false>(options: Options<UsersDeleteUserData, ThrowOnError>) {
         return (options.client ?? client).delete<UsersDeleteUserResponses, UsersDeleteUserErrors, ThrowOnError>({
@@ -343,6 +362,206 @@ export class UsersService {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
+        });
+    }
+}
+
+export class PositionsService {
+    /**
+     * Read Positions
+     *
+     * Retrieve positions.
+     */
+    public static positionsReadPositions<ThrowOnError extends boolean = false>(options?: Options<PositionsReadPositionsData, ThrowOnError>) {
+        return (options?.client ?? client).get<PositionsReadPositionsResponses, PositionsReadPositionsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/positions/',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Position
+     *
+     * Create position.
+     */
+    public static positionsCreatePosition<ThrowOnError extends boolean = false>(options: Options<PositionsCreatePositionData, ThrowOnError>) {
+        return (options.client ?? client).post<PositionsCreatePositionResponses, PositionsCreatePositionErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/positions/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Delete Position
+     *
+     * Delete position.
+     */
+    public static positionsDeletePosition<ThrowOnError extends boolean = false>(options: Options<PositionsDeletePositionData, ThrowOnError>) {
+        return (options.client ?? client).delete<PositionsDeletePositionResponses, PositionsDeletePositionErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/positions/{position_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Position
+     *
+     * Update position.
+     */
+    public static positionsUpdatePosition<ThrowOnError extends boolean = false>(options: Options<PositionsUpdatePositionData, ThrowOnError>) {
+        return (options.client ?? client).patch<PositionsUpdatePositionResponses, PositionsUpdatePositionErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/positions/{position_id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class PersonsService {
+    /**
+     * Read Persons
+     *
+     * Retrieve persons.
+     */
+    public static personsReadPersons<ThrowOnError extends boolean = false>(options?: Options<PersonsReadPersonsData, ThrowOnError>) {
+        return (options?.client ?? client).get<PersonsReadPersonsResponses, PersonsReadPersonsErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/',
+            ...options
+        });
+    }
+    
+    /**
+     * Create Person
+     *
+     * Create person.
+     */
+    public static personsCreatePerson<ThrowOnError extends boolean = false>(options: Options<PersonsCreatePersonData, ThrowOnError>) {
+        return (options.client ?? client).post<PersonsCreatePersonResponses, PersonsCreatePersonErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Delete Person
+     *
+     * Delete person.
+     */
+    public static personsDeletePerson<ThrowOnError extends boolean = false>(options: Options<PersonsDeletePersonData, ThrowOnError>) {
+        return (options.client ?? client).delete<PersonsDeletePersonResponses, PersonsDeletePersonErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Person By Id
+     *
+     * Get person by id.
+     */
+    public static personsReadPersonById<ThrowOnError extends boolean = false>(options: Options<PersonsReadPersonByIdData, ThrowOnError>) {
+        return (options.client ?? client).get<PersonsReadPersonByIdResponses, PersonsReadPersonByIdErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Person
+     *
+     * Update person.
+     */
+    public static personsUpdatePerson<ThrowOnError extends boolean = false>(options: Options<PersonsUpdatePersonData, ThrowOnError>) {
+        return (options.client ?? client).patch<PersonsUpdatePersonResponses, PersonsUpdatePersonErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+}
+
+export class PersonImagesService {
+    /**
+     * Delete Person Image
+     */
+    public static personImagesDeletePersonImage<ThrowOnError extends boolean = false>(options: Options<PersonImagesDeletePersonImageData, ThrowOnError>) {
+        return (options.client ?? client).delete<PersonImagesDeletePersonImageResponses, PersonImagesDeletePersonImageErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}/image/',
+            ...options
+        });
+    }
+    
+    /**
+     * Get Person Image
+     */
+    public static personImagesGetPersonImage<ThrowOnError extends boolean = false>(options: Options<PersonImagesGetPersonImageData, ThrowOnError>) {
+        return (options.client ?? client).get<PersonImagesGetPersonImageResponses, PersonImagesGetPersonImageErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}/image/',
+            ...options
+        });
+    }
+    
+    /**
+     * Upload Person Image
+     */
+    public static personImagesUploadPersonImage<ThrowOnError extends boolean = false>(options: Options<PersonImagesUploadPersonImageData, ThrowOnError>) {
+        return (options.client ?? client).post<PersonImagesUploadPersonImageResponses, PersonImagesUploadPersonImageErrors, ThrowOnError>({
+            ...formDataBodySerializer,
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/persons/{person_id}/image/',
+            ...options,
+            headers: {
+                'Content-Type': null,
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Get Person Image File
+     */
+    public static personImagesGetPersonImageFile<ThrowOnError extends boolean = false>(options: Options<PersonImagesGetPersonImageFileData, ThrowOnError>) {
+        return (options.client ?? client).get<PersonImagesGetPersonImageFileResponses, PersonImagesGetPersonImageFileErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/persons/{person_id}/image/file',
+            ...options
         });
     }
 }
@@ -501,6 +720,45 @@ export class ImagesService {
 
 export class DocumentsService {
     /**
+     * Read Public Categories
+     *
+     * Get all document categories (public).
+     */
+    public static documentsReadPublicCategories<ThrowOnError extends boolean = false>(options?: Options<DocumentsReadPublicCategoriesData, ThrowOnError>) {
+        return (options?.client ?? client).get<DocumentsReadPublicCategoriesResponses, DocumentsReadPublicCategoriesErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/documents/public/categories',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Public Documents
+     *
+     * Get all documents (public), optionally filtered by category.
+     */
+    public static documentsReadPublicDocuments<ThrowOnError extends boolean = false>(options?: Options<DocumentsReadPublicDocumentsData, ThrowOnError>) {
+        return (options?.client ?? client).get<DocumentsReadPublicDocumentsResponses, DocumentsReadPublicDocumentsErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/documents/public',
+            ...options
+        });
+    }
+    
+    /**
+     * Get Document File
+     *
+     * Download document file. Public endpoint.
+     */
+    public static documentsGetDocumentFile<ThrowOnError extends boolean = false>(options: Options<DocumentsGetDocumentFileData, ThrowOnError>) {
+        return (options.client ?? client).get<DocumentsGetDocumentFileResponses, DocumentsGetDocumentFileErrors, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/documents/{document_id}/file',
+            ...options
+        });
+    }
+    
+    /**
      * Read Categories
      *
      * Get all document categories.
@@ -638,19 +896,6 @@ export class DocumentsService {
                 'Content-Type': 'application/json',
                 ...options.headers
             }
-        });
-    }
-    
-    /**
-     * Get Document File
-     *
-     * Download document file. Public endpoint.
-     */
-    public static documentsGetDocumentFile<ThrowOnError extends boolean = false>(options: Options<DocumentsGetDocumentFileData, ThrowOnError>) {
-        return (options.client ?? client).get<DocumentsGetDocumentFileResponses, DocumentsGetDocumentFileErrors, ThrowOnError>({
-            responseType: 'json',
-            url: '/api/v1/documents/{document_id}/file',
-            ...options
         });
     }
 }

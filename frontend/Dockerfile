@@ -26,6 +26,9 @@ COPY ./ /app/
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
+ARG VITE_YANDEX_MAPS_API_KEY
+ENV VITE_YANDEX_MAPS_API_KEY=${VITE_YANDEX_MAPS_API_KEY}
+
 # Generate OpenAPI client automatically via prebuild hook before build
 RUN npm run build
 

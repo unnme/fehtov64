@@ -8,7 +8,7 @@ import {
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-import type { Body_auth_login_access_token as AccessToken } from "@/client"
+import type { BodyAuthLoginAccessToken as AccessToken } from "@/client"
 import { OpenAPI, UsersService } from "@/client"
 import { AuthLayout } from "@/components/Common"
 import {

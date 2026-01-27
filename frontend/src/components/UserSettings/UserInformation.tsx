@@ -102,7 +102,7 @@ const UserInformation = () => {
 				return (response as any).data
 			},
 		onSuccess: () => {
-			showSuccessToast('User updated successfully')
+			showSuccessToast('Данные пользователя обновлены')
 			toggleEditMode()
 		},
 		onError: handleError.bind(showErrorToast),
@@ -128,19 +128,19 @@ const UserInformation = () => {
 			)
 			if (!response.ok) {
 				const error = await response.json()
-				throw new Error(error.detail || 'Failed to send verification code')
+				throw new Error(error.detail || 'Не удалось отправить код подтверждения')
 			}
 			return response.json()
 		},
 		onSuccess: () => {
 			showSuccessToast(
-				'Verification code has been sent to your current email address'
+				'Код подтверждения отправлен на текущую почту'
 			)
 			setCodeSent(true)
 			setResendCooldown(2 * 60) // 2 minutes
 		},
 		onError: (error: Error) => {
-			showErrorToast(error.message || 'Failed to send verification code')
+			showErrorToast(error.message || 'Не удалось отправить код подтверждения')
 		}
 	})
 
@@ -164,12 +164,12 @@ const UserInformation = () => {
 			)
 			if (!response.ok) {
 				const error = await response.json()
-				throw new Error(error.detail || 'Failed to verify email')
+				throw new Error(error.detail || 'Не удалось подтвердить почту')
 			}
 			return response.json()
 		},
 		onSuccess: () => {
-			showSuccessToast('Email updated successfully')
+			showSuccessToast('Почта успешно обновлена')
 			toggleEmailEditMode()
 			emailRequestForm.reset()
 			emailVerificationForm.reset()
@@ -178,7 +178,7 @@ const UserInformation = () => {
 			queryClient.invalidateQueries({ queryKey: ['currentUser'] })
 		},
 		onError: (error: Error) => {
-			showErrorToast(error.message || 'Failed to verify email')
+			showErrorToast(error.message || 'Не удалось подтвердить почту')
 		}
 	})
 

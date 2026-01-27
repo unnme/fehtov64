@@ -36,7 +36,7 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Название обязательно" })
     .refine(isValidPositionName, {
-      message: "Одно слово, без пробелов, допускается одно тире",
+      message: "Допускаются только буквы и пробелы, без тире",
     })
     .transform(normalizePositionName),
 })
@@ -67,7 +67,7 @@ function EditPosition({ position, onSuccess }: EditPositionProps) {
     mutationFn: (data: FormData) =>
       PositionsService.update(position.id, { name: data.name }),
     onSuccess: () => {
-      showSuccessToast("Position updated successfully")
+      showSuccessToast("Должность успешно обновлена")
       setIsOpen(false)
       onSuccess?.()
     },

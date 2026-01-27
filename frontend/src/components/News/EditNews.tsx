@@ -328,7 +328,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
           URL.revokeObjectURL(pendingImage.preview)
         } catch (error) {
           console.error("Error uploading image:", error)
-          showErrorToast(`Error uploading ${pendingImage.file.name}`)
+          showErrorToast(`Не удалось загрузить ${pendingImage.file.name}`)
         }
       }
 
@@ -343,7 +343,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
           }
         } catch (error) {
           console.error("Error deleting image:", error)
-          showErrorToast("Error deleting image")
+          showErrorToast("Не удалось удалить изображение")
         }
       }
 
@@ -360,7 +360,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
             }
           } catch (error) {
             console.error("Error reordering image:", error)
-            showErrorToast("Error reordering images")
+            showErrorToast("Не удалось изменить порядок изображений")
           }
         }
       }
@@ -375,13 +375,13 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
       await queryClient.invalidateQueries({ queryKey: ["news"] })
       await queryClient.invalidateQueries({ queryKey: ["news", news.id] })
 
-      showSuccessToast("News and images updated successfully")
+      showSuccessToast("Новость и изображения обновлены")
       setIsOpen(false)
       onSuccess()
     } catch (error) {
       // Error already handled in mutation.onError or show generic error
       if (!(error instanceof Error && error.message.includes("mutation"))) {
-        showErrorToast("Error saving changes")
+        showErrorToast("Не удалось сохранить изменения")
       }
     }
   }

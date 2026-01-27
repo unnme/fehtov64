@@ -147,3 +147,24 @@ class Document(DocumentBase, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     category: "DocumentCategory" = Relationship(back_populates="documents")
     owner: "User" = Relationship()
+
+
+class OrganizationCard(SQLModel, table=True):
+    """Organization card model."""
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=255)
+    phones: list[dict] = Field(
+        sa_column=sa.Column(sa.JSON, nullable=False),
+        default_factory=list,
+    )
+    email: EmailStr = Field(max_length=255)
+    address: str = Field(max_length=500)
+    work_hours: str = Field(max_length=500)
+    vk_url: str | None = Field(default=None, max_length=500)
+    telegram_url: str | None = Field(default=None, max_length=500)
+    whatsapp_url: str | None = Field(default=None, max_length=500)
+    max_url: str | None = Field(default=None, max_length=500)
+    latitude: float | None = None
+    longitude: float | None = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

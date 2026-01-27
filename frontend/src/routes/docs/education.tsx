@@ -22,7 +22,7 @@ export const Route = createFileRoute('/docs/education')({
 function DocsEducation() {
 	return (
 		<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-			<div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+			<div className="w-full space-y-6 sm:space-y-8">
 				<div className="space-y-2 sm:space-y-4">
 					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
 						Образовательные документы

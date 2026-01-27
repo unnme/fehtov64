@@ -78,7 +78,7 @@ export function FileTypeIcon({ mimeType, fileName, className }: FileTypeIconProp
   const config = getFileTypeConfig(mimeType, fileName)
 
   return (
-    <span className={cn("text-xs font-semibold", config.textColor, className)}>
+    <span className={cn("text-[9px] font-semibold", config.textColor, className)}>
       {config.extension}
     </span>
   )

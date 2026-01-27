@@ -36,7 +36,7 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Название обязательно" })
     .refine(isValidPositionName, {
-      message: "Одно слово, без пробелов, допускается одно тире",
+      message: "Допускаются только буквы и пробелы, без тире",
     })
     .transform(normalizePositionName),
 })
@@ -61,7 +61,7 @@ function AddPosition() {
   const mutation = useMutation({
     mutationFn: (data: FormData) => PositionsService.create({ name: data.name }),
     onSuccess: () => {
-      showSuccessToast("Position created successfully")
+      showSuccessToast("Должность успешно создана")
       form.reset()
       setIsOpen(false)
     },

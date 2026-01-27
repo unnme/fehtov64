@@ -85,7 +85,7 @@ function ResetPassword() {
     mutationFn: (data: { new_password: string; token: string }) =>
       AuthService.authResetPassword({ body: data }),
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast("Пароль успешно обновлен")
       form.reset()
       navigate({ to: "/auth/login" })
     },

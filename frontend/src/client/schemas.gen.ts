@@ -209,6 +209,21 @@ export const Body_images_upload_imageSchema = {
     title: 'Body_images-upload_image'
 } as const;
 
+export const Body_person_images_upload_person_imageSchema = {
+    properties: {
+        file: {
+            type: 'string',
+            format: 'binary',
+            title: 'File'
+        }
+    },
+    type: 'object',
+    required: [
+        'file'
+    ],
+    title: 'Body_person-images-upload_person_image'
+} as const;
+
 export const DocumentCategoriesPublicSchema = {
     properties: {
         data: {
@@ -676,6 +691,16 @@ export const NewsPublicSchema = {
             format: 'uuid',
             title: 'Owner Id'
         },
+        owner: {
+            anyOf: [
+                {
+                    $ref: '#/components/schemas/UserPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
         published_at: {
             anyOf: [
                 {
@@ -787,11 +812,409 @@ export const NewsUpdateSchema = {
                 }
             ],
             title: 'Is Published'
+        },
+        owner_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Owner Id'
         }
     },
     type: 'object',
     title: 'NewsUpdate',
     description: 'Schema for updating news (all fields optional).'
+} as const;
+
+export const PersonCreateSchema = {
+    properties: {
+        last_name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Last Name'
+        },
+        first_name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'First Name'
+        },
+        middle_name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Middle Name'
+        },
+        phone: {
+            type: 'string',
+            maxLength: 50,
+            minLength: 1,
+            title: 'Phone'
+        },
+        email: {
+            type: 'string',
+            maxLength: 255,
+            format: 'email',
+            title: 'Email'
+        },
+        description: {
+            type: 'string',
+            maxLength: 2000,
+            title: 'Description',
+            default: ''
+        },
+        position_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Position Id'
+        }
+    },
+    type: 'object',
+    required: [
+        'last_name',
+        'first_name',
+        'middle_name',
+        'phone',
+        'email',
+        'position_id'
+    ],
+    title: 'PersonCreate',
+    description: 'Schema for creating person.'
+} as const;
+
+export const PersonImagePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        person_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Person Id'
+        },
+        file_name: {
+            type: 'string',
+            title: 'File Name'
+        },
+        file_path: {
+            type: 'string',
+            title: 'File Path'
+        },
+        file_size: {
+            type: 'integer',
+            title: 'File Size'
+        },
+        mime_type: {
+            type: 'string',
+            title: 'Mime Type'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: [
+        'id',
+        'person_id',
+        'file_name',
+        'file_path',
+        'file_size',
+        'mime_type',
+        'created_at'
+    ],
+    title: 'PersonImagePublic',
+    description: 'Public person image schema for API responses.'
+} as const;
+
+export const PersonPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        last_name: {
+            type: 'string',
+            title: 'Last Name'
+        },
+        first_name: {
+            type: 'string',
+            title: 'First Name'
+        },
+        middle_name: {
+            type: 'string',
+            title: 'Middle Name'
+        },
+        phone: {
+            type: 'string',
+            title: 'Phone'
+        },
+        email: {
+            type: 'string',
+            format: 'email',
+            title: 'Email'
+        },
+        description: {
+            type: 'string',
+            title: 'Description'
+        },
+        position: {
+            $ref: '#/components/schemas/PositionPublic'
+        },
+        image: {
+            anyOf: [
+                {
+                    $ref: '#/components/schemas/PersonImagePublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: [
+        'id',
+        'last_name',
+        'first_name',
+        'middle_name',
+        'phone',
+        'email',
+        'description',
+        'position',
+        'created_at',
+        'updated_at'
+    ],
+    title: 'PersonPublic',
+    description: 'Public person schema for API responses.'
+} as const;
+
+export const PersonUpdateSchema = {
+    properties: {
+        last_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Name'
+        },
+        first_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'First Name'
+        },
+        middle_name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Middle Name'
+        },
+        phone: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Phone'
+        },
+        email: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    format: 'email'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Email'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        position_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Position Id'
+        }
+    },
+    type: 'object',
+    title: 'PersonUpdate',
+    description: 'Schema for updating person (all fields optional).'
+} as const;
+
+export const PersonsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                $ref: '#/components/schemas/PersonPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: [
+        'data',
+        'count'
+    ],
+    title: 'PersonsPublic',
+    description: 'Person list with count.'
+} as const;
+
+export const PositionCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    required: [
+        'name'
+    ],
+    title: 'PositionCreate',
+    description: 'Schema for creating position.'
+} as const;
+
+export const PositionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: [
+        'id',
+        'name',
+        'created_at'
+    ],
+    title: 'PositionPublic',
+    description: 'Public position schema for API responses.'
+} as const;
+
+export const PositionUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        }
+    },
+    type: 'object',
+    title: 'PositionUpdate',
+    description: 'Schema for updating position (all fields optional).'
+} as const;
+
+export const PositionsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                $ref: '#/components/schemas/PositionPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: [
+        'data',
+        'count'
+    ],
+    title: 'PositionsPublic',
+    description: 'Position list with count.'
 } as const;
 
 export const TokenSchema = {
@@ -853,27 +1276,27 @@ export const UserCreateSchema = {
             title: 'Password'
         },
         full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
             title: 'Full Name'
         },
         is_active: {
             type: 'boolean',
             title: 'Is Active',
             default: true
+        },
+        is_superuser: {
+            type: 'boolean',
+            title: 'Is Superuser',
+            default: false
         }
     },
     type: 'object',
     required: [
         'email',
-        'password'
+        'password',
+        'full_name'
     ],
     title: 'UserCreate',
     description: 'Schema for creating user via API.'
@@ -898,26 +1321,25 @@ export const UserPublicSchema = {
             default: false
         },
         full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
+            type: 'string',
+            maxLength: 255,
             title: 'Full Name'
         },
         id: {
             type: 'string',
             format: 'uuid',
             title: 'Id'
+        },
+        is_first_superuser: {
+            type: 'boolean',
+            title: 'Is First Superuser',
+            default: false
         }
     },
     type: 'object',
     required: [
         'email',
+        'full_name',
         'id'
     ],
     title: 'UserPublic',
@@ -956,7 +1378,8 @@ export const UserUpdateSchema = {
             anyOf: [
                 {
                     type: 'string',
-                    maxLength: 255
+                    maxLength: 255,
+                    minLength: 1
                 },
                 {
                     type: 'null'
@@ -998,7 +1421,8 @@ export const UserUpdateMeSchema = {
             anyOf: [
                 {
                     type: 'string',
-                    maxLength: 255
+                    maxLength: 255,
+                    minLength: 1
                 },
                 {
                     type: 'null'

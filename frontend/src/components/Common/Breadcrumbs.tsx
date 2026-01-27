@@ -62,6 +62,12 @@ const buildBreadcrumbs = (path: string): BreadcrumbItem[] => {
 export function Breadcrumbs() {
 	const router = useRouterState()
 	const currentPath = router.location.pathname
+	const currentSearch = router.location.search as { category?: string }
+	const selectedDocsCategory =
+		currentPath === '/docs' && typeof currentSearch.category === 'string'
+			? currentSearch.category.trim()
+			: ''
+	const isNewsDetails = currentPath.startsWith('/news/') && currentPath !== '/news'
 
 	// Don't show breadcrumbs on home page
 	if (currentPath === '/') {
@@ -69,19 +75,30 @@ export function Breadcrumbs() {
 	}
 
 	const breadcrumbs = buildBreadcrumbs(currentPath)
+	const resolvedBreadcrumbs =
+		currentPath === '/docs' && selectedDocsCategory
+			? [...breadcrumbs, { label: selectedDocsCategory }]
+			: breadcrumbs
+	const newsBreadcrumbs = isNewsDetails
+		? [...buildBreadcrumbs('/news'), { label: 'Новость' }]
+		: resolvedBreadcrumbs
 
-	if (breadcrumbs.length === 0) {
+	if (newsBreadcrumbs.length === 0) {
 		return null
 	}
 
 	return (
 		<Breadcrumb className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
 			<BreadcrumbList className="flex-wrap">
-				{breadcrumbs.map((item, index) => {
-					const isLast = index === breadcrumbs.length - 1
+				{newsBreadcrumbs.map((item, index) => {
+					const isLast = index === newsBreadcrumbs.length - 1
 					return (
 						<React.Fragment key={`${item.href}-${index}`}>
-							{index > 0 && <BreadcrumbSeparator />}
+							{index > 0 && (
+								<BreadcrumbSeparator>
+									<span className="text-foreground font-semibold">•</span>
+								</BreadcrumbSeparator>
+							)}
 							<BreadcrumbItem>
 								{isLast ? (
 									<BreadcrumbPage>{item.label}</BreadcrumbPage>

@@ -61,7 +61,7 @@ const ChangePassword = () => {
       return UsersService.usersUpdatePasswordMe({ body: requestBody })
     },
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast("Пароль успешно обновлен")
       form.reset()
     },
     onError: handleError.bind(showErrorToast),

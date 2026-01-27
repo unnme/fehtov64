@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 import { Image as ImageIcon } from 'lucide-react'
@@ -48,7 +49,7 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg flex items-center justify-center animate-pulse flex-shrink-0">
+			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg flex items-center justify-center animate-pulse shrink-0">
 				<span className="text-xs text-muted-foreground">...</span>
 			</div>
 		)
@@ -56,7 +57,7 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 
 	if (!firstImage) {
 		return (
-			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg border border-dashed flex items-center justify-center flex-shrink-0">
+			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg border border-dashed flex items-center justify-center shrink-0">
 				<ImageIcon className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/50" />
 			</div>
 		)
@@ -65,7 +66,7 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 	const imageUrl = getImageFileUrl(newsId, firstImage.id)
 
 	return (
-		<div className="w-32 h-32 sm:w-40 sm:h-40 rounded-lg overflow-hidden border bg-muted flex-shrink-0">
+		<div className="w-32 h-32 sm:w-40 sm:h-40 rounded-lg overflow-hidden border bg-muted shrink-0">
 			<img
 				src={imageUrl}
 				alt={firstImage.file_name}
@@ -144,13 +145,6 @@ export function PublicNewsList() {
 
 	return (
 		<div className="container py-6 sm:py-8 lg:py-12 mx-auto px-4 sm:px-6">
-			<div className="mb-6 sm:mb-8">
-				<h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Новости</h2>
-				<p className="text-sm sm:text-base text-muted-foreground">
-					Всего опубликовано новостей: {data.count}
-				</p>
-			</div>
-
 			<div className="space-y-4 sm:space-y-6 mb-8">
 				{data.data.map((news: NewsPublic) => (
 					<Card
@@ -161,7 +155,15 @@ export function PublicNewsList() {
 							<NewsPreviewImage newsId={news.id} />
 							<div className="flex-1 min-w-0">
 								<CardHeader className="p-0 pb-3 sm:pb-4">
-									<CardTitle className="text-xl sm:text-2xl mb-2">{news.title}</CardTitle>
+									<CardTitle className="text-xl sm:text-2xl mb-2">
+										<Link
+											to="/news/$newsId"
+											params={{ newsId: news.id }}
+											className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+										>
+											{news.title}
+										</Link>
+									</CardTitle>
 									<div className="space-y-1">
 										{news.published_at && (
 											<CardDescription>

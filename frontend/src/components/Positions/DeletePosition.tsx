@@ -29,7 +29,7 @@ function DeletePosition({ id, onSuccess }: DeletePositionProps) {
   const mutation = useMutation({
     mutationFn: () => PositionsService.delete(id),
     onSuccess: () => {
-      showSuccessToast("Position deleted successfully")
+      showSuccessToast("Должность успешно удалена")
       onSuccess?.()
     },
     onError: handleError.bind(showErrorToast),

@@ -5,10 +5,11 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query"
 import { createRouter, RouterProvider } from "@tanstack/react-router"
+import { AxiosError } from "axios"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
 
-import { ApiError, client } from "./client"
+import { client } from "./client"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { ThemeProvider } from "./providers/ThemeProvider"
@@ -31,10 +32,12 @@ client.setConfig({
 const handleApiError = (error: Error) => {
   // Check if it's an ApiError or AxiosError
   let status: number | undefined
-  if (error instanceof ApiError) {
-    status = error.status
-  } else if ("response" in error && error.response) {
-    status = (error.response as any)?.status
+  if (error instanceof AxiosError) {
+    status = error.response?.status
+  } else if ((error as any)?.response?.status) {
+    status = (error as any).response.status
+  } else if ((error as any)?.status) {
+    status = (error as any).status
   }
 
   // Handle authentication errors - clear token and redirect

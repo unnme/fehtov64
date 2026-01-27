@@ -117,6 +117,157 @@ class PositionsPublic(SQLModel):
 
 
 # ============================================================================
+# Organization Card Schemas
+# ============================================================================
+
+
+def _normalize_optional_str(value: str | None) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ValueError("Значение должно быть строкой")
+    trimmed = value.strip()
+    return trimmed if trimmed else None
+
+
+def _normalize_phone_list(*, value: list[dict | str], allow_empty: bool = False) -> list[dict]:
+    """Normalizes phone list to format {phone: str, description: str | None}."""
+    if not isinstance(value, list):
+        raise ValueError("Телефоны должны быть списком")
+    
+    normalized = []
+    for item in value:
+        if isinstance(item, dict):
+            phone = item.get("phone", "")
+            if phone:
+                phone = str(phone).strip()
+            description = item.get("description")
+            if description is not None:
+                description = str(description).strip() or None
+            else:
+                description = None
+            if phone:
+                normalized.append({"phone": phone, "description": description})
+        elif isinstance(item, str):
+            item = item.strip()
+            if item:
+                if " - " in item:
+                    parts = item.split(" - ", 1)
+                    normalized.append({"phone": parts[0].strip(), "description": parts[1].strip() or None})
+                else:
+                    normalized.append({"phone": item, "description": None})
+    
+    if not normalized and not allow_empty:
+        raise ValueError("Укажите хотя бы один телефон")
+    return normalized
+
+
+class OrganizationCardCreate(SQLModel):
+    """Schema for creating organization card."""
+    name: str = Field(default='', max_length=255)
+    phones: list[dict] = Field(default_factory=list)
+    email: str = Field(default='', max_length=255)
+    address: str = Field(default='', max_length=500)
+    work_hours: str = Field(default='', max_length=500)
+    vk_url: str | None = Field(default=None, max_length=500)
+    telegram_url: str | None = Field(default=None, max_length=500)
+    whatsapp_url: str | None = Field(default=None, max_length=500)
+    max_url: str | None = Field(default=None, max_length=500)
+    latitude: float | None = None
+    longitude: float | None = None
+
+    @field_validator("phones", mode="before")
+    @classmethod
+    def normalize_phones(cls, value: list[dict | str] | None) -> list[dict]:
+        if value is None:
+            return []
+        return _normalize_phone_list(value=value, allow_empty=True)
+    
+    @field_validator("email", mode="before")
+    @classmethod
+    def validate_email(cls, value: str | None) -> str:
+        if value is None or not value.strip():
+            return ''
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, value.strip()):
+            raise ValueError("Неверный формат email")
+        return value.strip()
+
+    @field_validator(
+        "vk_url",
+        "telegram_url",
+        "whatsapp_url",
+        "max_url",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_links(cls, value: str | None) -> str | None:
+        return _normalize_optional_str(value)
+
+
+class OrganizationCardUpdate(SQLModel):
+    """Schema for updating organization card (all fields optional)."""
+    name: str | None = Field(default=None, max_length=255)  # type: ignore
+    phones: list[dict] | None = None
+    email: str | None = Field(default=None, max_length=255)  # type: ignore
+    address: str | None = Field(default=None, max_length=500)  # type: ignore
+    work_hours: str | None = Field(default=None, max_length=500)  # type: ignore
+    vk_url: str | None = Field(default=None, max_length=500)  # type: ignore
+    telegram_url: str | None = Field(default=None, max_length=500)  # type: ignore
+    whatsapp_url: str | None = Field(default=None, max_length=500)  # type: ignore
+    max_url: str | None = Field(default=None, max_length=500)  # type: ignore
+    latitude: float | None = None
+    longitude: float | None = None
+
+    @field_validator("phones", mode="before")
+    @classmethod
+    def normalize_phones(cls, value: list[dict | str] | None) -> list[dict] | None:
+        if value is None:
+            return value
+        return _normalize_phone_list(value=value, allow_empty=True)
+    
+    @field_validator("email", mode="before")
+    @classmethod
+    def validate_email(cls, value: str | None) -> str | None:
+        if value is None or not value.strip():
+            return None
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, value.strip()):
+            raise ValueError("Неверный формат email")
+        return value.strip()
+
+    @field_validator(
+        "vk_url",
+        "telegram_url",
+        "whatsapp_url",
+        "max_url",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_links(cls, value: str | None) -> str | None:
+        return _normalize_optional_str(value)
+
+
+class OrganizationCardPublic(SQLModel):
+    """Public organization card schema."""
+    id: uuid.UUID
+    name: str
+    phones: list[dict]
+    email: EmailStr
+    address: str
+    work_hours: str
+    vk_url: str | None
+    telegram_url: str | None
+    whatsapp_url: str | None
+    max_url: str | None
+    latitude: float | None
+    longitude: float | None
+    created_at: datetime
+    updated_at: datetime
+
+# ============================================================================
 # Person Schemas
 # ============================================================================
 
@@ -159,20 +310,11 @@ def _normalize_position_name(*, value: str) -> str:
     trimmed = value.strip()
     if not trimmed:
         raise ValueError("Название не должно быть пустым")
-    if re.search(r"\s", trimmed):
-        raise ValueError("Название: одно слово без пробелов")
-
-    parts = trimmed.split("-")
-    if len(parts) > 2 or any(part == "" for part in parts):
-        raise ValueError("Название: допускается одно тире")
-    if not all(_NAME_PART_PATTERN.match(part) for part in parts):
-        raise ValueError("Название: допускаются только буквы и одно тире")
-    lower_value = trimmed.lower()
-    parts = lower_value.split("-")
-    first = parts[0]
-    if first:
-        parts[0] = first[0].upper() + first[1:]
-    return "-".join(parts)
+    normalized = re.sub(r"\s+", " ", trimmed)
+    if not re.fullmatch(r"[A-Za-zА-Яа-яЁё ]+", normalized):
+        raise ValueError("Название: допускаются только буквы и пробелы, без тире")
+    first = normalized[0]
+    return first.upper() + normalized[1:]
 
 
 class PersonCreate(SQLModel):

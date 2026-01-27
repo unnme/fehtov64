@@ -6,6 +6,7 @@ from app.api.routes import (
     documents,
     images,
     news,
+    organization_card,
     person_images,
     persons,
     positions,
@@ -25,5 +26,7 @@ api_router.include_router(news.router)
 api_router.include_router(news.public_router)
 api_router.include_router(images.router)
 api_router.include_router(images.public_router)
-api_router.include_router(documents.router)
+api_router.include_router(organization_card.public_router)
+api_router.include_router(organization_card.router)
 api_router.include_router(documents.public_router)
+api_router.include_router(documents.router)

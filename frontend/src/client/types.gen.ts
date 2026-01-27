@@ -123,6 +123,16 @@ export type BodyImagesUploadImage = {
 };
 
 /**
+ * Body_person-images-upload_person_image
+ */
+export type BodyPersonImagesUploadPersonImage = {
+    /**
+     * File
+     */
+    file: Blob | File;
+};
+
+/**
  * DocumentCategoriesPublic
  *
  * Document category list with count.
@@ -436,6 +446,7 @@ export type NewsPublic = {
      * Owner Id
      */
     owner_id: string;
+    owner?: UserPublic | null;
     /**
      * Published At
      */
@@ -488,6 +499,240 @@ export type NewsUpdate = {
      * Is Published
      */
     is_published?: boolean | null;
+    /**
+     * Owner Id
+     */
+    owner_id?: string | null;
+};
+
+/**
+ * PersonCreate
+ *
+ * Schema for creating person.
+ */
+export type PersonCreate = {
+    /**
+     * Last Name
+     */
+    last_name: string;
+    /**
+     * First Name
+     */
+    first_name: string;
+    /**
+     * Middle Name
+     */
+    middle_name: string;
+    /**
+     * Phone
+     */
+    phone: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Position Id
+     */
+    position_id: string;
+};
+
+/**
+ * PersonImagePublic
+ *
+ * Public person image schema for API responses.
+ */
+export type PersonImagePublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Person Id
+     */
+    person_id: string;
+    /**
+     * File Name
+     */
+    file_name: string;
+    /**
+     * File Path
+     */
+    file_path: string;
+    /**
+     * File Size
+     */
+    file_size: number;
+    /**
+     * Mime Type
+     */
+    mime_type: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * PersonPublic
+ *
+ * Public person schema for API responses.
+ */
+export type PersonPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Last Name
+     */
+    last_name: string;
+    /**
+     * First Name
+     */
+    first_name: string;
+    /**
+     * Middle Name
+     */
+    middle_name: string;
+    /**
+     * Phone
+     */
+    phone: string;
+    /**
+     * Email
+     */
+    email: string;
+    /**
+     * Description
+     */
+    description: string;
+    position: PositionPublic;
+    image?: PersonImagePublic | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * PersonUpdate
+ *
+ * Schema for updating person (all fields optional).
+ */
+export type PersonUpdate = {
+    /**
+     * Last Name
+     */
+    last_name?: string | null;
+    /**
+     * First Name
+     */
+    first_name?: string | null;
+    /**
+     * Middle Name
+     */
+    middle_name?: string | null;
+    /**
+     * Phone
+     */
+    phone?: string | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Position Id
+     */
+    position_id?: string | null;
+};
+
+/**
+ * PersonsPublic
+ *
+ * Person list with count.
+ */
+export type PersonsPublic = {
+    /**
+     * Data
+     */
+    data: Array<PersonPublic>;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
+ * PositionCreate
+ *
+ * Schema for creating position.
+ */
+export type PositionCreate = {
+    /**
+     * Name
+     */
+    name: string;
+};
+
+/**
+ * PositionPublic
+ *
+ * Public position schema for API responses.
+ */
+export type PositionPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+};
+
+/**
+ * PositionUpdate
+ *
+ * Schema for updating position (all fields optional).
+ */
+export type PositionUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+};
+
+/**
+ * PositionsPublic
+ *
+ * Position list with count.
+ */
+export type PositionsPublic = {
+    /**
+     * Data
+     */
+    data: Array<PositionPublic>;
+    /**
+     * Count
+     */
+    count: number;
 };
 
 /**
@@ -539,11 +784,15 @@ export type UserCreate = {
     /**
      * Full Name
      */
-    full_name?: string | null;
+    full_name: string;
     /**
      * Is Active
      */
     is_active?: boolean;
+    /**
+     * Is Superuser
+     */
+    is_superuser?: boolean;
 };
 
 /**
@@ -567,11 +816,15 @@ export type UserPublic = {
     /**
      * Full Name
      */
-    full_name?: string | null;
+    full_name: string;
     /**
      * Id
      */
     id: string;
+    /**
+     * Is First Superuser
+     */
+    is_first_superuser?: boolean;
 };
 
 /**
@@ -687,6 +940,36 @@ export type NewsReadPublicNewsResponses = {
 
 export type NewsReadPublicNewsResponse = NewsReadPublicNewsResponses[keyof NewsReadPublicNewsResponses];
 
+export type NewsReadPublicNewsItemData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/news/public/{id}';
+};
+
+export type NewsReadPublicNewsItemErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type NewsReadPublicNewsItemError = NewsReadPublicNewsItemErrors[keyof NewsReadPublicNewsItemErrors];
+
+export type NewsReadPublicNewsItemResponses = {
+    /**
+     * Successful Response
+     */
+    200: NewsPublic;
+};
+
+export type NewsReadPublicNewsItemResponse = NewsReadPublicNewsItemResponses[keyof NewsReadPublicNewsItemResponses];
+
 export type AuthLoginAccessTokenData = {
     body: BodyAuthLoginAccessToken;
     path?: never;
@@ -779,6 +1062,10 @@ export type UsersReadUsersData = {
          * Limit
          */
         limit?: number;
+        /**
+         * Include Guardian
+         */
+        include_guardian?: boolean;
     };
     url: '/api/v1/users/';
 };
@@ -1047,6 +1334,392 @@ export type UsersUpdateUserResponses = {
 };
 
 export type UsersUpdateUserResponse = UsersUpdateUserResponses[keyof UsersUpdateUserResponses];
+
+export type PositionsReadPositionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/positions/';
+};
+
+export type PositionsReadPositionsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PositionsReadPositionsError = PositionsReadPositionsErrors[keyof PositionsReadPositionsErrors];
+
+export type PositionsReadPositionsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PositionsPublic;
+};
+
+export type PositionsReadPositionsResponse = PositionsReadPositionsResponses[keyof PositionsReadPositionsResponses];
+
+export type PositionsCreatePositionData = {
+    body: PositionCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/positions/';
+};
+
+export type PositionsCreatePositionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PositionsCreatePositionError = PositionsCreatePositionErrors[keyof PositionsCreatePositionErrors];
+
+export type PositionsCreatePositionResponses = {
+    /**
+     * Successful Response
+     */
+    200: PositionPublic;
+};
+
+export type PositionsCreatePositionResponse = PositionsCreatePositionResponses[keyof PositionsCreatePositionResponses];
+
+export type PositionsDeletePositionData = {
+    body?: never;
+    path: {
+        /**
+         * Position Id
+         */
+        position_id: string;
+    };
+    query?: never;
+    url: '/api/v1/positions/{position_id}';
+};
+
+export type PositionsDeletePositionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PositionsDeletePositionError = PositionsDeletePositionErrors[keyof PositionsDeletePositionErrors];
+
+export type PositionsDeletePositionResponses = {
+    /**
+     * Response Positions-Delete Position
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type PositionsUpdatePositionData = {
+    body: PositionUpdate;
+    path: {
+        /**
+         * Position Id
+         */
+        position_id: string;
+    };
+    query?: never;
+    url: '/api/v1/positions/{position_id}';
+};
+
+export type PositionsUpdatePositionErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PositionsUpdatePositionError = PositionsUpdatePositionErrors[keyof PositionsUpdatePositionErrors];
+
+export type PositionsUpdatePositionResponses = {
+    /**
+     * Successful Response
+     */
+    200: PositionPublic;
+};
+
+export type PositionsUpdatePositionResponse = PositionsUpdatePositionResponses[keyof PositionsUpdatePositionResponses];
+
+export type PersonsReadPersonsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/persons/';
+};
+
+export type PersonsReadPersonsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsReadPersonsError = PersonsReadPersonsErrors[keyof PersonsReadPersonsErrors];
+
+export type PersonsReadPersonsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonsPublic;
+};
+
+export type PersonsReadPersonsResponse = PersonsReadPersonsResponses[keyof PersonsReadPersonsResponses];
+
+export type PersonsCreatePersonData = {
+    body: PersonCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/persons/';
+};
+
+export type PersonsCreatePersonErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsCreatePersonError = PersonsCreatePersonErrors[keyof PersonsCreatePersonErrors];
+
+export type PersonsCreatePersonResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonPublic;
+};
+
+export type PersonsCreatePersonResponse = PersonsCreatePersonResponses[keyof PersonsCreatePersonResponses];
+
+export type PersonsDeletePersonData = {
+    body?: never;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}';
+};
+
+export type PersonsDeletePersonErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsDeletePersonError = PersonsDeletePersonErrors[keyof PersonsDeletePersonErrors];
+
+export type PersonsDeletePersonResponses = {
+    /**
+     * Response Persons-Delete Person
+     *
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type PersonsReadPersonByIdData = {
+    body?: never;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}';
+};
+
+export type PersonsReadPersonByIdErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsReadPersonByIdError = PersonsReadPersonByIdErrors[keyof PersonsReadPersonByIdErrors];
+
+export type PersonsReadPersonByIdResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonPublic;
+};
+
+export type PersonsReadPersonByIdResponse = PersonsReadPersonByIdResponses[keyof PersonsReadPersonByIdResponses];
+
+export type PersonsUpdatePersonData = {
+    body: PersonUpdate;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}';
+};
+
+export type PersonsUpdatePersonErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsUpdatePersonError = PersonsUpdatePersonErrors[keyof PersonsUpdatePersonErrors];
+
+export type PersonsUpdatePersonResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonPublic;
+};
+
+export type PersonsUpdatePersonResponse = PersonsUpdatePersonResponses[keyof PersonsUpdatePersonResponses];
+
+export type PersonImagesDeletePersonImageData = {
+    body?: never;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}/image/';
+};
+
+export type PersonImagesDeletePersonImageErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonImagesDeletePersonImageError = PersonImagesDeletePersonImageErrors[keyof PersonImagesDeletePersonImageErrors];
+
+export type PersonImagesDeletePersonImageResponses = {
+    /**
+     * Successful Response
+     */
+    200: Message;
+};
+
+export type PersonImagesDeletePersonImageResponse = PersonImagesDeletePersonImageResponses[keyof PersonImagesDeletePersonImageResponses];
+
+export type PersonImagesGetPersonImageData = {
+    body?: never;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}/image/';
+};
+
+export type PersonImagesGetPersonImageErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonImagesGetPersonImageError = PersonImagesGetPersonImageErrors[keyof PersonImagesGetPersonImageErrors];
+
+export type PersonImagesGetPersonImageResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonImagePublic;
+};
+
+export type PersonImagesGetPersonImageResponse = PersonImagesGetPersonImageResponses[keyof PersonImagesGetPersonImageResponses];
+
+export type PersonImagesUploadPersonImageData = {
+    body: BodyPersonImagesUploadPersonImage;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}/image/';
+};
+
+export type PersonImagesUploadPersonImageErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonImagesUploadPersonImageError = PersonImagesUploadPersonImageErrors[keyof PersonImagesUploadPersonImageErrors];
+
+export type PersonImagesUploadPersonImageResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonImagePublic;
+};
+
+export type PersonImagesUploadPersonImageResponse = PersonImagesUploadPersonImageResponses[keyof PersonImagesUploadPersonImageResponses];
+
+export type PersonImagesGetPersonImageFileData = {
+    body?: never;
+    path: {
+        /**
+         * Person Id
+         */
+        person_id: string;
+    };
+    query?: never;
+    url: '/api/v1/persons/{person_id}/image/file';
+};
+
+export type PersonImagesGetPersonImageFileErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonImagesGetPersonImageFileError = PersonImagesGetPersonImageFileErrors[keyof PersonImagesGetPersonImageFileErrors];
+
+export type PersonImagesGetPersonImageFileResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
 
 export type UtilsHealthCheckData = {
     body?: never;
@@ -1460,6 +2133,106 @@ export type ImagesGetImageFileResponses = {
     200: unknown;
 };
 
+export type DocumentsReadPublicCategoriesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/documents/public/categories';
+};
+
+export type DocumentsReadPublicCategoriesErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DocumentsReadPublicCategoriesError = DocumentsReadPublicCategoriesErrors[keyof DocumentsReadPublicCategoriesErrors];
+
+export type DocumentsReadPublicCategoriesResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentCategoriesPublic;
+};
+
+export type DocumentsReadPublicCategoriesResponse = DocumentsReadPublicCategoriesResponses[keyof DocumentsReadPublicCategoriesResponses];
+
+export type DocumentsReadPublicDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Category Id
+         */
+        category_id?: string | null;
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/documents/public';
+};
+
+export type DocumentsReadPublicDocumentsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DocumentsReadPublicDocumentsError = DocumentsReadPublicDocumentsErrors[keyof DocumentsReadPublicDocumentsErrors];
+
+export type DocumentsReadPublicDocumentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: DocumentsPublic;
+};
+
+export type DocumentsReadPublicDocumentsResponse = DocumentsReadPublicDocumentsResponses[keyof DocumentsReadPublicDocumentsResponses];
+
+export type DocumentsGetDocumentFileData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/documents/{document_id}/file';
+};
+
+export type DocumentsGetDocumentFileErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DocumentsGetDocumentFileError = DocumentsGetDocumentFileErrors[keyof DocumentsGetDocumentFileErrors];
+
+export type DocumentsGetDocumentFileResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type DocumentsReadCategoriesData = {
     body?: never;
     path?: never;
@@ -1731,31 +2504,3 @@ export type DocumentsUpdateDocumentResponses = {
 };
 
 export type DocumentsUpdateDocumentResponse = DocumentsUpdateDocumentResponses[keyof DocumentsUpdateDocumentResponses];
-
-export type DocumentsGetDocumentFileData = {
-    body?: never;
-    path: {
-        /**
-         * Document Id
-         */
-        document_id: string;
-    };
-    query?: never;
-    url: '/api/v1/documents/{document_id}/file';
-};
-
-export type DocumentsGetDocumentFileErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type DocumentsGetDocumentFileError = DocumentsGetDocumentFileErrors[keyof DocumentsGetDocumentFileErrors];
-
-export type DocumentsGetDocumentFileResponses = {
-    /**
-     * Successful Response
-     */
-    200: unknown;
-};

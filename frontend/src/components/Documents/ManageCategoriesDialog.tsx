@@ -273,6 +273,7 @@ export function ManageCategoriesDialog() {
     },
     enabled: isOpen,
   })
+  const hasScroll = categories.data.length > 7
 
   return (
     <>
@@ -304,7 +305,9 @@ export function ManageCategoriesDialog() {
                 Категории не найдены
               </div>
             ) : (
-              <div className="border rounded-lg">
+              <div
+                className={`border rounded-lg ${hasScroll ? "max-h-96 overflow-y-auto" : ""}`}
+              >
                 <div className="divide-y">
                   {categories.data.map((category) => (
                     <div

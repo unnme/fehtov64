@@ -93,6 +93,60 @@ def read_public_news(
         return NewsPublicList(data=news_public_list, count=count)
 
 
+@public_router.get("/public/{id}", response_model=NewsPublic)
+def read_public_news_item(id: uuid.UUID) -> Any:
+    """
+    Get published news by ID. Public endpoint - no authentication required.
+    """
+    from app.core.db import engine
+    from sqlmodel import Session
+
+    with Session(engine) as session:
+        statement = select(News).where(
+            News.id == id,
+            News.is_published == True,
+        )
+        news_item = session.exec(statement).first()
+        if not news_item:
+            raise HTTPException(status_code=404, detail="News not found")
+
+        from app.models import User
+        from app.core.config import settings as app_settings
+        from app.schemas import NewsImagePublic
+
+        owner_public = None
+        if news_item.owner_id:
+            owner = session.get(User, news_item.owner_id)
+            if owner:
+                owner_dict = owner.model_dump()
+                owner_dict["is_first_superuser"] = owner.email == app_settings.FIRST_SUPERUSER
+                owner_public = UserPublic.model_validate(owner_dict)
+
+        images = []
+        try:
+            images_statement = (
+                select(NewsImage)
+                .where(NewsImage.news_id == news_item.id)
+                .order_by(NewsImage.order)
+            )
+            images = session.exec(images_statement).all()
+        except Exception:
+            images = []
+
+        return NewsPublic(
+            id=news_item.id,
+            title=news_item.title,
+            content=news_item.content,
+            is_published=news_item.is_published,
+            owner_id=news_item.owner_id,
+            owner=owner_public,
+            published_at=news_item.published_at,
+            created_at=news_item.created_at,
+            updated_at=news_item.updated_at,
+            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+        )
+
+
 @router.get("/", response_model=NewsPublicList)
 def read_news(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100

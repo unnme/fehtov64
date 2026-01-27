@@ -53,6 +53,25 @@ def read_categories(
     )
 
 
+@public_router.get("/public/categories", response_model=DocumentCategoriesPublic)
+def read_public_categories(
+    session: SessionDep,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """Get all document categories (public)."""
+    count_statement = select(func.count()).select_from(DocumentCategory)
+    count = session.exec(count_statement).one()
+
+    statement = select(DocumentCategory).offset(skip).limit(limit).order_by(DocumentCategory.name)
+    categories = session.exec(statement).all()
+
+    return DocumentCategoriesPublic(
+        data=[DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at) for c in categories],
+        count=count,
+    )
+
+
 @router.post("/categories", response_model=DocumentCategoryPublic)
 def create_category(
     session: SessionDep,
@@ -194,6 +213,52 @@ def read_documents(
             ) if d.category else None,
             owner_id=d.owner_id,
             owner=None,  # Don't expose owner details in list
+            created_at=d.created_at,
+            updated_at=d.updated_at,
+        ) for d in documents],
+        count=count,
+    )
+
+
+@public_router.get("/public", response_model=DocumentsPublic)
+def read_public_documents(
+    session: SessionDep,
+    category_id: uuid.UUID | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """Get all documents (public), optionally filtered by category."""
+    statement = select(Document)
+
+    if category_id:
+        statement = statement.where(Document.category_id == category_id)
+
+    count_statement = select(func.count()).select_from(statement.subquery())
+    count = session.exec(count_statement).one()
+
+    statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)
+    documents = session.exec(statement).all()
+
+    for doc in documents:
+        if doc.category_id:
+            doc.category = session.get(DocumentCategory, doc.category_id)
+
+    return DocumentsPublic(
+        data=[DocumentPublic(
+            id=d.id,
+            name=d.name,
+            file_name=d.file_name,
+            file_path=d.file_path,
+            file_size=d.file_size,
+            mime_type=d.mime_type,
+            category_id=d.category_id,
+            category=DocumentCategoryPublic(
+                id=d.category.id,
+                name=d.category.name,
+                created_at=d.category.created_at,
+            ) if d.category else None,
+            owner_id=d.owner_id,
+            owner=None,
             created_at=d.created_at,
             updated_at=d.updated_at,
         ) for d in documents],

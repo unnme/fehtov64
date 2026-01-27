@@ -1,21 +1,9 @@
 import { AxiosError } from "axios"
-import { ApiError } from "./client"
 
 /**
  * Extract error message from API error response
  */
-function extractErrorMessage(err: ApiError | Error): string {
-  if (err instanceof ApiError) {
-    const errDetail = err.body as any
-    if (errDetail?.detail) {
-      if (Array.isArray(errDetail.detail) && errDetail.detail.length > 0) {
-        return errDetail.detail[0].msg || errDetail.detail[0]
-      }
-      return errDetail.detail
-    }
-    return err.message || "Something went wrong."
-  }
-  
+function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     const errorData = err.response?.data as any
     if (errorData?.detail) {
@@ -24,10 +12,24 @@ function extractErrorMessage(err: ApiError | Error): string {
       }
       return errorData.detail
     }
-    return err.message || "Something went wrong."
+    return err.message || "Что-то пошло не так."
   }
 
-  return err.message || "Something went wrong."
+  if (err && typeof err === "object") {
+    const errAny = err as any
+    const detail = errAny?.error?.detail ?? errAny?.detail ?? errAny?.response?.data?.detail
+    if (detail) {
+      if (Array.isArray(detail) && detail.length > 0) {
+        return detail[0].msg || detail[0]
+      }
+      return detail
+    }
+    if (typeof errAny?.message === "string") {
+      return errAny.message
+    }
+  }
+
+  return "Что-то пошло не так."
 }
 
 /**
@@ -35,7 +37,7 @@ function extractErrorMessage(err: ApiError | Error): string {
  */
 export const handleError = function (
   this: (msg: string) => void,
-  err: ApiError,
+  err: unknown,
 ) {
   const errorMessage = extractErrorMessage(err)
   this(errorMessage)

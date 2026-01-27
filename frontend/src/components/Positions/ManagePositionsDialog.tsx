@@ -274,6 +274,7 @@ export function ManagePositionsDialog() {
   const filteredPositions = positions.data.filter(
     (position) => position.name !== DEFAULT_POSITION_NAME
   )
+  const hasScroll = filteredPositions.length > 7
 
   return (
     <>
@@ -305,7 +306,9 @@ export function ManagePositionsDialog() {
                 Должности не найдены
               </div>
             ) : (
-              <div className="border rounded-lg">
+              <div
+                className={`border rounded-lg ${hasScroll ? "max-h-96 overflow-y-auto" : ""}`}
+              >
                 <div className="divide-y">
                   {filteredPositions.map((position) => (
                     <div
