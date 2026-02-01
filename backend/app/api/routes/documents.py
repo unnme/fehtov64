@@ -4,12 +4,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from sqlmodel import func, select, Session
+from sqlmodel import Session, func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.config import settings
 from app.core.db import engine
 from app.models import Document, DocumentCategory
 from app.schemas import (
@@ -17,9 +16,8 @@ from app.schemas import (
     DocumentCategoryCreate,
     DocumentCategoryPublic,
     DocumentCategoryUpdate,
-    DocumentCreate,
-    DocumentsPublic,
     DocumentPublic,
+    DocumentsPublic,
     DocumentUpdate,
     Message,
 )
@@ -76,7 +74,7 @@ def read_public_categories(
 def create_category(
     session: SessionDep,
     category_in: DocumentCategoryCreate,
-    current_user: CurrentUser,
+    _current_user: CurrentUser,
 ) -> Any:
     """Create a new document category."""
     # Check if category already exists
@@ -290,10 +288,10 @@ async def create_document(
                 raise HTTPException(status_code=404, detail="Category not found")
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid category_id format")
-    
+
     # Save file
     file_path, file_size = document_service.save_document(file)
-    
+
     # Determine MIME type
     file_ext = Path(file.filename or "").suffix.lower()
     mime_type_map = {
@@ -311,7 +309,7 @@ async def create_document(
         ".odp": "application/vnd.oasis.opendocument.presentation",
     }
     mime_type = mime_type_map.get(file_ext, file.content_type or "application/octet-stream")
-    
+
     # Create document record
     document = Document(
         name=name,
@@ -325,11 +323,11 @@ async def create_document(
     session.add(document)
     session.commit()
     session.refresh(document)
-    
+
     # Load relationships
     if category:
         document.category = category
-    
+
     return DocumentPublic(
         id=document.id,
         name=document.name,
@@ -359,12 +357,12 @@ def read_document(
     document = session.get(Document, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     # Get category (if exists)
     category = None
     if document.category_id:
         category = session.get(DocumentCategory, document.category_id)
-    
+
     # Get owner
     from app.models import User
     from app.schemas import UserPublic
@@ -374,9 +372,9 @@ def read_document(
         email=owner.email,
         is_active=owner.is_active,
         is_superuser=owner.is_superuser,
-        full_name=owner.full_name,
+        nickname=owner.nickname,
     ) if owner else None
-    
+
     return DocumentPublic(
         id=document.id,
         name=document.name,
@@ -406,11 +404,11 @@ def get_document_file(
         document = session.get(Document, document_id)
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
-        
+
         file_path = document_service.UPLOAD_DIR / document.file_path
         if not file_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
-        
+
         return FileResponse(
             path=str(file_path),
             filename=document.file_name,
@@ -450,13 +448,13 @@ def update_document(
         else:
             # Set category_id to None to remove category
             document.category_id = None
-    
+
     document.updated_at = datetime.now(timezone.utc)
-    
+
     session.add(document)
     session.commit()
     session.refresh(document)
-    
+
     # Load relationships
     category = None
     if document.category_id:
@@ -469,9 +467,9 @@ def update_document(
         email=owner.email,
         is_active=owner.is_active,
         is_superuser=owner.is_superuser,
-        full_name=owner.full_name,
+        nickname=owner.nickname,
     ) if owner else None
-    
+
     return DocumentPublic(
         id=document.id,
         name=document.name,
@@ -502,16 +500,16 @@ def delete_document(
     document = session.get(Document, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
     # Only owner or superuser can delete
     if not current_user.is_superuser and document.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
+
     # Delete file from disk
     document_service.delete_document(document.file_path)
-    
+
     # Delete from database
     session.delete(document)
     session.commit()
-    
+
     return Message(message="Document deleted successfully")

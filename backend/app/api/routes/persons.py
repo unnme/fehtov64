@@ -11,8 +11,8 @@ from app.schemas import (
     PersonCreate,
     PersonImagePublic,
     PersonPublic,
-    PersonUpdate,
     PersonsPublic,
+    PersonUpdate,
     PositionPublic,
 )
 from app.services.image_service import image_service
@@ -216,7 +216,7 @@ def update_person(
     else:
         # Get current position if not updating
         position = session.get(Position, person.position_id)
-    
+
     person_data = person_in.model_dump(exclude_unset=True)
     person.sqlmodel_update(person_data)
     person.updated_at = datetime.now(timezone.utc)
@@ -224,16 +224,16 @@ def update_person(
     session.add(person)
     session.commit()
     session.refresh(person)
-    
+
     # Get position after update (in case it changed)
     if not position or (person_in.position_id and position.id != person.position_id):
         position = session.get(Position, person.position_id)
-    
+
     if not position:
         raise HTTPException(
             status_code=500, detail=f"Position not found for person {person.id}"
         )
-    
+
     image = session.exec(
         select(PersonImage).where(PersonImage.person_id == person.id)
     ).first()

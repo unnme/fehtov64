@@ -1,31 +1,45 @@
 import { AxiosError } from "axios"
 
+interface ApiErrorDetail {
+  msg?: string
+  [key: string]: unknown
+}
+
+interface ApiErrorData {
+  detail?: string | ApiErrorDetail[]
+  error?: { detail?: string }
+  message?: string
+  response?: { data?: { detail?: string } }
+}
+
 /**
  * Extract error message from API error response
  */
 function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
-    const errorData = err.response?.data as any
+    const errorData = err.response?.data as ApiErrorData | undefined
     if (errorData?.detail) {
       if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
-        return errorData.detail[0].msg || errorData.detail[0]
+        const first = errorData.detail[0]
+        return typeof first === 'string' ? first : (first.msg || String(first))
       }
-      return errorData.detail
+      return String(errorData.detail)
     }
     return err.message || "Что-то пошло не так."
   }
 
   if (err && typeof err === "object") {
-    const errAny = err as any
-    const detail = errAny?.error?.detail ?? errAny?.detail ?? errAny?.response?.data?.detail
+    const errObj = err as ApiErrorData
+    const detail = errObj?.error?.detail ?? errObj?.detail ?? errObj?.response?.data?.detail
     if (detail) {
       if (Array.isArray(detail) && detail.length > 0) {
-        return detail[0].msg || detail[0]
+        const first = detail[0]
+        return typeof first === 'string' ? first : (first.msg || String(first))
       }
-      return detail
+      return String(detail)
     }
-    if (typeof errAny?.message === "string") {
-      return errAny.message
+    if (typeof errObj?.message === "string") {
+      return errObj.message
     }
   }
 
@@ -41,6 +55,39 @@ export const handleError = function (
 ) {
   const errorMessage = extractErrorMessage(err)
   this(errorMessage)
+}
+
+/**
+ * API response wrapper type
+ */
+interface ApiResponse<T> {
+  data?: T
+  error?: unknown
+  response?: { status?: number }
+}
+
+/**
+ * Custom error type that includes HTTP status
+ */
+export interface ApiError {
+  detail?: string
+  status?: number
+  [key: string]: unknown
+}
+
+/**
+ * Unwrap API response - extracts data or throws error with status
+ */
+export async function unwrapResponse<T>(
+  promise: Promise<ApiResponse<T>>
+): Promise<T> {
+  const response = await promise
+  if ('error' in response && response.error) {
+    const error = response.error as Record<string, unknown>
+    const status = response.response?.status
+    throw { ...error, status } as ApiError
+  }
+  return response.data as T
 }
 
 /**
@@ -87,7 +134,7 @@ export async function getClientIP(): Promise<string | null> {
             return ip
           }
         }
-      } catch (error) {
+      } catch {
         // Try next service
         continue
       }

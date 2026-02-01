@@ -2,7 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -32,14 +31,10 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
+import { editDocumentSchema, type EditDocumentFormData } from "@/schemas/document"
 
-const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  category_id: z.string().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = EditDocumentFormData
 
 interface EditDocumentProps {
   document: DocumentPublic
@@ -53,17 +48,13 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
 
   const { data: categories = { data: [], count: 0 } } = useQuery<DocumentCategoriesPublic>({
     queryKey: ["document-categories"],
-    queryFn: async () => {
-      const response = await DocumentsService.documentsReadCategories()
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as DocumentCategoriesPublic
-    },
+    queryFn: () => unwrapResponse<DocumentCategoriesPublic>(
+      DocumentsService.documentsReadCategories()
+    ),
   })
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(editDocumentSchema),
     defaultValues: {
       name: document.name,
       category_id: document.category_id || "__none__",
@@ -81,19 +72,16 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
   }, [document, isOpen, form])
 
   const mutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const response = await DocumentsService.documentsUpdateDocument({
-        path: { document_id: document.id },
-        body: {
-          name: data.name,
-          category_id: data.category_id === "__none__" || !data.category_id ? null : data.category_id,
-        },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as DocumentPublic
-    },
+    mutationFn: (data: FormData) =>
+      unwrapResponse<DocumentPublic>(
+        DocumentsService.documentsUpdateDocument({
+          path: { document_id: document.id },
+          body: {
+            name: data.name,
+            category_id: data.category_id === "__none__" || !data.category_id ? null : data.category_id,
+          },
+        })
+      ),
     onSuccess: () => {
       showSuccessToast("Документ обновлен успешно")
       queryClient.invalidateQueries({ queryKey: ["documents"] })

@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { UsersService } from "@/client"
 import type { UpdatePassword } from "@/client"
@@ -17,32 +16,14 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
+import { changePasswordSchema, type ChangePasswordFormData } from "@/schemas/auth"
 
-const formSchema = z
-  .object({
-    current_password: z
-      .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    new_password: z
-      .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
-    confirm_password: z
-      .string()
-      .min(1, { message: "Password confirmation is required" }),
-  })
-  .refine((data) => data.new_password === data.confirm_password, {
-    message: "The passwords don't match",
-    path: ["confirm_password"],
-  })
-
-type FormData = z.infer<typeof formSchema>
+type FormData = ChangePasswordFormData
 
 const ChangePassword = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(changePasswordSchema),
     mode: "onSubmit",
     criteriaMode: "all",
     defaultValues: {

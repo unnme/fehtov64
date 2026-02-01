@@ -2,11 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
-import type { Person } from "@/services/personsService"
-import { PersonsService } from "@/services/personsService"
-import { PositionsService } from "@/services/positionsService"
+import { PersonsService, PersonImagesService, PositionsService, type PersonPublic, type PositionsPublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -32,56 +29,18 @@ import { Textarea } from "@/components/ui/textarea"
 import PositionSelect from "@/components/Persons/PositionSelect"
 import PersonImageUploader from "@/components/Persons/PersonImageUploader"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
-import { isValidPersonName, normalizePersonName } from "@/utils/personName"
-import { formatPhone, isValidPhone } from "@/utils/phone"
+import { handleError, unwrapResponse } from "@/utils"
+import { formatPhone } from "@/utils/phone"
+import { normalizePersonName } from "@/utils/personName"
 import { getPersonImageFileUrl } from "@/utils/fileUrls"
+import { editPersonSchema, type EditPersonFormData } from "@/schemas/person"
 
 const DEFAULT_POSITION_NAME = "Без должности"
 
-const formSchema = z.object({
-  last_name: z
-    .string()
-    .min(1, { message: "Фамилия обязательна" })
-    .refine((value) => isValidPersonName(value, true), {
-      message: "Фамилия: одно слово, без пробелов, допускается одно тире",
-    })
-    .transform((value) => normalizePersonName(value, true)),
-  first_name: z
-    .string()
-    .min(1, { message: "Имя обязательно" })
-    .refine((value) => isValidPersonName(value, false), {
-      message: "Имя: одно слово, без пробелов",
-    })
-    .transform((value) => normalizePersonName(value, false)),
-  middle_name: z
-    .string()
-    .min(1, { message: "Отчество обязательно" })
-    .refine((value) => isValidPersonName(value, false), {
-      message: "Отчество: одно слово, без пробелов",
-    })
-    .transform((value) => normalizePersonName(value, false)),
-  phone: z
-    .string()
-    .min(1, { message: "Телефон обязателен" })
-    .refine(isValidPhone, { message: "Неверный формат телефона" }),
-  email: z.string().email({ message: "Неверный email" }),
-  description: z.string().optional(),
-  position_id: z.string().min(1, { message: "Должность обязательна" }),
-})
-
-interface FormData {
-  last_name: string
-  first_name: string
-  middle_name: string
-  phone: string
-  email: string
-  description?: string
-  position_id: string
-}
+type FormData = EditPersonFormData
 
 interface EditPersonProps {
-  person: Person
+  person: PersonPublic
   onSuccess?: () => void
 }
 
@@ -96,7 +55,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
 
   const { data: positionsData } = useQuery({
     queryKey: ["positions"],
-    queryFn: () => PositionsService.list(),
+    queryFn: () => unwrapResponse<PositionsPublic>(PositionsService.positionsReadPositions()),
   })
 
   const positions = useMemo(
@@ -111,7 +70,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
 
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(editPersonSchema),
     mode: "onBlur",
     defaultValues: {
       last_name: person.last_name,
@@ -136,15 +95,18 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
 
   const mutation = useMutation({
     mutationFn: (data: FormData) =>
-      PersonsService.update(person.id, {
-        last_name: data.last_name,
-        first_name: data.first_name,
-        middle_name: data.middle_name,
-        phone: data.phone,
-        email: data.email,
-        description: data.description || "",
-        position_id: data.position_id,
-      }),
+      unwrapResponse<PersonPublic>(PersonsService.personsUpdatePerson({
+        path: { person_id: person.id },
+        body: {
+          last_name: data.last_name,
+          first_name: data.first_name,
+          middle_name: data.middle_name,
+          phone: data.phone,
+          email: data.email,
+          description: data.description || "",
+          position_id: data.position_id,
+        },
+      })),
     onError: handleError.bind(showErrorToast),
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["persons"] })
@@ -159,7 +121,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
       if (photoFile) {
         setIsUploadingPhoto(true)
         try {
-          await PersonsService.uploadImage(person.id, photoFile)
+          await PersonImagesService.personImagesUploadPersonImage({ path: { person_id: person.id }, body: { file: photoFile } })
           await queryClient.invalidateQueries({ queryKey: ["persons"] })
         } catch (error) {
           showErrorToast(
@@ -186,7 +148,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
     if (!person.image) return
     setIsDeletingPhoto(true)
     try {
-      await PersonsService.deleteImage(person.id)
+      await PersonImagesService.personImagesDeletePersonImage({ path: { person_id: person.id } })
       await queryClient.invalidateQueries({ queryKey: ["persons"] })
     } catch (error) {
       showErrorToast(
@@ -340,7 +302,6 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
                 control={form.control}
                 name="position_id"
                 positions={positions}
-                isRequired
               />
 
               <PersonImageUploader

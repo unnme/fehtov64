@@ -37,7 +37,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
         if (item.owner.email === "guardian@system.example.com") {
           return
         }
-        const authorName = item.owner.full_name || item.owner.email
+        const authorName = item.owner.nickname || item.owner.email
         if (!authorMap.has(item.owner_id)) {
           authorMap.set(item.owner_id, {
             id: item.owner_id,
@@ -158,7 +158,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
         </div>
 
         <Select value={publishedStatus} onValueChange={setPublishedStatus}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-45">
             <SelectValue placeholder="Статус публикации" />
           </SelectTrigger>
           <SelectContent>
@@ -170,7 +170,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
 
         {authors.length > 0 && (
           <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full sm:w-45">
               <SelectValue placeholder="Автор" />
             </SelectTrigger>
             <SelectContent>
@@ -187,7 +187,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex items-center gap-2">
-          <div className="relative w-[120px]">
+          <div className="relative w-30">
             <Input
               type="text"
               placeholder="дд.мм.гггг"
@@ -264,7 +264,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
           {showDateTo && (
             <>
               <span className="text-muted-foreground">-</span>
-              <div className="relative w-[120px]">
+              <div className="relative w-30">
                 <Input
                   type="text"
                   placeholder="дд.мм.гггг"

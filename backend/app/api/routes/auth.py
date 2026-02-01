@@ -1,24 +1,24 @@
 from datetime import timedelta
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request as StarletteRequest
 
-from app.api.deps import CurrentUser, SessionDep
+from app.api.deps import SessionDep
 from app.core import security
 from app.core.config import settings
 from app.core.decorators import prevent_timing_attacks
 from app.core.ip_blocking import get_ip_blocking_middleware
-from app.core.rate_limit import AUTH_RATE_LIMIT, LOGIN_RATE_LIMIT, limiter
-from app.core.security import get_password_hash, verify_password
-from app.repositories.user_repository import authenticate, get_user_by_email
-from app.schemas import Message, NewPassword, Token, UserPublic
-from app.services.email_service import email_service
 from app.core.jwt import (
     generate_password_reset_token,
     verify_password_reset_token,
 )
+from app.core.rate_limit import AUTH_RATE_LIMIT, LOGIN_RATE_LIMIT, limiter
+from app.core.security import get_password_hash
+from app.repositories.user_repository import authenticate, get_user_by_email
+from app.schemas import Message, NewPassword, Token
+from app.services.email_service import email_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -39,16 +39,16 @@ def login_access_token(
     middleware = get_ip_blocking_middleware()
     client_ip = None
     user_agent = None
-    
+
     if middleware:
         client_ip = middleware._get_client_ip(request)
         user_agent = request.headers.get("User-Agent")
-    
+
     # Authenticate user
     db_user = authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
-    
+
     # If authentication failed - generic message
     if not db_user:
         if middleware and client_ip:
@@ -56,7 +56,7 @@ def login_access_token(
                 client_ip, user_agent, form_data.username
             )
         raise HTTPException(status_code=400, detail="Incorrect email or password")
-    
+
     # If password correct but user inactive - specific message
     if not db_user.is_active:
         if middleware and client_ip:
@@ -67,7 +67,7 @@ def login_access_token(
             status_code=403,
             detail="Your account is inactive. Please contact an administrator to activate your account.",
         )
-    
+
     # All checks passed - generate access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
@@ -80,7 +80,9 @@ def login_access_token(
 @router.post("/password-recovery/{email}")
 @limiter.limit(AUTH_RATE_LIMIT)
 async def recover_password(
-    request: StarletteRequest, email: str, session: SessionDep
+    request: StarletteRequest,  # noqa: ARG001
+    email: str,
+    session: SessionDep,
 ) -> Message:
     """
     Password Recovery.
@@ -102,7 +104,9 @@ async def recover_password(
 @router.post("/reset-password/")
 @limiter.limit(AUTH_RATE_LIMIT)
 def reset_password(
-    request: StarletteRequest, session: SessionDep, body: NewPassword
+    request: StarletteRequest,  # noqa: ARG001
+    session: SessionDep,
+    body: NewPassword,
 ) -> Message:
     """
     Reset password using token from email.

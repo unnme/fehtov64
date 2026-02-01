@@ -18,38 +18,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
 
-  adminer:
-    image: adminer
-    restart: always
-    networks:
-      - traefik-public
-      - default
-    depends_on:
-      - db
-    environment:
-      - ADMINER_DESIGN=pepa-linha-dark
-    # Traefik labels only for production (when traefik-public network is external)
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-public
-      - traefik.constraint-label=traefik-public
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-http.rule=Host(`adminer.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-http.entrypoints=http
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-http.middlewares=https-redirect
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-https.rule=Host(`adminer.${DOMAIN?Variable not set}`)
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-https.entrypoints=https
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-https.tls=true
-      - traefik.http.routers.${STACK_NAME?Variable not
-        set}-adminer-https.tls.certresolver=le
-      - traefik.http.services.${STACK_NAME?Variable not
-        set}-adminer.loadbalancer.server.port=8080
-
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
@@ -213,6 +181,27 @@ services:
         set}-frontend-main-https.tls=true
       - traefik.http.routers.${STACK_NAME?Variable not
         set}-frontend-main-https.tls.certresolver=le
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:17
+    restart: always
+    profiles:
+      - backup
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SCHEDULE=0 3 * * *
+      - BACKUP_KEEP_DAYS=30
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=8080
+
 volumes:
   app-db-data:
   app-uploads-data:

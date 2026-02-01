@@ -60,10 +60,10 @@ export const WorkHoursDialog = ({
 					<WorkHoursEditor value={localValue} onChange={setLocalValue} />
 				</div>
 				<DialogFooter className="gap-2 border-t pt-3 sm:pt-4 mt-3 sm:mt-4 flex-col sm:flex-row">
-					<Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto sm:min-w-[100px]">
+					<Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto sm:min-w-25">
 						Отмена
 					</Button>
-					<Button onClick={handleSave} className="w-full sm:w-auto sm:min-w-[100px]">
+					<Button onClick={handleSave} className="w-full sm:w-auto sm:min-w-25">
 						Сохранить
 					</Button>
 				</DialogFooter>

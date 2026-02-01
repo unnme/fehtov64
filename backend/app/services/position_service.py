@@ -4,7 +4,6 @@ from sqlmodel import Session, select
 
 from app.models import Person, Position
 
-
 DEFAULT_POSITION_NAME = "Без должности"
 
 
@@ -35,3 +34,4 @@ def reassign_persons_to_default(
     for person in persons:
         person.position_id = default_position.id
         session.add(person)
+    session.commit()

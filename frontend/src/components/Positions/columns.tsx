@@ -1,9 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table"
 
-import type { Position } from "@/services/positionsService"
+import type { PositionPublic } from "@/client"
 import PositionActionsMenu from "./PositionActionsMenu"
 
-function getBaseColumns(): ColumnDef<Position>[] {
+function getBaseColumns(): ColumnDef<PositionPublic>[] {
   return [
     {
       accessorKey: "name",
@@ -13,7 +13,7 @@ function getBaseColumns(): ColumnDef<Position>[] {
   ]
 }
 
-export function getColumns(isSuperuser: boolean): ColumnDef<Position>[] {
+export function getColumns(isSuperuser: boolean): ColumnDef<PositionPublic>[] {
   const baseColumns = getBaseColumns()
   if (!isSuperuser) return baseColumns
 

@@ -25,7 +25,6 @@ dependencies = [
     # New dependencies for refactoring
     "slowapi<1.0.0,>=0.1.9",
     "fastapi-mail<2.0.0,>=1.4.1",
-    "redis<6.0.0,>=5.0.0",
 ]
 
 [tool.uv]

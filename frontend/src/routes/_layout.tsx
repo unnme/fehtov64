@@ -14,19 +14,16 @@ export const Route = createFileRoute("/_layout")({
         to: "/auth/login",
       });
     }
-    // Validate token authenticity
+    // Validate token by calling API
     try {
       await UsersService.usersReadUserMe();
-    } catch (error: any) {
-      // Clear invalid token and redirect to login on auth errors
-      if (error?.status === 401 || error?.status === 403) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("token_expires_at");
-        throw redirect({
-          to: "/auth/login",
-        });
-      }
-      // Ignore other errors (may be network issue)
+    } catch {
+      // Any error means invalid session - clear and redirect
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_expires_at");
+      throw redirect({
+        to: "/auth/login",
+      });
     }
   },
 });

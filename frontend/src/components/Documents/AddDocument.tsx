@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus, Upload, X } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,15 +34,11 @@ import {
 import { DocumentsService, type DocumentCategoriesPublic, type DocumentPublic } from "@/client"
 import useCustomToast from "@/hooks/useCustomToast"
 import { cn } from "@/lib/utils"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 import { useDropzone } from "react-dropzone"
+import { createDocumentSchema, type CreateDocumentFormData } from "@/schemas/document"
 
-const formSchema = z.object({
-  name: z.string().optional(),
-  category_id: z.string().uuid().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = CreateDocumentFormData
 
 export function AddDocument() {
   const [isOpen, setIsOpen] = useState(false)
@@ -53,17 +48,13 @@ export function AddDocument() {
 
   const { data: categories = { data: [], count: 0 } } = useQuery<DocumentCategoriesPublic>({
     queryKey: ["document-categories"],
-    queryFn: async () => {
-      const response = await DocumentsService.documentsReadCategories()
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as DocumentCategoriesPublic
-    },
+    queryFn: () => unwrapResponse<DocumentCategoriesPublic>(
+      DocumentsService.documentsReadCategories()
+    ),
   })
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createDocumentSchema),
     mode: "onChange",
     defaultValues: {
       name: "",
@@ -77,17 +68,15 @@ export function AddDocument() {
         throw new Error("File not selected")
       }
 
-      const response = await DocumentsService.documentsCreateDocument({
-        body: {
-          file,
-          name: data.name || null,
-          category_id: data.category_id || null,
-        },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as DocumentPublic
+      return unwrapResponse<DocumentPublic>(
+        DocumentsService.documentsCreateDocument({
+          body: {
+            file,
+            name: data.name || null,
+            category_id: data.category_id || null,
+          },
+        })
+      )
     },
     onSuccess: () => {
       showSuccessToast("Документ загружен успешно")

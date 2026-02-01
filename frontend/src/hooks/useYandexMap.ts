@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import {
 	loadYandexMaps,
 	type YMapEvent,
@@ -7,112 +8,167 @@ import {
 	type YPlacemark
 } from '@/utils/yandexMaps'
 
+export interface MapCoords {
+	latitude: number
+	longitude: number
+}
+
 interface UseYandexMapProps {
 	apiKey: string | undefined
 	hasApiKey: boolean
 	containerRef: React.RefObject<HTMLDivElement | null>
-	initialCenter?: [number, number]
-	initialZoom?: number
-	onMapClick?: (coords: { latitude: number; longitude: number }) => void
-	onPlacemarkUpdate?: (coords: { latitude: number; longitude: number }) => void
+	initialCoords?: MapCoords | null
+	onCoordsChange?: (coords: MapCoords) => void
+	interactive?: boolean
 }
+
+const DEFAULT_CENTER: [number, number] = [55.751244, 37.618423]
+const DEFAULT_ZOOM = 14
+const MARKER_ZOOM = 17
 
 export const useYandexMap = ({
 	apiKey,
 	hasApiKey,
 	containerRef,
-	initialCenter = [55.751244, 37.618423],
-	initialZoom = 14,
-	onMapClick,
-	onPlacemarkUpdate
+	initialCoords = null,
+	onCoordsChange,
+	interactive = true
 }: UseYandexMapProps) => {
+	const [isReady, setIsReady] = useState(false)
+
 	const mapRef = useRef<YMapInstance | null>(null)
 	const placemarkRef = useRef<YPlacemark | null>(null)
 	const ymapsRef = useRef<YMaps | null>(null)
 
-	const updatePlacemark = (coords: { latitude: number; longitude: number }) => {
-		const mapInstance = mapRef.current
-		const ymapsInstance = ymapsRef.current
-		if (!mapInstance || !ymapsInstance) {
-			console.warn('Map instance or YMaps instance not available')
-			return
-		}
+	// Store in ref so click handler always uses latest callback
+	const onCoordsChangeRef = useRef(onCoordsChange)
+	onCoordsChangeRef.current = onCoordsChange
+
+	// Store initial coords in ref to avoid map recreation on change
+	const initialCoordsRef = useRef(initialCoords)
+
+	const setMarker = useCallback((coords: MapCoords, panTo = true) => {
+		const map = mapRef.current
+		const ymaps = ymapsRef.current
+		if (!map || !ymaps) return false
+
+		const position: [number, number] = [coords.latitude, coords.longitude]
+
 		if (!placemarkRef.current) {
-			const placemark = new ymapsInstance.Placemark(
-				[coords.latitude, coords.longitude],
-				{},
-				{ preset: 'islands#redIcon' }
-			)
+			const placemark = new ymaps.Placemark(position, {}, { preset: 'islands#redIcon' })
 			placemarkRef.current = placemark
-			mapInstance.geoObjects.add(placemark)
+			map.geoObjects.add(placemark)
 		} else {
-			placemarkRef.current.geometry.setCoordinates([
-				coords.latitude,
-				coords.longitude
-			])
+			placemarkRef.current.geometry.setCoordinates(position)
 		}
-		mapInstance.setCenter([coords.latitude, coords.longitude], 17)
-		onPlacemarkUpdate?.(coords)
-	}
+
+		if (panTo) {
+			map.setCenter(position, MARKER_ZOOM)
+		}
+
+		return true
+	}, [])
 
 	useEffect(() => {
-		if (!hasApiKey || !apiKey || mapRef.current) return
+		if (!hasApiKey || !apiKey) return
 
-		const checkContainer = () => {
+		let isMounted = true
+		let animationFrameId: number | null = null
+
+		const initMap = async () => {
 			const container = containerRef.current
 			if (!container) {
-				requestAnimationFrame(checkContainer)
+				animationFrameId = requestAnimationFrame(initMap)
 				return
 			}
 
-			let isMounted = true
-			loadYandexMaps(apiKey)
-				.then(ymapsInstance => {
-					if (!isMounted || !containerRef.current || mapRef.current) return
-					ymapsRef.current = ymapsInstance
-					const mapInstance = new ymapsInstance.Map(containerRef.current, {
-						center: initialCenter,
-						zoom: initialZoom,
-						controls: ['zoomControl']
-					})
-					mapRef.current = mapInstance
-					
-					if (onMapClick) {
-						mapInstance.events.add('click', (event: YMapEvent) => {
-							const coords = event.get('coords')
-							if (!Array.isArray(coords) || coords.length < 2) return
-							const latitude = Number(coords[0])
-							const longitude = Number(coords[1])
-							if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-								return
-							}
-							updatePlacemark({ latitude, longitude })
-							onMapClick({ latitude, longitude })
-						})
-					}
-				})
-				.catch(error => {
-					console.error('Error loading Yandex Maps:', error)
-				})
+			if (mapRef.current) return
 
-			return () => {
-				isMounted = false
+			try {
+				const ymaps = await loadYandexMaps(apiKey)
+				if (!isMounted) return
+
+				ymapsRef.current = ymaps
+
+				const coords = initialCoordsRef.current
+				const center: [number, number] = coords
+					? [coords.latitude, coords.longitude]
+					: DEFAULT_CENTER
+				const zoom = coords ? MARKER_ZOOM : DEFAULT_ZOOM
+
+				const map = new ymaps.Map(container, {
+					center,
+					zoom,
+					controls: ['zoomControl']
+				})
+				mapRef.current = map
+
+				if (coords) {
+					const placemark = new ymaps.Placemark(
+						[coords.latitude, coords.longitude],
+						{},
+						{ preset: 'islands#redIcon' }
+					)
+					placemarkRef.current = placemark
+					map.geoObjects.add(placemark)
+				}
+
+				if (interactive) {
+					map.events.add('click', (event: YMapEvent) => {
+						const eventCoords = event.get('coords')
+						if (!Array.isArray(eventCoords) || eventCoords.length < 2) return
+
+						const lat = Number(eventCoords[0])
+						const lon = Number(eventCoords[1])
+						if (!Number.isFinite(lat) || !Number.isFinite(lon)) return
+
+						const newCoords = { latitude: lat, longitude: lon }
+						const position: [number, number] = [lat, lon]
+						if (!placemarkRef.current) {
+							const placemark = new ymaps.Placemark(position, {}, { preset: 'islands#redIcon' })
+							placemarkRef.current = placemark
+							map.geoObjects.add(placemark)
+						} else {
+							placemarkRef.current.geometry.setCoordinates(position)
+						}
+						map.setCenter(position, MARKER_ZOOM)
+						onCoordsChangeRef.current?.(newCoords)
+					})
+				}
+
+				setIsReady(true)
+			} catch (error) {
+				console.error('Error loading Yandex Maps:', error)
 			}
 		}
 
-		checkContainer()
+		initMap()
 
 		return () => {
+			isMounted = false
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId)
+			}
 			if (mapRef.current) {
 				mapRef.current.destroy()
 				mapRef.current = null
 				placemarkRef.current = null
+				ymapsRef.current = null
+				setIsReady(false)
 			}
 		}
-	}, [hasApiKey, apiKey, containerRef, initialCenter, initialZoom, onMapClick])
+	}, [hasApiKey, apiKey, containerRef, interactive])
+
+	// Update marker when coords change externally (for read-only map)
+	useEffect(() => {
+		if (!initialCoords || !isReady) return
+		setMarker(initialCoords)
+	}, [initialCoords, isReady, setMarker])
 
 	return {
+		isReady,
+		setMarker,
 		mapRef,
-		updatePlacemark
+		ymapsRef
 	}
 }

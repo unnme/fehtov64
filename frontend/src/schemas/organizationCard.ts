@@ -22,7 +22,10 @@ const workHoursSchema = z.object({
 })
 
 export const organizationCardSchema = z.object({
-	name: z.string().transform(normalizeString).default(''),
+	name: z
+		.string()
+		.min(1, { message: 'Укажите название организации' })
+		.transform(normalizeString),
 	phones: z
 		.array(
 			z.object({
@@ -42,7 +45,7 @@ export const organizationCardSchema = z.object({
 		.string()
 		.default('')
 		.refine(
-			(value) => !value || z.string().email().safeParse(value).success,
+			(value) => !value || z.email().safeParse(value).success,
 			{ message: 'Неверный формат email' }
 		)
 		.transform((value) => value ? normalizeString(value) : ''),

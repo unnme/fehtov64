@@ -6,7 +6,6 @@ Create Date: 2024-01-01 12:00:00.000000
 
 """
 import sqlalchemy as sa
-import sqlmodel.sql.sqltypes
 from alembic import op
 from sqlalchemy.dialects import postgresql
 

@@ -5,7 +5,9 @@ import { ru } from 'date-fns/locale'
 import { Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 
-import { ImagesService, type NewsImagePublic, type NewsPublic, type NewsPublicList } from '@/client'
+import { ImagesService, NewsService, type NewsImagePublic, type NewsPublic, type NewsPublicList } from '@/client'
+import { unwrapResponse } from '@/utils'
+import { extractTextFromHTML } from '@/utils/html'
 import {
 	Card,
 	CardContent,
@@ -30,20 +32,17 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 	const { data: images = [], isLoading } = useQuery<NewsImagePublic[]>({
 		queryKey: ['news', newsId, 'images'],
 		queryFn: async () => {
-			const response = await ImagesService.imagesGetImages({
-				path: { news_id: newsId },
-			})
-			if ('error' in response && response.error) {
-				throw response
-			}
-			return (response as any).data.data as NewsImagePublic[]
+			const result = await unwrapResponse<{ data: NewsImagePublic[] }>(
+				ImagesService.imagesGetImages({ path: { news_id: newsId } })
+			)
+			return result.data
 		},
 		staleTime: 60000,
 		retry: 1
 	})
 
 	const mainImage = images.find(img => img.is_main)
-	const sortedImages = [...images].sort((a, b) => a.order - b.order)
+	const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 	const firstImage =
 		mainImage || (sortedImages.length > 0 ? sortedImages[0] : null)
 
@@ -91,15 +90,9 @@ async function fetchPublicNews(
 	skip: number,
 	limit: number
 ): Promise<NewsPublicList> {
-	// TODO: Replace with NewsService.readPublicNews({ skip, limit }) after client regeneration
-	const response = await fetch(
-		`${import.meta.env.VITE_API_URL}/api/v1/news/public?skip=${skip}&limit=${limit}`
+	return unwrapResponse(
+		NewsService.newsReadPublicNews({ query: { skip, limit } })
 	)
-	if (!response.ok) {
-		throw new Error('Failed to fetch news')
-	}
-	return response.json()
-	// TODO: Replace with NewsService.readPublicNews({ skip, limit }) after client regeneration
 }
 
 export function PublicNewsList() {
@@ -179,9 +172,16 @@ export function PublicNewsList() {
 									</div>
 								</CardHeader>
 								<CardContent className="p-0">
-									<p className="text-muted-foreground whitespace-pre-wrap line-clamp-3">
-										{news.content}
-									</p>
+									{(() => {
+										const textContent = extractTextFromHTML(news.content || '')
+										return textContent ? (
+											<p className="text-muted-foreground line-clamp-3">
+												{textContent}
+											</p>
+										) : (
+											<p className="text-muted-foreground line-clamp-3">...</p>
+										)
+									})()}
 								</CardContent>
 							</div>
 						</div>

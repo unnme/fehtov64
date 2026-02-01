@@ -3,9 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Pencil } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
-import { ImagesService, type NewsImagePublic, type NewsPublic, NewsService, type UserPublic, UsersService } from "@/client"
+import { ImagesService, type Message, type NewsImagePublic, type NewsPublic, NewsService, type UserPublic, UsersService } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -34,21 +33,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor } from "@/components/ui/rich-text-editor-lazy"
 import useAuth from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 
 import { ImageUploader } from "./ImageUploader"
 
-const formSchema = z.object({
-  title: z.string().min(1, { message: "Название обязательно" }),
-  content: z.string().min(1, { message: "Текст обязателен" }),
-  is_published: z.boolean(),
-  owner_id: z.string().uuid().optional(),
-})
+import { editNewsSchema, type EditNewsFormData } from "@/schemas/news"
 
-type FormData = z.infer<typeof formSchema>
+type FormData = EditNewsFormData
 
 interface EditNewsProps {
   news: NewsPublic
@@ -63,7 +57,6 @@ type PendingImage = {
   order: number
 }
 
-// Component for editing existing news with image management
 const EditNews = ({ news, onSuccess }: EditNewsProps) => {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
@@ -74,15 +67,11 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
   // Include Guardian system user for orphaned news
   const { data: usersData } = useQuery<{ data: UserPublic[]; count: number }>({
     queryKey: ["users", "with-guardian"],
-    queryFn: async () => {
-      const response = await UsersService.usersReadUsers({ 
-        query: { skip: 0, limit: 100, include_guardian: true } 
+    queryFn: () => unwrapResponse<{ data: UserPublic[]; count: number }>(
+      UsersService.usersReadUsers({
+        query: { skip: 0, limit: 100, include_guardian: true }
       })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data
-    },
+    ),
     enabled: isOpen && (currentUser?.is_superuser ?? false),
   })
 
@@ -94,13 +83,10 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
   const { data: images = [], error: imagesError, refetch: refetchImages } = useQuery<NewsImagePublic[], Error>({
     queryKey: ["news", news.id, "images"],
     queryFn: async () => {
-      const response = await ImagesService.imagesGetImages({
-        path: { news_id: news.id },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data.data as NewsImagePublic[]
+      const result = await unwrapResponse<{ data: NewsImagePublic[] }>(
+        ImagesService.imagesGetImages({ path: { news_id: news.id } })
+      )
+      return result.data
     },
     enabled: isOpen,
     retry: 1,
@@ -149,7 +135,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
   }, [images, deletedImageIds, reorderMap, newImages, news.id])
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(editNewsSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -181,7 +167,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const body: any = {
+      const body: { title?: string; content?: string; is_published?: boolean; owner_id?: string } = {
         title: data.title,
         content: data.content,
         is_published: data.is_published,
@@ -190,14 +176,12 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
       if (currentUser?.is_superuser && data.owner_id) {
         body.owner_id = data.owner_id
       }
-      const response = await NewsService.newsUpdateNews({ 
-        path: { id: news.id }, 
-        body
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data
+      return unwrapResponse<NewsPublic>(
+        NewsService.newsUpdateNews({
+          path: { id: news.id },
+          body
+        })
+      )
     },
     onError: handleError.bind(showErrorToast),
   })
@@ -315,14 +299,12 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
       const pendingToUploadedMap = new Map<string, string>()
       for (const pendingImage of newImages) {
         try {
-          const uploadResponse = await ImagesService.imagesUploadImage({
-            path: { news_id: news.id },
-            body: { file: pendingImage.file },
-          })
-          if ('error' in uploadResponse && uploadResponse.error) {
-            throw uploadResponse
-          }
-          const uploadedImage = (uploadResponse as any).data
+          const uploadedImage = await unwrapResponse<NewsImagePublic>(
+            ImagesService.imagesUploadImage({
+              path: { news_id: news.id },
+              body: { file: pendingImage.file },
+            })
+          )
           pendingToUploadedMap.set(pendingImage.id, uploadedImage.id)
           // Clean up preview URL
           URL.revokeObjectURL(pendingImage.preview)
@@ -335,12 +317,11 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
       // Delete marked images
       for (const imageId of deletedImageIds) {
         try {
-          const deleteResponse = await ImagesService.imagesDeleteImage({
-            path: { news_id: news.id, image_id: imageId },
-          })
-          if ('error' in deleteResponse && deleteResponse.error) {
-            throw deleteResponse
-          }
+          await unwrapResponse<Message>(
+            ImagesService.imagesDeleteImage({
+              path: { news_id: news.id, image_id: imageId },
+            })
+          )
         } catch (error) {
           console.error("Error deleting image:", error)
           showErrorToast("Не удалось удалить изображение")
@@ -351,13 +332,12 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
       for (const [imageId, newOrder] of reorderMap.entries()) {
         if (!imageId.startsWith("pending-") && !deletedImageIds.has(imageId)) {
           try {
-            const reorderResponse = await ImagesService.imagesReorderImage({
-              path: { news_id: news.id, image_id: imageId },
-              query: { new_order: newOrder },
-            })
-            if ('error' in reorderResponse && reorderResponse.error) {
-              throw reorderResponse
-            }
+            await unwrapResponse<NewsImagePublic>(
+              ImagesService.imagesReorderImage({
+                path: { news_id: news.id, image_id: imageId },
+                query: { new_order: newOrder },
+              })
+            )
           } catch (error) {
             console.error("Error reordering image:", error)
             showErrorToast("Не удалось изменить порядок изображений")
@@ -476,10 +456,10 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
                       Текст <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Текст новости"
-                        rows={8}
-                        {...field}
+                      <RichTextEditor
+                        content={field.value ?? ''}
+                        onChange={field.onChange}
+                        placeholder="Введите текст новости..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -524,7 +504,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
                         <SelectContent>
                           {usersData.data.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
-                              {user.full_name || user.email}
+                              {user.nickname || user.email}
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -2,7 +2,6 @@
 import shutil
 import uuid
 from pathlib import Path
-from typing import Tuple
 
 from fastapi import HTTPException, UploadFile
 
@@ -64,7 +63,7 @@ class DocumentService:
     @classmethod
     def save_document(
         cls, file: UploadFile
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Save uploaded document file.
         Returns relative path and file size.
@@ -116,7 +115,7 @@ class DocumentService:
     def delete_document(cls, file_path: str) -> None:
         """
         Delete document file from disk.
-        
+
         Args:
             file_path: Relative path to document file
         """

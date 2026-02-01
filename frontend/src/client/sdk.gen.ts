@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { AuthLoginAccessTokenData, AuthLoginAccessTokenErrors, AuthLoginAccessTokenResponses, AuthRecoverPasswordData, AuthRecoverPasswordErrors, AuthRecoverPasswordResponses, AuthResetPasswordData, AuthResetPasswordErrors, AuthResetPasswordResponses, DocumentsCreateCategoryData, DocumentsCreateCategoryErrors, DocumentsCreateCategoryResponses, DocumentsCreateDocumentData, DocumentsCreateDocumentErrors, DocumentsCreateDocumentResponses, DocumentsDeleteCategoryData, DocumentsDeleteCategoryErrors, DocumentsDeleteCategoryResponses, DocumentsDeleteDocumentData, DocumentsDeleteDocumentErrors, DocumentsDeleteDocumentResponses, DocumentsGetDocumentFileData, DocumentsGetDocumentFileErrors, DocumentsGetDocumentFileResponses, DocumentsReadCategoriesData, DocumentsReadCategoriesErrors, DocumentsReadCategoriesResponses, DocumentsReadDocumentData, DocumentsReadDocumentErrors, DocumentsReadDocumentResponses, DocumentsReadDocumentsData, DocumentsReadDocumentsErrors, DocumentsReadDocumentsResponses, DocumentsReadPublicCategoriesData, DocumentsReadPublicCategoriesErrors, DocumentsReadPublicCategoriesResponses, DocumentsReadPublicDocumentsData, DocumentsReadPublicDocumentsErrors, DocumentsReadPublicDocumentsResponses, DocumentsUpdateCategoryData, DocumentsUpdateCategoryErrors, DocumentsUpdateCategoryResponses, DocumentsUpdateDocumentData, DocumentsUpdateDocumentErrors, DocumentsUpdateDocumentResponses, ImagesDeleteImageData, ImagesDeleteImageErrors, ImagesDeleteImageResponses, ImagesGetImageFileData, ImagesGetImageFileErrors, ImagesGetImageFileResponses, ImagesGetImagesData, ImagesGetImagesErrors, ImagesGetImagesResponses, ImagesReorderImageData, ImagesReorderImageErrors, ImagesReorderImageResponses, ImagesSetMainImageData, ImagesSetMainImageErrors, ImagesSetMainImageResponses, ImagesUploadImageData, ImagesUploadImageErrors, ImagesUploadImageResponses, NewsCreateNewsData, NewsCreateNewsErrors, NewsCreateNewsResponses, NewsDeleteNewsData, NewsDeleteNewsErrors, NewsDeleteNewsResponses, NewsReadNewsData, NewsReadNewsErrors, NewsReadNewsItemData, NewsReadNewsItemErrors, NewsReadNewsItemResponses, NewsReadNewsResponses, NewsReadPublicNewsData, NewsReadPublicNewsErrors, NewsReadPublicNewsItemData, NewsReadPublicNewsItemErrors, NewsReadPublicNewsItemResponses, NewsReadPublicNewsResponses, NewsUpdateNewsData, NewsUpdateNewsErrors, NewsUpdateNewsResponses, PersonImagesDeletePersonImageData, PersonImagesDeletePersonImageErrors, PersonImagesDeletePersonImageResponses, PersonImagesGetPersonImageData, PersonImagesGetPersonImageErrors, PersonImagesGetPersonImageFileData, PersonImagesGetPersonImageFileErrors, PersonImagesGetPersonImageFileResponses, PersonImagesGetPersonImageResponses, PersonImagesUploadPersonImageData, PersonImagesUploadPersonImageErrors, PersonImagesUploadPersonImageResponses, PersonsCreatePersonData, PersonsCreatePersonErrors, PersonsCreatePersonResponses, PersonsDeletePersonData, PersonsDeletePersonErrors, PersonsDeletePersonResponses, PersonsReadPersonByIdData, PersonsReadPersonByIdErrors, PersonsReadPersonByIdResponses, PersonsReadPersonsData, PersonsReadPersonsErrors, PersonsReadPersonsResponses, PersonsUpdatePersonData, PersonsUpdatePersonErrors, PersonsUpdatePersonResponses, PositionsCreatePositionData, PositionsCreatePositionErrors, PositionsCreatePositionResponses, PositionsDeletePositionData, PositionsDeletePositionErrors, PositionsDeletePositionResponses, PositionsReadPositionsData, PositionsReadPositionsErrors, PositionsReadPositionsResponses, PositionsUpdatePositionData, PositionsUpdatePositionErrors, PositionsUpdatePositionResponses, UsersCreateUserData, UsersCreateUserErrors, UsersCreateUserResponses, UsersDeleteUserData, UsersDeleteUserErrors, UsersDeleteUserMeData, UsersDeleteUserMeResponses, UsersDeleteUserResponses, UsersReadUserByIdData, UsersReadUserByIdErrors, UsersReadUserByIdResponses, UsersReadUserMeData, UsersReadUserMeResponses, UsersReadUsersData, UsersReadUsersErrors, UsersReadUsersResponses, UsersRequestEmailVerificationCodeData, UsersRequestEmailVerificationCodeErrors, UsersRequestEmailVerificationCodeResponses, UsersUpdatePasswordMeData, UsersUpdatePasswordMeErrors, UsersUpdatePasswordMeResponses, UsersUpdateUserData, UsersUpdateUserErrors, UsersUpdateUserMeData, UsersUpdateUserMeErrors, UsersUpdateUserMeResponses, UsersUpdateUserResponses, UsersVerifyAndUpdateEmailData, UsersVerifyAndUpdateEmailErrors, UsersVerifyAndUpdateEmailResponses, UtilsGetBlockedIpsData, UtilsGetBlockedIpsResponses, UtilsHealthCheckData, UtilsHealthCheckResponses, UtilsUnblockIpData, UtilsUnblockIpErrors, UtilsUnblockIpResponses } from './types.gen';
+import type { AuthLoginAccessTokenData, AuthLoginAccessTokenErrors, AuthLoginAccessTokenResponses, AuthRecoverPasswordData, AuthRecoverPasswordErrors, AuthRecoverPasswordResponses, AuthResetPasswordData, AuthResetPasswordErrors, AuthResetPasswordResponses, DocumentsCreateCategoryData, DocumentsCreateCategoryErrors, DocumentsCreateCategoryResponses, DocumentsCreateDocumentData, DocumentsCreateDocumentErrors, DocumentsCreateDocumentResponses, DocumentsDeleteCategoryData, DocumentsDeleteCategoryErrors, DocumentsDeleteCategoryResponses, DocumentsDeleteDocumentData, DocumentsDeleteDocumentErrors, DocumentsDeleteDocumentResponses, DocumentsGetDocumentFileData, DocumentsGetDocumentFileErrors, DocumentsGetDocumentFileResponses, DocumentsReadCategoriesData, DocumentsReadCategoriesErrors, DocumentsReadCategoriesResponses, DocumentsReadDocumentData, DocumentsReadDocumentErrors, DocumentsReadDocumentResponses, DocumentsReadDocumentsData, DocumentsReadDocumentsErrors, DocumentsReadDocumentsResponses, DocumentsReadPublicCategoriesData, DocumentsReadPublicCategoriesErrors, DocumentsReadPublicCategoriesResponses, DocumentsReadPublicDocumentsData, DocumentsReadPublicDocumentsErrors, DocumentsReadPublicDocumentsResponses, DocumentsUpdateCategoryData, DocumentsUpdateCategoryErrors, DocumentsUpdateCategoryResponses, DocumentsUpdateDocumentData, DocumentsUpdateDocumentErrors, DocumentsUpdateDocumentResponses, ImagesDeleteImageData, ImagesDeleteImageErrors, ImagesDeleteImageResponses, ImagesGetImageFileData, ImagesGetImageFileErrors, ImagesGetImageFileResponses, ImagesGetImagesData, ImagesGetImagesErrors, ImagesGetImagesResponses, ImagesReorderImageData, ImagesReorderImageErrors, ImagesReorderImageResponses, ImagesSetMainImageData, ImagesSetMainImageErrors, ImagesSetMainImageResponses, ImagesUploadImageData, ImagesUploadImageErrors, ImagesUploadImageResponses, NewsCreateNewsData, NewsCreateNewsErrors, NewsCreateNewsResponses, NewsDeleteNewsData, NewsDeleteNewsErrors, NewsDeleteNewsResponses, NewsReadNewsData, NewsReadNewsErrors, NewsReadNewsItemData, NewsReadNewsItemErrors, NewsReadNewsItemResponses, NewsReadNewsResponses, NewsReadPublicNewsData, NewsReadPublicNewsErrors, NewsReadPublicNewsItemData, NewsReadPublicNewsItemErrors, NewsReadPublicNewsItemResponses, NewsReadPublicNewsResponses, NewsUpdateNewsData, NewsUpdateNewsErrors, NewsUpdateNewsResponses, OrganizationCardCreateCardData, OrganizationCardCreateCardErrors, OrganizationCardCreateCardResponses, OrganizationCardReadCardData, OrganizationCardReadCardResponses, OrganizationCardReadPublicCardData, OrganizationCardReadPublicCardResponses, OrganizationCardUpdateCardData, OrganizationCardUpdateCardErrors, OrganizationCardUpdateCardResponses, PersonImagesDeletePersonImageData, PersonImagesDeletePersonImageErrors, PersonImagesDeletePersonImageResponses, PersonImagesGetPersonImageData, PersonImagesGetPersonImageErrors, PersonImagesGetPersonImageFileData, PersonImagesGetPersonImageFileErrors, PersonImagesGetPersonImageFileResponses, PersonImagesGetPersonImageResponses, PersonImagesUploadPersonImageData, PersonImagesUploadPersonImageErrors, PersonImagesUploadPersonImageResponses, PersonsCreatePersonData, PersonsCreatePersonErrors, PersonsCreatePersonResponses, PersonsDeletePersonData, PersonsDeletePersonErrors, PersonsDeletePersonResponses, PersonsReadPersonByIdData, PersonsReadPersonByIdErrors, PersonsReadPersonByIdResponses, PersonsReadPersonsData, PersonsReadPersonsErrors, PersonsReadPersonsResponses, PersonsUpdatePersonData, PersonsUpdatePersonErrors, PersonsUpdatePersonResponses, PositionsCreatePositionData, PositionsCreatePositionErrors, PositionsCreatePositionResponses, PositionsDeletePositionData, PositionsDeletePositionErrors, PositionsDeletePositionResponses, PositionsReadPositionsData, PositionsReadPositionsErrors, PositionsReadPositionsResponses, PositionsUpdatePositionData, PositionsUpdatePositionErrors, PositionsUpdatePositionResponses, UsersCreateUserData, UsersCreateUserErrors, UsersCreateUserResponses, UsersDeleteUserData, UsersDeleteUserErrors, UsersDeleteUserMeData, UsersDeleteUserMeResponses, UsersDeleteUserResponses, UsersReadUserByIdData, UsersReadUserByIdErrors, UsersReadUserByIdResponses, UsersReadUserMeData, UsersReadUserMeResponses, UsersReadUsersData, UsersReadUsersErrors, UsersReadUsersResponses, UsersRequestEmailVerificationCodeData, UsersRequestEmailVerificationCodeErrors, UsersRequestEmailVerificationCodeResponses, UsersUpdatePasswordMeData, UsersUpdatePasswordMeErrors, UsersUpdatePasswordMeResponses, UsersUpdateUserData, UsersUpdateUserErrors, UsersUpdateUserMeData, UsersUpdateUserMeErrors, UsersUpdateUserMeResponses, UsersUpdateUserResponses, UsersVerifyAndUpdateEmailData, UsersVerifyAndUpdateEmailErrors, UsersVerifyAndUpdateEmailResponses, UtilsGetBlockedIpsData, UtilsGetBlockedIpsResponses, UtilsHealthCheckData, UtilsHealthCheckResponses, UtilsUnblockIpData, UtilsUnblockIpErrors, UtilsUnblockIpResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -714,6 +714,63 @@ export class ImagesService {
             responseType: 'json',
             url: '/api/v1/news/{news_id}/images/{image_id}/file',
             ...options
+        });
+    }
+}
+
+export class OrganizationCardService {
+    /**
+     * Read Public Card
+     */
+    public static organizationCardReadPublicCard<ThrowOnError extends boolean = false>(options?: Options<OrganizationCardReadPublicCardData, ThrowOnError>) {
+        return (options?.client ?? client).get<OrganizationCardReadPublicCardResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            url: '/api/v1/organization-card/public',
+            ...options
+        });
+    }
+    
+    /**
+     * Read Card
+     */
+    public static organizationCardReadCard<ThrowOnError extends boolean = false>(options?: Options<OrganizationCardReadCardData, ThrowOnError>) {
+        return (options?.client ?? client).get<OrganizationCardReadCardResponses, unknown, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/organization-card/',
+            ...options
+        });
+    }
+    
+    /**
+     * Update Card
+     */
+    public static organizationCardUpdateCard<ThrowOnError extends boolean = false>(options: Options<OrganizationCardUpdateCardData, ThrowOnError>) {
+        return (options.client ?? client).patch<OrganizationCardUpdateCardResponses, OrganizationCardUpdateCardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/organization-card/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+    }
+    
+    /**
+     * Create Card
+     */
+    public static organizationCardCreateCard<ThrowOnError extends boolean = false>(options: Options<OrganizationCardCreateCardData, ThrowOnError>) {
+        return (options.client ?? client).post<OrganizationCardCreateCardResponses, OrganizationCardCreateCardErrors, ThrowOnError>({
+            responseType: 'json',
+            security: [{ scheme: 'bearer', type: 'http' }],
+            url: '/api/v1/organization-card/',
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
         });
     }
 }

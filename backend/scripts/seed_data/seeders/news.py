@@ -67,17 +67,17 @@ def create_news_item(
         existing_images = session.exec(
             select(NewsImage).where(NewsImage.news_id == existing_news.id)
         ).all()
-        
+
         if not existing_images or has_missing_image_files(existing_images):
             # Delete broken image records
             for image in existing_images:
                 session.delete(image)
             session.commit()
-            
+
             # Add images only if minimum news without images has been reached
             if news_without_images_count >= min_news_without_images:
                 add_images_to_news(session, existing_news.id, existing_news.title)
-        
+
         logger.info(f"News '{news_title}' already exists, skipping")
         return
 

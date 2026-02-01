@@ -1,21 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useState } from "react"
 import { Trash2 } from "lucide-react"
 
+import { PositionsService } from "@/client"
 import { Button } from "@/components/ui/button"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
-import { PositionsService } from "@/services/positionsService"
+import { DeleteConfirmationDialog } from "@/components/Common"
 
 interface DeletePositionProps {
   id: string
@@ -23,49 +11,31 @@ interface DeletePositionProps {
 }
 
 function DeletePosition({ id, onSuccess }: DeletePositionProps) {
-  const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
-
-  const mutation = useMutation({
-    mutationFn: () => PositionsService.delete(id),
-    onSuccess: () => {
-      showSuccessToast("Должность успешно удалена")
-      onSuccess?.()
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["positions"] })
-    },
-  })
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="ghost" className="w-full justify-start text-destructive">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Удалить
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Удалить должность?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Это действие нельзя отменить. Должность будет удалена навсегда.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={mutation.isPending}>
-            Отмена
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => mutation.mutate()}
-            disabled={mutation.isPending}
-          >
-            Удалить
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button 
+        variant="ghost" 
+        className="w-full justify-start text-destructive"
+        onClick={() => setIsOpen(true)}
+      >
+        <Trash2 className="mr-2 h-4 w-4" />
+        Удалить
+      </Button>
+      <DeleteConfirmationDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        onConfirm={async () => {
+          await PositionsService.positionsDeletePosition({ path: { position_id: id } })
+        }}
+        title="Удалить должность?"
+        description="Это действие нельзя отменить. Должность будет удалена навсегда."
+        successMessage="Должность успешно удалена"
+        queryKeys={["positions"]}
+        onSuccess={onSuccess}
+      />
+    </>
   )
 }
 

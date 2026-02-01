@@ -6,7 +6,7 @@ from sqlmodel import func, select
 
 from app.api.deps import SessionDep, get_current_active_superuser
 from app.models import Position
-from app.schemas import PositionCreate, PositionPublic, PositionUpdate, PositionsPublic
+from app.schemas import PositionCreate, PositionPublic, PositionsPublic, PositionUpdate
 from app.services.position_service import reassign_persons_to_default
 
 router = APIRouter(prefix="/positions", tags=["positions"])

@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_layout/dashboard')({
 
 function Dashboard() {
 	const { user } = useAuth()
-	const userName = user?.full_name
+	const userName = user?.nickname
 	const userEmail = user?.email
 
 	return (

@@ -3,11 +3,8 @@ Module for tracking registrations by IP addresses.
 Limits number of registrations from single IP.
 """
 from collections import defaultdict
-from typing import Callable
 
-from fastapi import HTTPException, Request, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
+from fastapi import Request
 
 
 class IPRegistrationTracker:
@@ -26,7 +23,7 @@ class IPRegistrationTracker:
         """Get client IP address considering proxy headers."""
         if not request:
             return "unknown"
-        
+
         # Check X-Forwarded-For header (priority 1)
         forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
@@ -35,7 +32,7 @@ class IPRegistrationTracker:
             # Only return if we got a non-empty IP address
             if first_ip:
                 return first_ip
-        
+
         # Check X-Real-IP header (priority 2)
         real_ip = request.headers.get("X-Real-IP")
         if real_ip:
@@ -43,11 +40,11 @@ class IPRegistrationTracker:
             # Only return if we got a non-empty IP address
             if real_ip_clean:
                 return real_ip_clean
-        
+
         # Fallback to direct IP (priority 3)
         if request.client and request.client.host:
             return request.client.host
-        
+
         return "unknown"
 
     def can_register(self, ip: str) -> bool:

@@ -8,7 +8,7 @@ echo "🛑 Stopping staging environment..."
 
 # Stop project
 echo "📦 Stopping project..."
-docker compose -f docker-compose.yml -f docker-compose.staging.yml down
+docker compose -f docker-compose.yml --env-file .env.staging down
 
 # Keep Traefik running (it may be used by other projects)
 echo ""

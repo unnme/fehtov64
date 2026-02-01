@@ -6,7 +6,6 @@ import {
   redirect,
 } from "@tanstack/react-router"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { AuthService } from "@/client"
 import { AuthLayout } from "@/components/Common"
@@ -23,12 +22,9 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
 import { handleError } from "@/utils"
+import { passwordResetRequestSchema, type PasswordResetRequestFormData } from "@/schemas/auth"
 
-const formSchema = z.object({
-  email: z.email(),
-})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = PasswordResetRequestFormData
 
 export const Route = createFileRoute("/auth/recover-password")({
   component: RecoverPassword,
@@ -50,7 +46,7 @@ export const Route = createFileRoute("/auth/recover-password")({
 
 function RecoverPassword() {
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(passwordResetRequestSchema),
     defaultValues: {
       email: "",
     },
@@ -59,7 +55,7 @@ function RecoverPassword() {
 
   const recoverPassword = async (data: FormData) => {
     const response = await AuthService.authRecoverPassword({
-      body: { email: data.email },
+      path: { email: data.email },
     })
     if ('error' in response && response.error) {
       throw response

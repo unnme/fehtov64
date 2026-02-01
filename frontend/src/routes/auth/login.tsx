@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import type { BodyAuthLoginAccessToken as AccessToken } from "@/client"
-import { OpenAPI, UsersService } from "@/client"
+import { client, UsersService } from "@/client"
 import { AuthLayout } from "@/components/Common"
 import {
   Form,
@@ -25,8 +25,9 @@ import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 import { getCachedClientIP } from "@/utils"
 
+// Login form uses 'username' field (email) for backend compatibility
 const formSchema = z.object({
-  username: z.email(),
+  username: z.email({ message: "Неверный email" }),
   password: z
     .string()
     .min(1, { message: "Password is required" })
@@ -47,9 +48,10 @@ export const Route = createFileRoute("/auth/login")({
         throw redirect({
           to: "/dashboard",
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Clear invalid token and allow login attempt
-        if (error?.status === 401 || error?.status === 403) {
+        const err = error as { status?: number }
+        if (err?.status === 401 || err?.status === 403) {
           localStorage.removeItem("access_token")
           localStorage.removeItem("token_expires_at")
         }
@@ -93,7 +95,8 @@ function Login() {
     // Check honeypot - if filled, it's a bot
     if (honeypotRef.current?.value) {
       // Block bot via honeypot endpoint - middleware will block IP automatically
-      fetch(`${OpenAPI.BASE}/api/v1/auth/honeypot`, {
+      const baseURL = client.getConfig().baseURL || import.meta.env.VITE_API_URL || ''
+      fetch(`${baseURL}/api/v1/auth/honeypot`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

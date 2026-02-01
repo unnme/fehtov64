@@ -5,6 +5,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
+import { cn } from "@/lib/utils"
 import { DeleteConfirmationDialog } from "@/components/Common"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,9 +27,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { PositionsService, type PositionPublic, type PositionsPublic } from "@/client"
 import useCustomToast from "@/hooks/useCustomToast"
-import { PositionsService, type Position } from "@/services/positionsService"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 import { isValidPositionName, normalizePositionName } from "@/utils/positionName"
 
 const DEFAULT_POSITION_NAME = "Без должности"
@@ -47,7 +48,7 @@ const positionFormSchema = z.object({
 type PositionFormData = z.infer<typeof positionFormSchema>
 
 interface EditPositionDialogProps {
-  position: Position
+  position: PositionPublic
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -68,8 +69,8 @@ function EditPositionDialog({
   })
 
   const mutation = useMutation({
-    mutationFn: async (data: PositionFormData) =>
-      PositionsService.update(position.id, { name: data.name }),
+    mutationFn: (data: PositionFormData) =>
+      unwrapResponse<PositionPublic>(PositionsService.positionsUpdatePosition({ path: { position_id: position.id }, body: { name: data.name } })),
     onSuccess: () => {
       showSuccessToast("Должность обновлена")
       queryClient.invalidateQueries({ queryKey: ["positions"] })
@@ -156,8 +157,8 @@ function AddPositionDialog({ isOpen, onOpenChange }: AddPositionDialogProps) {
   })
 
   const mutation = useMutation({
-    mutationFn: async (data: PositionFormData) =>
-      PositionsService.create({ name: data.name }),
+    mutationFn: (data: PositionFormData) =>
+      unwrapResponse<PositionPublic>(PositionsService.positionsCreatePosition({ body: { name: data.name } })),
     onSuccess: () => {
       showSuccessToast("Должность создана")
       queryClient.invalidateQueries({ queryKey: ["positions"] })
@@ -228,7 +229,7 @@ function AddPositionDialog({ isOpen, onOpenChange }: AddPositionDialogProps) {
 }
 
 interface DeletePositionButtonProps {
-  position: Position
+  position: PositionPublic
 }
 
 function DeletePositionButton({ position }: DeletePositionButtonProps) {
@@ -250,7 +251,7 @@ function DeletePositionButton({ position }: DeletePositionButtonProps) {
       <DeleteConfirmationDialog
         isOpen={isOpen}
         onOpenChange={setIsOpen}
-        onConfirm={() => PositionsService.delete(position.id)}
+        onConfirm={async () => { await PositionsService.positionsDeletePosition({ path: { position_id: position.id } }) }}
         title="Удалить должность?"
         description={`Вы уверены, что хотите удалить должность "${position.name}"?`}
         successMessage="Должность удалена"
@@ -262,12 +263,12 @@ function DeletePositionButton({ position }: DeletePositionButtonProps) {
 
 export function ManagePositionsDialog() {
   const [isOpen, setIsOpen] = useState(false)
-  const [editingPosition, setEditingPosition] = useState<Position | null>(null)
+  const [editingPosition, setEditingPosition] = useState<PositionPublic | null>(null)
   const [isAddOpen, setIsAddOpen] = useState(false)
 
   const { data: positions = { data: [], count: 0 }, isLoading } = useQuery({
     queryKey: ["positions"],
-    queryFn: () => PositionsService.list(),
+    queryFn: () => unwrapResponse<PositionsPublic>(PositionsService.positionsReadPositions()),
     enabled: isOpen,
   })
 
@@ -307,7 +308,7 @@ export function ManagePositionsDialog() {
               </div>
             ) : (
               <div
-                className={`border rounded-lg ${hasScroll ? "max-h-96 overflow-y-auto" : ""}`}
+                className={cn("border rounded-lg", hasScroll && "max-h-96 overflow-y-auto")}
               >
                 <div className="divide-y">
                   {filteredPositions.map((position) => (

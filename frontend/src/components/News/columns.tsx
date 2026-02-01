@@ -1,11 +1,14 @@
+/* eslint-disable react-refresh/only-export-components */
 import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { useQuery } from "@tanstack/react-query"
 import { Image as ImageIcon } from "lucide-react"
 
 import { ImagesService, type NewsImagePublic, type NewsPublic } from "@/client"
+import { unwrapResponse } from "@/utils"
 import { cn } from "@/lib/utils"
 import { getImageFileUrl } from "@/utils/fileUrls"
+import { extractTextFromHTML } from "@/utils/html"
 import { NewsActionsMenu } from "./NewsActionsMenu"
 
 // Cell component for displaying news preview image
@@ -13,13 +16,10 @@ function PreviewCell({ newsId }: { newsId: string }) {
   const { data: images = [], isLoading, error } = useQuery<NewsImagePublic[]>({
     queryKey: ["news", newsId, "images"],
     queryFn: async () => {
-      const response = await ImagesService.imagesGetImages({
-        path: { news_id: newsId },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data.data as NewsImagePublic[]
+      const result = await unwrapResponse<{ data: NewsImagePublic[] }>(
+        ImagesService.imagesGetImages({ path: { news_id: newsId } })
+      )
+      return result.data
     },
     staleTime: 60000, // Cache for 1 minute
     retry: 1,
@@ -27,7 +27,7 @@ function PreviewCell({ newsId }: { newsId: string }) {
   
   // Find main image (is_main=true), otherwise use first by order
   const mainImage = images.find((img) => img.is_main)
-  const sortedImages = [...images].sort((a, b) => a.order - b.order)
+  const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   const firstImage = mainImage || (sortedImages.length > 0 ? sortedImages[0] : null)
   
   if (isLoading) {
@@ -85,9 +85,11 @@ export const columns: ColumnDef<NewsPublic>[] = [
     header: "Текст",
     cell: ({ row }) => {
       const content = row.original.content
+      // Extract text without tables
+      const textContent = extractTextFromHTML(content)
       return (
         <span className={cn("max-w-xs truncate block text-muted-foreground")}>
-          {content}
+          {textContent || '...'}
         </span>
       )
     },
@@ -147,7 +149,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
       }
       return (
         <span className="text-sm">
-          {owner.full_name || owner.email}
+          {owner.nickname || owner.email}
         </span>
       )
     },

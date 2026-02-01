@@ -1,11 +1,17 @@
-import { Link2, MessageCircle, Send } from 'lucide-react'
+import { Link2 } from 'lucide-react'
+import type React from 'react'
 import { Label } from '@/components/ui/label'
+import {
+	MaxIcon,
+	TelegramIcon,
+	VkIcon,
+	WhatsAppIcon
+} from '@/components/OrganizationCard'
 
 interface SocialLink {
 	label: string
 	url: string
-	icon: typeof Send
-	color: string
+	icon: React.ComponentType<{ className?: string }>
 }
 
 interface SocialLinksProps {
@@ -21,45 +27,43 @@ export const SocialLinks = ({
 	whatsapp_url,
 	max_url
 }: SocialLinksProps) => {
-	const links: SocialLink[] = [
-		{
+	const links: (SocialLink | null)[] = [
+		vk_url ? {
 			label: 'ВКонтакте',
-			url: vk_url || '',
-			icon: Link2,
-			color: 'hover:text-blue-600'
-		},
-		{
+			url: vk_url,
+			icon: VkIcon
+		} : null,
+		telegram_url ? {
 			label: 'Telegram',
-			url: telegram_url || '',
-			icon: Send,
-			color: 'hover:text-blue-500'
-		},
-		{
+			url: telegram_url,
+			icon: TelegramIcon
+		} : null,
+		whatsapp_url ? {
 			label: 'WhatsApp',
-			url: whatsapp_url || '',
-			icon: MessageCircle,
-			color: 'hover:text-green-600'
-		},
-		{
+			url: whatsapp_url,
+			icon: WhatsAppIcon
+		} : null,
+		max_url ? {
 			label: 'Max',
-			url: max_url || '',
-			icon: MessageCircle,
-			color: 'hover:text-purple-600'
-		}
-	].filter((link): link is SocialLink => Boolean(link.url))
+			url: max_url,
+			icon: MaxIcon
+		} : null
+	]
+	
+	const validLinks = links.filter((link): link is SocialLink => link !== null)
 
-	if (links.length === 0) return null
+	if (validLinks.length === 0) return null
 
 	return (
 		<div className="space-y-2">
 			<div className="flex items-center gap-2">
 				<Link2 className="h-4 w-4 text-muted-foreground" />
 				<Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-					Мессенджеры
+					Мы в соцсетях
 				</Label>
 			</div>
 			<div className="flex flex-wrap gap-3">
-				{links.map(link => {
+				{validLinks.map(link => {
 					const Icon = link.icon
 					return (
 						<a
@@ -67,11 +71,11 @@ export const SocialLinks = ({
 							href={link.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							className={`flex items-center justify-center w-11 h-11 rounded-lg border-2 border-border bg-background transition-all hover:scale-105 hover:border-primary/50 hover:bg-accent ${link.color} group`}
+							className="flex items-center justify-center size-7 rounded-md transition-all hover:scale-110 hover:opacity-80"
 							aria-label={link.label}
 							title={link.label}
 						>
-							<Icon className="h-5 w-5 transition-transform group-hover:scale-110" />
+							<Icon className="size-7" />
 						</a>
 					)
 				})}

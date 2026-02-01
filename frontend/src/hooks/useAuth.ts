@@ -5,11 +5,12 @@ import {
   type BodyAuthLoginAccessToken as AccessToken,
   AuthService,
   client,
+  type Token,
   type UserCreate,
   type UserPublic,
   UsersService,
 } from "@/client"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
 // Check if user is logged in by verifying token existence and expiration
@@ -40,13 +41,7 @@ const useAuth = () => {
 
   const { data: user } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
-    queryFn: async () => {
-      const response = await UsersService.usersReadUserMe()
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as UserPublic
-    },
+    queryFn: () => unwrapResponse<UserPublic>(UsersService.usersReadUserMe()),
     enabled: isLoggedIn(),
   })
 
@@ -63,15 +58,10 @@ const useAuth = () => {
   })
 
   const login = async (data: AccessToken) => {
-    // Use the generated method - operationId: "auth-login_access_token" -> method: "authLoginAccessToken"
-    const response = await AuthService.authLoginAccessToken({
-      body: data,
-    })
-    // Save token and expiration time (24 hours)
-    if ('error' in response && response.error) {
-      throw response
-    }
-    const token = (response as any).data.access_token
+    const result = await unwrapResponse<Token>(
+      AuthService.authLoginAccessToken({ body: data })
+    )
+    const token = result.access_token
     localStorage.setItem("access_token", token)
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     localStorage.setItem("token_expires_at", expiresAt.toString())

@@ -3,9 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus, Upload, X } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
-import { ImagesService, NewsService, type NewsCreate, type NewsImagePublic } from "@/client"
+import { ImagesService, type Message, NewsService, type NewsCreate, type NewsImagePublic, type NewsPublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -27,9 +26,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
-import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor } from "@/components/ui/rich-text-editor-lazy"
 import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 
 import { ImageUploader } from "./ImageUploader"
 
@@ -127,13 +126,9 @@ function PendingImageUploader({
   )
 }
 
-const formSchema = z.object({
-  title: z.string().min(1, { message: "Название обязательно" }),
-  content: z.string().min(1, { message: "Текст обязателен" }),
-  is_published: z.boolean(),
-})
+import { createNewsSchema, type CreateNewsFormData } from "@/schemas/news"
 
-type FormData = z.infer<typeof formSchema>
+type FormData = CreateNewsFormData
 
 const AddNews = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -141,7 +136,7 @@ const AddNews = () => {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createNewsSchema),
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
@@ -158,36 +153,29 @@ const AddNews = () => {
     queryKey: ["news", createdNewsId, "images"],
     queryFn: async () => {
       if (!createdNewsId) return []
-      const response = await ImagesService.imagesGetImages({
-        path: { news_id: createdNewsId },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data.data as NewsImagePublic[]
+      const result = await unwrapResponse<{ data: NewsImagePublic[] }>(
+        ImagesService.imagesGetImages({ path: { news_id: createdNewsId } })
+      )
+      return result.data
     },
     enabled: !!createdNewsId && isOpen,
   })
 
-  // Component for creating new news with image upload support
   const mutation = useMutation({
     mutationFn: async (data: NewsCreate) => {
-      const response = await NewsService.newsCreateNews({ body: data })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      const news = (response as any).data
+      const news = await unwrapResponse<NewsPublic>(
+        NewsService.newsCreateNews({ body: data })
+      )
       // Upload all selected images after news creation
       if (pendingImages.length > 0) {
         try {
           for (const file of pendingImages) {
-            const uploadResponse = await ImagesService.imagesUploadImage({
-              path: { news_id: news.id },
-              body: { file },
-            })
-            if ('error' in uploadResponse && uploadResponse.error) {
-              throw uploadResponse
-            }
+            await unwrapResponse<NewsImagePublic>(
+              ImagesService.imagesUploadImage({
+                path: { news_id: news.id },
+                body: { file },
+              })
+            )
           }
           showSuccessToast(
             `Новость создана успешно. Загружено ${pendingImages.length} изображений`,
@@ -216,14 +204,12 @@ const AddNews = () => {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      const response = await ImagesService.imagesUploadImage({
-        path: { news_id: createdNewsId },
-        body: { file },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as NewsImagePublic
+      return unwrapResponse<NewsImagePublic>(
+        ImagesService.imagesUploadImage({
+          path: { news_id: createdNewsId },
+          body: { file },
+        })
+      )
     },
     onSuccess: () => {
       if (createdNewsId) {
@@ -237,12 +223,11 @@ const AddNews = () => {
   const deleteMutation = useMutation({
     mutationFn: async (imageId: string) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      const response = await ImagesService.imagesDeleteImage({
-        path: { news_id: createdNewsId, image_id: imageId },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
+      await unwrapResponse<Message>(
+        ImagesService.imagesDeleteImage({
+          path: { news_id: createdNewsId, image_id: imageId },
+        })
+      )
     },
     onSuccess: () => {
       if (createdNewsId) {
@@ -256,14 +241,12 @@ const AddNews = () => {
   const reorderMutation = useMutation({
     mutationFn: async ({ imageId, newOrder }: { imageId: string; newOrder: number }) => {
       if (!createdNewsId) throw new Error("News ID not available")
-      const response = await ImagesService.imagesReorderImage({
-        path: { news_id: createdNewsId, image_id: imageId },
-        query: { new_order: newOrder },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as NewsImagePublic
+      return unwrapResponse<NewsImagePublic>(
+        ImagesService.imagesReorderImage({
+          path: { news_id: createdNewsId, image_id: imageId },
+          query: { new_order: newOrder },
+        })
+      )
     },
     onSuccess: () => {
       if (createdNewsId) {
@@ -275,7 +258,7 @@ const AddNews = () => {
 
 
   const onSubmit = (data: FormData) => {
-    const submitData: any = {
+    const submitData: NewsCreate = {
       title: data.title,
       content: data.content,
       is_published: data.is_published,
@@ -347,11 +330,10 @@ const AddNews = () => {
                       Текст <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Текст новости"
-                        rows={8}
-                        {...field}
-                        required
+                      <RichTextEditor
+                        content={field.value}
+                        onChange={field.onChange}
+                        placeholder="Введите текст новости..."
                       />
                     </FormControl>
                     <FormMessage />

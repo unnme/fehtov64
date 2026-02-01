@@ -28,17 +28,25 @@ client.setConfig({
   }
 })
 
+interface ErrorWithResponse {
+  response?: { status?: number }
+  status?: number
+}
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (error instanceof AxiosError) {
+    return error.response?.status
+  }
+  if (error && typeof error === 'object') {
+    const err = error as ErrorWithResponse
+    return err.response?.status ?? err.status
+  }
+  return undefined
+}
+
 // Global API error handler for query and mutation errors
 const handleApiError = (error: Error) => {
-  // Check if it's an ApiError or AxiosError
-  let status: number | undefined
-  if (error instanceof AxiosError) {
-    status = error.response?.status
-  } else if ((error as any)?.response?.status) {
-    status = (error as any).response.status
-  } else if ((error as any)?.status) {
-    status = (error as any).status
-  }
+  const status = getErrorStatus(error)
 
   // Handle authentication errors - clear token and redirect
   if (status === 401 || status === 403) {

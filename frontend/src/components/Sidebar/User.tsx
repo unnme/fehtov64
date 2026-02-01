@@ -1,5 +1,7 @@
 import { BadgeCheck, ChevronsUpDown, LogOut, Monitor, Moon, Sun } from "lucide-react"
 
+import type { UserPublic } from "@/client"
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -26,21 +28,21 @@ import { getInitials } from "@/utils"
 import { EditProfile } from "@/components/UserSettings"
 
 interface UserInfoProps {
-  fullName?: string
+  nickname?: string
   email?: string
   isSuperuser?: boolean
 }
 
-function UserInfo({ fullName, email, isSuperuser }: UserInfoProps) {
+function UserInfo({ nickname, email, isSuperuser }: UserInfoProps) {
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">
         <AvatarFallback className="bg-zinc-600 text-white">
-          {getInitials(fullName || "User")}
+          {getInitials(nickname || "User")}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col items-start min-w-0">
-        <p className="text-sm font-medium truncate w-full">{fullName}</p>
+        <p className="text-sm font-medium truncate w-full">{nickname}</p>
         <div className="flex items-center gap-1.5 min-w-0">
           <p className="text-xs text-muted-foreground truncate">{email}</p>
           {isSuperuser && (
@@ -52,7 +54,7 @@ function UserInfo({ fullName, email, isSuperuser }: UserInfoProps) {
   )
 }
 
-export function User({ user }: { user: any }) {
+export function User({ user }: { user: UserPublic | null | undefined }) {
   const { logout } = useAuth()
   const { isMobile } = useSidebar()
   const { setTheme, theme } = useTheme()
@@ -74,7 +76,7 @@ export function User({ user }: { user: any }) {
               data-testid="user-menu"
             >
               <UserInfo 
-                fullName={user?.full_name} 
+                nickname={user?.nickname} 
                 email={user?.email} 
                 isSuperuser={user?.is_superuser}
               />
@@ -89,7 +91,7 @@ export function User({ user }: { user: any }) {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <UserInfo 
-                fullName={user?.full_name} 
+                nickname={user?.nickname} 
                 email={user?.email} 
                 isSuperuser={user?.is_superuser}
               />

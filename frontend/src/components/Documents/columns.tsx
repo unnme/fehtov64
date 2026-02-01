@@ -64,7 +64,7 @@ export const columns: ColumnDef<DocumentPublic>[] = [
           size="sm"
           onClick={() => {
             const url = getDocumentFileUrl(row.original.id)
-            window.open(url, "_blank")
+            window.open(url, "_blank", "noopener,noreferrer")
           }}
         >
           <Download className="h-4 w-4" />

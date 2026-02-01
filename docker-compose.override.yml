@@ -2,7 +2,6 @@ services:
   # Local services are available on their ports:
   # - Backend: http://localhost:8000
   # - Frontend: http://localhost:5173
-  # - Adminer: http://localhost:8080
   # - Mailcatcher: http://localhost:1080
   #
   # Traefik is NOT used in development mode.
@@ -12,12 +11,6 @@ services:
     restart: 'no'
     ports:
       - '5432:5432'
-
-  adminer:
-    restart: 'no'
-    ports:
-      - '8080:8080'
-    # Traefik labels are ignored in dev mode (traefik-public network is not external)
 
   backend:
     restart: 'no'

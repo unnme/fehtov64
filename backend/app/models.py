@@ -5,14 +5,10 @@ All API schemas are in schemas.py.
 """
 import uuid
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
 
-from pydantic import EmailStr
 import sqlalchemy as sa
+from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from sqlmodel import RelationshipProperty
 
 
 class UserBase(SQLModel):
@@ -20,7 +16,7 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
-    full_name: str = Field(unique=True, index=True, max_length=255)
+    nickname: str = Field(unique=True, index=True, max_length=255)
 
 
 class User(UserBase, table=True):
@@ -152,14 +148,14 @@ class Document(DocumentBase, table=True):
 class OrganizationCard(SQLModel, table=True):
     """Organization card model."""
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    name: str = Field(max_length=255)
+    name: str | None = Field(default=None, max_length=255)
     phones: list[dict] = Field(
         sa_column=sa.Column(sa.JSON, nullable=False),
         default_factory=list,
     )
-    email: EmailStr = Field(max_length=255)
-    address: str = Field(max_length=500)
-    work_hours: str = Field(max_length=500)
+    email: str | None = Field(default=None, max_length=255)
+    address: str | None = Field(default=None, max_length=500)
+    work_hours: str | None = Field(default=None, max_length=500)
     vk_url: str | None = Field(default=None, max_length=500)
     telegram_url: str | None = Field(default=None, max_length=500)
     whatsapp_url: str | None = Field(default=None, max_length=500)

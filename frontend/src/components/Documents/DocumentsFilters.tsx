@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
 
 interface DocumentsFiltersProps {
   documents: DocumentPublic[]
@@ -103,7 +102,7 @@ export function DocumentsFilters({
       </div>
 
       <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-        <SelectTrigger className="w-full sm:w-[200px]">
+        <SelectTrigger className="w-full sm:w-50">
           <SelectValue placeholder="Все категории" />
         </SelectTrigger>
         <SelectContent>
@@ -118,7 +117,7 @@ export function DocumentsFilters({
       </Select>
 
       <Select value={selectedExtension} onValueChange={setSelectedExtension}>
-        <SelectTrigger className="w-full sm:w-[180px]">
+        <SelectTrigger className="w-full sm:w-45">
           <SelectValue placeholder="Все расширения" />
         </SelectTrigger>
         <SelectContent>

@@ -1,6 +1,8 @@
 """Rate limiting configuration using slowapi."""
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+
+__all__ = ["limiter", "_rate_limit_exceeded_handler", "RateLimitExceeded", "AUTH_RATE_LIMIT", "LOGIN_RATE_LIMIT"]
 from slowapi.util import get_remote_address
 
 from app.core.config import settings
@@ -9,7 +11,7 @@ from app.core.config import settings
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["1000/hour"],
-    storage_uri="memory://",  # Can be changed to Redis: "redis://localhost:6379"
+    storage_uri="memory://",
 )
 
 # Rate limit configurations based on environment

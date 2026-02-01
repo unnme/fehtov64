@@ -3,9 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
-import { OpenAPI, UsersService, type UserUpdateMe } from '@/client'
+import { UsersService, type UserPublic, type UserUpdateMe } from '@/client'
 import { Button } from '@/components/ui/button'
 import {
 	Form,
@@ -21,29 +20,19 @@ import { LoadingButton } from '@/components/ui/loading-button'
 import useAuth from '@/hooks/useAuth'
 import useCustomToast from '@/hooks/useCustomToast'
 import { cn } from '@/lib/utils'
-import { handleError } from '@/utils'
+import { handleError, unwrapResponse } from '@/utils'
+import {
+	updateUserMeSchema,
+	emailVerificationRequestSchema,
+	emailVerificationSchema,
+	type UpdateUserMeFormData,
+	type EmailVerificationRequestFormData,
+	type EmailVerificationFormData
+} from '@/schemas/user'
 
-const formSchema = z.object({
-	full_name: z.string().min(1, { message: "Full name is required" }).max(255)
-})
-
-const emailRequestSchema = z.object({
-	new_email: z.string().email({ message: 'Invalid email address' })
-})
-
-const emailVerificationSchema = z
-	.object({
-		new_email: z.string().email({ message: 'Invalid email address' }),
-		code: z.string().length(4, { message: 'Code must be 4 characters' })
-	})
-	.refine(data => data.code.length === 4, {
-		message: 'Code must be 4 characters',
-		path: ['code']
-	})
-
-type FormData = z.infer<typeof formSchema>
-type EmailRequestData = z.infer<typeof emailRequestSchema>
-type EmailVerificationData = z.infer<typeof emailVerificationSchema>
+type FormData = UpdateUserMeFormData
+type EmailRequestData = EmailVerificationRequestFormData
+type EmailVerificationData = EmailVerificationFormData
 
 const UserInformation = () => {
 	const queryClient = useQueryClient()
@@ -55,16 +44,16 @@ const UserInformation = () => {
 	const { user: currentUser } = useAuth()
 
 	const form = useForm<FormData>({
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(updateUserMeSchema),
 		mode: 'onBlur',
 		criteriaMode: 'all',
 		defaultValues: {
-			full_name: currentUser?.full_name || ""
+			nickname: currentUser?.nickname || ""
 		}
 	})
 
 	const emailRequestForm = useForm<EmailRequestData>({
-		resolver: zodResolver(emailRequestSchema),
+		resolver: zodResolver(emailVerificationRequestSchema),
 		mode: 'onChange',
 		defaultValues: {
 			new_email: ''
@@ -94,13 +83,7 @@ const UserInformation = () => {
 
 	const mutation = useMutation({
 		mutationFn: (data: UserUpdateMe) =>
-			async (data) => {
-				const response = await UsersService.usersUpdateUserMe({ body: data })
-				if ('error' in response && response.error) {
-					throw response
-				}
-				return (response as any).data
-			},
+			unwrapResponse<UserPublic>(UsersService.usersUpdateUserMe({ body: data })),
 		onSuccess: () => {
 			showSuccessToast('Данные пользователя обновлены')
 			toggleEditMode()
@@ -113,24 +96,11 @@ const UserInformation = () => {
 
 	const requestCodeMutation = useMutation({
 		mutationFn: async (newEmail: string) => {
-			// TODO: Replace with UsersService.requestEmailVerificationCode after client regeneration
-			const token = localStorage.getItem('access_token') || ''
-			const response = await fetch(
-				`${OpenAPI.BASE}/api/v1/users/me/email/request-code`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${token}`
-					},
-					body: JSON.stringify({ new_email: newEmail })
-				}
+			return unwrapResponse(
+				UsersService.usersRequestEmailVerificationCode({
+					body: { new_email: newEmail }
+				})
 			)
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.detail || 'Не удалось отправить код подтверждения')
-			}
-			return response.json()
 		},
 		onSuccess: () => {
 			showSuccessToast(
@@ -139,34 +109,16 @@ const UserInformation = () => {
 			setCodeSent(true)
 			setResendCooldown(2 * 60) // 2 minutes
 		},
-		onError: (error: Error) => {
-			showErrorToast(error.message || 'Не удалось отправить код подтверждения')
-		}
+		onError: handleError.bind(showErrorToast)
 	})
 
 	const verifyEmailMutation = useMutation({
 		mutationFn: async (data: EmailVerificationData) => {
-			// TODO: Replace with UsersService.verifyEmail after client regeneration
-			const token = localStorage.getItem('access_token') || ''
-			const response = await fetch(
-				`${OpenAPI.BASE}/api/v1/users/me/email/verify`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${token}`
-					},
-					body: JSON.stringify({
-						new_email: data.new_email,
-						code: data.code
-					})
-				}
+			return unwrapResponse(
+				UsersService.usersVerifyAndUpdateEmail({
+					body: { new_email: data.new_email, code: data.code }
+				})
 			)
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.detail || 'Не удалось подтвердить почту')
-			}
-			return response.json()
 		},
 		onSuccess: () => {
 			showSuccessToast('Почта успешно обновлена')
@@ -177,16 +129,14 @@ const UserInformation = () => {
 			setResendCooldown(null)
 			queryClient.invalidateQueries({ queryKey: ['currentUser'] })
 		},
-		onError: (error: Error) => {
-			showErrorToast(error.message || 'Не удалось подтвердить почту')
-		}
+		onError: handleError.bind(showErrorToast)
 	})
 
 	const onSubmit = (data: FormData) => {
 		const updateData: UserUpdateMe = {}
 
-		if (data.full_name && data.full_name !== currentUser?.full_name) {
-			updateData.full_name = data.full_name
+		if (data.nickname && data.nickname !== currentUser?.nickname) {
+			updateData.nickname = data.nickname
 		}
 
 		mutation.mutate(updateData)
@@ -255,12 +205,12 @@ const UserInformation = () => {
 					>
 						<FormField
 							control={form.control}
-							name="full_name"
+							name="nickname"
 							render={({ field }) =>
 								editMode ? (
 									<FormItem>
 										<FormLabel className="text-base">
-											Полное имя <span className="text-destructive">*</span>
+											Псевдоним <span className="text-destructive">*</span>
 										</FormLabel>
 										<FormControl>
 											<Input
@@ -273,7 +223,7 @@ const UserInformation = () => {
 									</FormItem>
 								) : (
 									<FormItem>
-										<FormLabel className="text-base">Полное имя</FormLabel>
+										<FormLabel className="text-base">Псевдоним</FormLabel>
 										<div className="h-9 px-3 py-1 bg-muted rounded-md border flex items-center">
 											<p
 												className={cn(

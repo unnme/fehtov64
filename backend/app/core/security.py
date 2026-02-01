@@ -16,11 +16,11 @@ ALGORITHM = "HS256"
 def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
     """
     Create JWT access token.
-    
+
     Args:
         subject: Subject identifier (usually user ID)
         expires_delta: Token expiration time delta
-        
+
     Returns:
         Encoded JWT token string
     """
@@ -33,11 +33,11 @@ def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify plain password against hashed password.
-    
+
     Args:
         plain_password: Plain text password to verify
         hashed_password: Hashed password to compare against
-        
+
     Returns:
         True if password matches, False otherwise
     """
@@ -47,10 +47,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_password_hash(password: str) -> str:
     """
     Hash password using bcrypt.
-    
+
     Args:
         password: Plain text password to hash
-        
+
     Returns:
         Hashed password string
     """

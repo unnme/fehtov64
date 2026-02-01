@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { EllipsisVertical } from "lucide-react"
 
-import type { Position } from "@/services/positionsService"
+import type { PositionPublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import DeletePosition from "./DeletePosition"
 import EditPosition from "./EditPosition"
 
 interface PositionActionsMenuProps {
-  position: Position
+  position: PositionPublic
 }
 
 function PositionActionsMenu({ position }: PositionActionsMenuProps) {

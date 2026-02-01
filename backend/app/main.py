@@ -1,26 +1,26 @@
 """FastAPI application setup and configuration."""
 import sentry_sdk
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
-from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.ip_blocking import IPBlockingMiddleware
-from app.core.rate_limit import limiter, _rate_limit_exceeded_handler
+from app.core.rate_limit import _rate_limit_exceeded_handler, limiter
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     """
     Generate unique ID for OpenAPI route.
-    
+
     Args:
         route: FastAPI route
-        
+
     Returns:
         Unique route ID in format "{tag}-{name}"
     """
@@ -99,7 +99,8 @@ if settings.all_cors_origins:
     )
 
 # Include public news router first (bypasses auth) - must be before api_router
-from app.api.routes.news import public_router
+from app.api.routes.news import public_router  # noqa: E402
+
 app.include_router(public_router, prefix=settings.API_V1_STR)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

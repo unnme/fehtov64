@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import type { Control, FieldValues, Path } from "react-hook-form"
 
-import type { Position } from "@/services/positionsService"
+import type { PositionPublic } from "@/client"
 import {
   FormControl,
   FormField,
@@ -22,7 +22,7 @@ const DEFAULT_POSITION_NAME = "Без должности"
 interface PositionSelectProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>
   name: Path<TFieldValues>
-  positions: Position[]
+  positions: PositionPublic[]
   label?: string
   placeholder?: string
   isRequired?: boolean

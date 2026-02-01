@@ -2,50 +2,56 @@
 
 set -e
 
-# Загружаем переменные из .env файла, если он существует
+# Load variables from .env file if it exists
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    # shellcheck source=/dev/null
+    source .env
+    set +a
 fi
 
-# Если PASSWORD установлен, но HASHED_PASSWORD нет - генерируем автоматически
+# Generate HASHED_PASSWORD if TRAEFIK_PASSWORD is set
 if [ -n "$TRAEFIK_PASSWORD" ] && [ -z "$HASHED_PASSWORD" ]; then
-    echo "🔐 Генерирую HASHED_PASSWORD из TRAEFIK_PASSWORD..."
-    export HASHED_PASSWORD=$(openssl passwd -apr1 "$TRAEFIK_PASSWORD")
-    echo "✅ HASHED_PASSWORD сгенерирован"
+    echo "🔐 Generating HASHED_PASSWORD from TRAEFIK_PASSWORD..."
+    HASHED_PASSWORD=$(openssl passwd -apr1 "$TRAEFIK_PASSWORD")
+    export HASHED_PASSWORD
+    echo "✅ HASHED_PASSWORD generated"
 fi
 
-# Проверяем обязательные переменные
+# Validate required variables
 if [ -z "$USERNAME" ]; then
-    echo "❌ Ошибка: USERNAME не установлен"
-    echo "   Установите USERNAME в .env файле или экспортируйте: export USERNAME=admin"
+    echo "❌ Error: USERNAME is not set"
+    echo "   Set USERNAME in .env file or export: export USERNAME=admin"
     exit 1
 fi
 
 if [ -z "$HASHED_PASSWORD" ]; then
-    echo "❌ Ошибка: HASHED_PASSWORD не установлен"
-    echo "   Установите TRAEFIK_PASSWORD в .env файле (HASHED_PASSWORD будет сгенерирован автоматически)"
-    echo "   Или установите HASHED_PASSWORD напрямую: export HASHED_PASSWORD=\$(openssl passwd -apr1 your-password)"
+    echo "❌ Error: HASHED_PASSWORD is not set"
+    echo "   Set TRAEFIK_PASSWORD in .env file (HASHED_PASSWORD will be auto-generated)"
+    echo "   Or set HASHED_PASSWORD directly: export HASHED_PASSWORD=\$(openssl passwd -apr1 your-password)"
     exit 1
 fi
 
 if [ -z "$DOMAIN" ]; then
-    echo "❌ Ошибка: DOMAIN не установлен"
-    echo "   Установите DOMAIN в .env файле или экспортируйте: export DOMAIN=localhost"
+    echo "❌ Error: DOMAIN is not set"
+    echo "   Set DOMAIN in .env file or export: export DOMAIN=example.com"
     exit 1
 fi
 
 if [ -z "$EMAIL" ]; then
-    echo "❌ Ошибка: EMAIL не установлен"
-    echo "   Установите EMAIL в .env файле или экспортируйте: export EMAIL=admin@example.com"
+    echo "❌ Error: EMAIL is not set"
+    echo "   Set EMAIL in .env file or export: export EMAIL=admin@example.com"
     exit 1
 fi
 
-echo "🚀 Запускаю Traefik с переменными:"
+echo "🚀 Starting Traefik with:"
 echo "   USERNAME: $USERNAME"
 echo "   DOMAIN: $DOMAIN"
 echo "   EMAIL: $EMAIL"
 echo ""
 
-# Запускаем docker-compose
-docker compose -f docker-compose.traefik.yml up -d --build "$@"
+# Create traefik-public network if it doesn't exist
+docker network create traefik-public 2>/dev/null || true
 
+# Start docker-compose
+docker compose -f docker-compose.traefik.yml up -d --build "$@"

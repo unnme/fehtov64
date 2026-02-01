@@ -20,17 +20,21 @@ def _get_single_card(session: SessionDep) -> OrganizationCard | None:
     return session.exec(select(OrganizationCard)).first()
 
 
+def _normalize_phones(card: OrganizationCard) -> None:
+    """Convert legacy string phones to dict format."""
+    if card.phones and isinstance(card.phones[0], str):
+        card.phones = [
+            {"phone": phone, "description": None} if isinstance(phone, str) else phone
+            for phone in card.phones
+        ]
+
+
 @public_router.get("/public", response_model=OrganizationCardPublic)
 def read_public_card(session: SessionDep) -> Any:
     card = _get_single_card(session)
     if not card:
         raise HTTPException(status_code=404, detail="Organization card not found")
-    if card.phones and len(card.phones) > 0:
-        if isinstance(card.phones[0], str):
-            card.phones = [
-                {"phone": phone, "description": None} if isinstance(phone, str) else phone
-                for phone in card.phones
-            ]
+    _normalize_phones(card)
     return card
 
 
@@ -43,12 +47,7 @@ def read_card(session: SessionDep) -> Any:
     card = _get_single_card(session)
     if not card:
         raise HTTPException(status_code=404, detail="Organization card not found")
-    if card.phones and len(card.phones) > 0:
-        if isinstance(card.phones[0], str):
-            card.phones = [
-                {"phone": phone, "description": None} if isinstance(phone, str) else phone
-                for phone in card.phones
-            ]
+    _normalize_phones(card)
     return card
 
 
@@ -86,10 +85,5 @@ def update_card(session: SessionDep, card_in: OrganizationCardUpdate) -> Any:
         session.add(card)
         session.commit()
         session.refresh(card)
-    if card.phones and len(card.phones) > 0:
-        if isinstance(card.phones[0], str):
-            card.phones = [
-                {"phone": phone, "description": None} if isinstance(phone, str) else phone
-                for phone in card.phones
-            ]
+    _normalize_phones(card)
     return card

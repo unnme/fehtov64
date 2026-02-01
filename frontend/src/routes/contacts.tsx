@@ -7,8 +7,9 @@ import {
 	MapPin,
 	Phone
 } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 
+import { OrganizationCardService, type OrganizationCardPublic } from '@/client'
 import { Breadcrumbs, Navbar } from '@/components/Common'
 import { ContactField } from '@/components/OrganizationCard/ContactField'
 import { SocialLinks } from '@/components/OrganizationCard/SocialLinks'
@@ -23,9 +24,25 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { OrganizationCardService } from '@/services/organizationCardService'
+import { useContactsMap } from '@/hooks/useContactsMap'
+import { unwrapResponse } from '@/utils'
 import { formatPhoneDisplay, normalizePhone } from '@/utils/phone'
-import { useYandexMap } from '@/hooks/useYandexMap'
+
+function formatWorkHours(workHours: string): { days: string; time: string }[] {
+	return workHours
+		.split(';')
+		.map(part => part.trim())
+		.filter(Boolean)
+		.map(part => {
+			const colonIndex = part.indexOf(':')
+			const days = colonIndex > -1 ? part.slice(0, colonIndex).trim() : part
+			const time = colonIndex > -1 ? part.slice(colonIndex + 1).trim() : ''
+			return {
+				days: days.replace('-', ' – '),
+				time
+			}
+		})
+}
 
 export const Route = createFileRoute('/contacts')({
 	component: Contacts,
@@ -48,28 +65,21 @@ function Contacts() {
 
 	const { data, isLoading } = useQuery({
 		queryKey: ['organization-card-public'],
-		queryFn: () => OrganizationCardService.readPublic(),
+		queryFn: () => unwrapResponse<OrganizationCardPublic>(OrganizationCardService.organizationCardReadPublicCard()),
 		retry: false
 	})
 
-	const { updatePlacemark } = useYandexMap({
+	const coords = useMemo(() => {
+		if (!data?.latitude || !data?.longitude) return null
+		return { latitude: data.latitude, longitude: data.longitude }
+	}, [data?.latitude, data?.longitude])
+
+	useContactsMap({
 		apiKey,
 		hasApiKey,
 		containerRef: mapContainerRef,
-		initialCenter: data?.latitude && data?.longitude
-			? [data.latitude, data.longitude]
-			: undefined,
-		initialZoom: data?.latitude && data?.longitude ? 17 : 14
+		coords
 	})
-
-	useEffect(() => {
-		if (data?.latitude && data?.longitude) {
-			updatePlacemark({
-				latitude: data.latitude,
-				longitude: data.longitude
-			})
-		}
-	}, [data?.latitude, data?.longitude, updatePlacemark])
 
 	return (
 		<div className="flex min-h-screen flex-col">
@@ -102,7 +112,7 @@ function Contacts() {
 											</p>
 										</div>
 									) : data ? (
-										<div className="space-y-6 px-6 py-6">
+										<div className="space-y-4 px-6 pb-6">
 											{data.name && (
 												<ContactField
 													icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
@@ -141,9 +151,16 @@ function Contacts() {
 													icon={<Clock className="h-4 w-4 text-muted-foreground" />}
 													label="Режим работы"
 												>
-													<span className="block rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground whitespace-pre-line">
-														{data.work_hours}
-													</span>
+													<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
+														<div className="space-y-1">
+															{formatWorkHours(data.work_hours).map((item, index) => (
+																<div key={index} className="flex gap-2">
+																	<span>{item.days}:</span>
+																	<span className="text-muted-foreground">{item.time}</span>
+																</div>
+															))}
+														</div>
+													</div>
 												</ContactField>
 											)}
 

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { EllipsisVertical } from "lucide-react"
 
-import type { Person } from "@/services/personsService"
+import type { PersonPublic } from "@/client"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +13,7 @@ import DeletePerson from "./DeletePerson"
 import EditPerson from "./EditPerson"
 
 interface PersonActionsMenuProps {
-  person: Person
+  person: PersonPublic
 }
 
 function PersonActionsMenu({ person }: PersonActionsMenuProps) {

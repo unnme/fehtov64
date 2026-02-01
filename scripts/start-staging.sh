@@ -4,18 +4,61 @@ set -e
 
 # Load variables from .env.staging
 if [ -f .env.staging ]; then
-    export $(grep -v '^#' .env.staging | xargs)
+    set -a
+    # shellcheck source=/dev/null
+    source .env.staging
+    set +a
 else
     echo "❌ File .env.staging not found"
-    echo "   Create .env.staging file in project root"
+    echo "   Copy .env.staging.example to .env.staging and configure it"
+    exit 1
+fi
+
+# Validate required variables
+REQUIRED_VARS=(
+    "DOMAIN"
+    "SECRET_KEY"
+    "POSTGRES_PASSWORD"
+    "FIRST_SUPERUSER"
+    "FIRST_SUPERUSER_PASSWORD"
+    "USERNAME"
+    "EMAIL"
+)
+
+for var in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "❌ Required variable $var is not set"
+        exit 1
+    fi
+done
+
+# Check for default passwords
+if [ "$SECRET_KEY" = "changethis" ] || [ "$SECRET_KEY" = "generate-a-secure-random-string-here" ]; then
+    echo "❌ SECRET_KEY must be changed from default value"
+    exit 1
+fi
+
+if [ "$POSTGRES_PASSWORD" = "changethis" ] || [ "$POSTGRES_PASSWORD" = "use-a-strong-database-password" ]; then
+    echo "❌ POSTGRES_PASSWORD must be changed from default value"
+    exit 1
+fi
+
+if [ "$FIRST_SUPERUSER_PASSWORD" = "changethis" ] || [ "$FIRST_SUPERUSER_PASSWORD" = "use-a-strong-password" ]; then
+    echo "❌ FIRST_SUPERUSER_PASSWORD must be changed from default value"
     exit 1
 fi
 
 # Generate HASHED_PASSWORD if needed
 if [ -n "$TRAEFIK_PASSWORD" ] && [ -z "$HASHED_PASSWORD" ]; then
     echo "🔐 Generating HASHED_PASSWORD from TRAEFIK_PASSWORD..."
-    export HASHED_PASSWORD=$(openssl passwd -apr1 "$TRAEFIK_PASSWORD")
+    HASHED_PASSWORD=$(openssl passwd -apr1 "$TRAEFIK_PASSWORD")
+    export HASHED_PASSWORD
     echo "✅ HASHED_PASSWORD generated"
+fi
+
+if [ -z "$HASHED_PASSWORD" ]; then
+    echo "❌ HASHED_PASSWORD or TRAEFIK_PASSWORD must be set"
+    exit 1
 fi
 
 echo "🚀 Starting staging environment:"
@@ -28,27 +71,25 @@ echo ""
 echo "📦 Checking traefik-public network..."
 docker network create traefik-public 2>/dev/null || echo "   traefik-public network already exists"
 
-# Start Traefik
+# Start Traefik (with HTTPS/Let's Encrypt)
 echo "📦 Starting Traefik..."
 docker compose -f docker-compose.traefik.yml up -d --build
 
 # Small pause for Traefik to start
-sleep 2
+sleep 3
 
-# Start project with variables from .env.staging
+# Start project
 echo "📦 Starting project in staging mode..."
-docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d --build
+docker compose -f docker-compose.yml --env-file .env.staging --profile backup up -d --build
 
 echo ""
 echo "✅ Staging environment started!"
 echo ""
 echo "Available URLs:"
-echo "  - Frontend Dashboard: http://dashboard.$DOMAIN"
-echo "  - Backend API: http://api.$DOMAIN"
-echo "  - API Docs: http://api.$DOMAIN/docs"
-echo "  - Adminer: http://adminer.$DOMAIN"
-echo "  - Traefik Dashboard: http://traefik.$DOMAIN"
-echo "  - Mailcatcher: http://localhost:1080"
+echo "  - Main Site: https://$DOMAIN"
+echo "  - Dashboard: https://dashboard.$DOMAIN"
+echo "  - Backend API: https://api.$DOMAIN"
+echo "  - API Docs: https://api.$DOMAIN/docs"
+echo "  - Traefik Dashboard: https://traefik.$DOMAIN"
 echo ""
-echo "⚠️  Make sure /etc/hosts has entries for staging domains!"
-echo "   Run: ./scripts/setup-staging-hosts.sh"
+echo "⚠️  Make sure DNS records point to this server!"

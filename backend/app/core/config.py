@@ -111,19 +111,6 @@ class Settings(BaseSettings):
         "application/vnd.oasis.opendocument.presentation",  # .odp
     ]
 
-    # Redis configuration (optional, falls back to in-memory if not set)
-    REDIS_URL: str | None = None
-    REDIS_HOST: str | None = None
-    REDIS_PORT: int = 6379
-    REDIS_DB: int = 0
-    REDIS_PASSWORD: str | None = None
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def redis_enabled(self) -> bool:
-        """Check if Redis is explicitly configured (not just default localhost)."""
-        return bool(self.REDIS_URL or (self.REDIS_HOST and self.REDIS_HOST != "localhost"))
-
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

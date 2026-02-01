@@ -23,7 +23,7 @@ def get_upload_dir() -> Path:
     upload_dir = Path(settings.UPLOAD_DIR)
     if upload_dir.is_absolute():
         return upload_dir
-    
+
     # Determine base directory from file location
     # In Docker: /app/scripts/seed_data/file_utils.py -> base should be /app
     # Locally: backend/scripts/seed_data/file_utils.py -> base should be backend

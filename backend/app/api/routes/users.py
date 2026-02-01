@@ -1,8 +1,8 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
-from sqlmodel import col, delete, func, select
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from sqlmodel import func, select
 
 from app.api.deps import (
     CurrentUser,
@@ -10,12 +10,15 @@ from app.api.deps import (
     get_current_active_superuser,
 )
 from app.core.config import settings
-from app.core.config import settings as app_settings
 from app.core.security import get_password_hash, verify_password
 from app.models import News, User
 from app.repositories.user_repository import (
     create_user as create_user_repo,
+)
+from app.repositories.user_repository import (
     get_user_by_email,
+)
+from app.repositories.user_repository import (
     update_user as update_user_repo,
 )
 from app.schemas import (
@@ -41,8 +44,8 @@ router = APIRouter(prefix="/users", tags=["users"])
     response_model=UsersPublic,
 )
 def read_users(
-    session: SessionDep, 
-    skip: int = 0, 
+    session: SessionDep,
+    skip: int = 0,
     limit: int = 100,
     include_guardian: bool = False
 ) -> Any:
@@ -53,7 +56,7 @@ def read_users(
     """
 
     guardian_email = "guardian@system.example.com"
-    
+
     if include_guardian:
         # Include all users including Guardian
         count_statement = select(func.count()).select_from(User)
@@ -64,7 +67,7 @@ def read_users(
         count_statement = select(func.count()).select_from(User).where(User.email != guardian_email)
         count = session.exec(count_statement).one()
         statement = select(User).where(User.email != guardian_email).offset(skip).limit(limit)
-    
+
     users = session.exec(statement).all()
 
     return UsersPublic(data=users, count=count)
@@ -86,10 +89,10 @@ async def create_user(
             status_code=400,
             detail="The user with this email already exists in the system.",
         )
-    
-    # Check if full_name is already taken
+
+    # Check if nickname is already taken
     existing_user_by_name = session.exec(
-        select(User).where(User.full_name == user_in.full_name)
+        select(User).where(User.nickname == user_in.nickname)
     ).first()
     if existing_user_by_name:
         raise HTTPException(
@@ -131,17 +134,17 @@ def update_user_me(
             status_code=400,
             detail="Email cannot be changed through this endpoint. Use /users/me/email/request-code to request a verification code, then /users/me/email/verify to confirm.",
         )
-    
-    # Check if full_name is already taken (if being updated)
-    if user_in.full_name:
+
+    # Check if nickname is already taken (if being updated)
+    if user_in.nickname:
         existing_user_by_name = session.exec(
-            select(User).where(User.full_name == user_in.full_name)
+            select(User).where(User.nickname == user_in.nickname)
         ).first()
         if existing_user_by_name and existing_user_by_name.id != current_user.id:
             raise HTTPException(
                 status_code=409, detail="User with this name already exists"
             )
-    
+
     user_data = user_in.model_dump(exclude_unset=True)
     current_user.sqlmodel_update(user_data)
     session.add(current_user)
@@ -163,26 +166,26 @@ async def request_email_verification_code(
     Sends a 4-character code to the new email address.
     """
     new_email = request.new_email.lower()
-    
+
     # Check that new email is not taken by another user
     existing_user = get_user_by_email(session=session, email=new_email)
     if existing_user and existing_user.id != current_user.id:
         raise HTTPException(
             status_code=409, detail="This email is already registered to another user"
         )
-    
+
     # Check that this is not the current email
     if current_user.email.lower() == new_email:
         raise HTTPException(
             status_code=400, detail="This is already your current email address"
         )
-    
+
     # Generate verification code
     code = verification_service.generate_code()
-    
+
     # Store code
     verification_service.store_code(str(current_user.id), new_email, code)
-    
+
     # Send email with code to current email only
     if settings.emails_enabled:
         if not current_user.email:
@@ -194,7 +197,7 @@ async def request_email_verification_code(
             email_to=current_user.email,
             code=code,
         )
-    
+
     return Message(message="Verification code has been sent to your current email address")
 
 
@@ -208,26 +211,26 @@ def verify_and_update_email(
     """
     new_email = verification.new_email.lower()
     code = verification.code
-    
+
     # Verify code
     if not verification_service.verify_code(str(current_user.id), new_email, code):
         raise HTTPException(
             status_code=400, detail="Invalid or expired verification code"
         )
-    
+
     # Check that email is not taken (in case someone registered between requests)
     existing_user = get_user_by_email(session=session, email=new_email)
     if existing_user and existing_user.id != current_user.id:
         raise HTTPException(
             status_code=409, detail="This email is already registered to another user"
         )
-    
+
     # Update email
     current_user.email = new_email
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
-    
+
     return current_user
 
 
@@ -272,10 +275,10 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     # Check if this is the first superuser (created automatically)
     if current_user.email == settings.FIRST_SUPERUSER:
         raise HTTPException(
-            status_code=403, 
+            status_code=403,
             detail="The first superuser account cannot be deleted. This is a system account required for initial setup."
         )
-    
+
     # Prevent deletion of Guardian system user
     guardian_email = "guardian@system.example.com"
     if current_user.email == guardian_email:
@@ -283,25 +286,25 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
             status_code=403,
             detail="Guardian system user cannot be deleted. This is a system account required for data integrity."
         )
-    
+
     # Get guardian user for reassigning news
     guardian = session.exec(
         select(User).where(User.email == guardian_email)
     ).first()
-    
+
     if not guardian:
         raise HTTPException(
             status_code=500,
             detail="Guardian system user not found. Please run database initialization."
         )
-    
+
     # Reassign all news from deleted user to guardian
     news_statement = select(News).where(News.owner_id == current_user.id)
     news_items = session.exec(news_statement).all()
     for news_item in news_items:
         news_item.owner_id = guardian.id
         session.add(news_item)
-    
+
     # Delete user (news are now owned by guardian, so CASCADE won't delete them)
     session.delete(current_user)
     session.commit()
@@ -365,7 +368,7 @@ def update_user(
             raise HTTPException(
                 status_code=409, detail="User with this email already exists"
             )
-    
+
     # Security: only superusers can change is_superuser
     user_data = user_in.model_dump(exclude_unset=True)
     if "is_superuser" in user_data:
@@ -385,8 +388,8 @@ def update_user(
 
     # Allow is_superuser change only for superusers
     db_user = update_user_repo(
-        session=session, 
-        db_user=db_user, 
+        session=session,
+        db_user=db_user,
         user_in=user_in,
         allow_superuser_change=current_user.is_superuser
     )
@@ -408,14 +411,14 @@ def delete_user(
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    
+
     # Check if this is the first superuser
     if user.email == settings.FIRST_SUPERUSER:
         raise HTTPException(
             status_code=403,
             detail="The first superuser account cannot be deleted. This is a system account required for initial setup."
         )
-    
+
     # Prevent deletion of Guardian system user
     guardian_email = "guardian@system.example.com"
     if user.email == guardian_email:
@@ -423,25 +426,25 @@ def delete_user(
             status_code=403,
             detail="Guardian system user cannot be deleted. This is a system account required for data integrity."
         )
-    
+
     # Get guardian user (system user for orphaned news)
     guardian = session.exec(
         select(User).where(User.email == guardian_email)
     ).first()
-    
+
     if not guardian:
         raise HTTPException(
             status_code=500,
             detail="Guardian system user not found. Please run database initialization."
         )
-    
+
     # Reassign all news from deleted user to guardian
     news_statement = select(News).where(News.owner_id == user_id)
     news_items = session.exec(news_statement).all()
     for news_item in news_items:
         news_item.owner_id = guardian.id
         session.add(news_item)
-    
+
     # Delete user (news are now owned by guardian, so CASCADE won't delete them)
     session.delete(user)
     session.commit()

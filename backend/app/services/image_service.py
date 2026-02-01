@@ -2,7 +2,6 @@
 import shutil
 import uuid
 from pathlib import Path
-from typing import Tuple
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image
@@ -63,7 +62,7 @@ class ImageService:
     @classmethod
     def save_image(
         cls, file: UploadFile, news_id: uuid.UUID
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Save uploaded image, normalize to JPEG format and standard size.
         Returns relative path and file size.
@@ -131,7 +130,7 @@ class ImageService:
     @classmethod
     def save_person_image(
         cls, file: UploadFile, person_id: uuid.UUID
-    ) -> Tuple[str, int]:
+    ) -> tuple[str, int]:
         """
         Save uploaded person image, enforce portrait orientation.
         Returns relative path and file size.

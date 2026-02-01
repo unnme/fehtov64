@@ -5,7 +5,6 @@ import {
 	Link as RouterLink
 } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { AuthLayout } from '@/components/Common'
 import {
@@ -20,25 +19,9 @@ import { Input } from '@/components/ui/input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { PasswordInput } from '@/components/ui/password-input'
 import useAuth from '@/hooks/useAuth'
+import { registerSchema, type RegisterFormData } from '@/schemas/auth'
 
-const formSchema = z
-	.object({
-		email: z.email(),
-		full_name: z.string().min(1, { message: 'Full Name is required' }),
-		password: z
-			.string()
-			.min(1, { message: 'Password is required' })
-			.min(8, { message: 'Password must be at least 8 characters' }),
-		confirm_password: z
-			.string()
-			.min(1, { message: 'Password confirmation is required' })
-	})
-	.refine(data => data.password === data.confirm_password, {
-		message: "The passwords don't match",
-		path: ['confirm_password']
-	})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = RegisterFormData
 
 export const Route = createFileRoute('/auth/signup')({
 	component: SignUp,
@@ -60,18 +43,17 @@ export const Route = createFileRoute('/auth/signup')({
 function SignUp() {
 	const { signUpMutation } = useAuth()
 	const form = useForm<FormData>({
-		resolver: zodResolver(formSchema),
+		resolver: zodResolver(registerSchema),
 		mode: 'onBlur',
 		criteriaMode: 'all',
 		defaultValues: {
 			email: '',
-			full_name: '',
+			nickname: '',
 			password: '',
 			confirm_password: ''
 		}
 	})
 
-	// Signup form component
 	const onSubmit = (data: FormData) => {
 		if (signUpMutation.isPending) return
 
@@ -94,14 +76,14 @@ function SignUp() {
 					<div className="grid gap-4">
 						<FormField
 							control={form.control}
-							name="full_name"
+							name="nickname"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Full Name</FormLabel>
+									<FormLabel>Псевдоним</FormLabel>
 									<FormControl>
 										<Input
-											data-testid="full-name-input"
-											placeholder="User"
+											data-testid="nickname-input"
+											placeholder="Псевдоним"
 											type="text"
 											{...field}
 										/>

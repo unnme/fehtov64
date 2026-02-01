@@ -506,6 +506,180 @@ export type NewsUpdate = {
 };
 
 /**
+ * OrganizationCardCreate
+ *
+ * Schema for creating organization card.
+ */
+export type OrganizationCardCreate = {
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Phones
+     */
+    phones?: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
+     * Work Hours
+     */
+    work_hours?: string | null;
+    /**
+     * Vk Url
+     */
+    vk_url?: string | null;
+    /**
+     * Telegram Url
+     */
+    telegram_url?: string | null;
+    /**
+     * Whatsapp Url
+     */
+    whatsapp_url?: string | null;
+    /**
+     * Max Url
+     */
+    max_url?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+};
+
+/**
+ * OrganizationCardPublic
+ *
+ * Public organization card schema.
+ */
+export type OrganizationCardPublic = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string | null;
+    /**
+     * Phones
+     */
+    phones: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Email
+     */
+    email: string | null;
+    /**
+     * Address
+     */
+    address: string | null;
+    /**
+     * Work Hours
+     */
+    work_hours: string | null;
+    /**
+     * Vk Url
+     */
+    vk_url: string | null;
+    /**
+     * Telegram Url
+     */
+    telegram_url: string | null;
+    /**
+     * Whatsapp Url
+     */
+    whatsapp_url: string | null;
+    /**
+     * Max Url
+     */
+    max_url: string | null;
+    /**
+     * Latitude
+     */
+    latitude: number | null;
+    /**
+     * Longitude
+     */
+    longitude: number | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * OrganizationCardUpdate
+ *
+ * Schema for updating organization card (all fields optional).
+ */
+export type OrganizationCardUpdate = {
+    /**
+     * Name
+     */
+    name?: string | null;
+    /**
+     * Phones
+     */
+    phones?: Array<{
+        [key: string]: unknown;
+    }> | null;
+    /**
+     * Email
+     */
+    email?: string | null;
+    /**
+     * Address
+     */
+    address?: string | null;
+    /**
+     * Work Hours
+     */
+    work_hours?: string | null;
+    /**
+     * Vk Url
+     */
+    vk_url?: string | null;
+    /**
+     * Telegram Url
+     */
+    telegram_url?: string | null;
+    /**
+     * Whatsapp Url
+     */
+    whatsapp_url?: string | null;
+    /**
+     * Max Url
+     */
+    max_url?: string | null;
+    /**
+     * Latitude
+     */
+    latitude?: number | null;
+    /**
+     * Longitude
+     */
+    longitude?: number | null;
+};
+
+/**
  * PersonCreate
  *
  * Schema for creating person.
@@ -2132,6 +2306,88 @@ export type ImagesGetImageFileResponses = {
      */
     200: unknown;
 };
+
+export type OrganizationCardReadPublicCardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organization-card/public';
+};
+
+export type OrganizationCardReadPublicCardResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationCardPublic;
+};
+
+export type OrganizationCardReadPublicCardResponse = OrganizationCardReadPublicCardResponses[keyof OrganizationCardReadPublicCardResponses];
+
+export type OrganizationCardReadCardData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organization-card/';
+};
+
+export type OrganizationCardReadCardResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationCardPublic;
+};
+
+export type OrganizationCardReadCardResponse = OrganizationCardReadCardResponses[keyof OrganizationCardReadCardResponses];
+
+export type OrganizationCardUpdateCardData = {
+    body: OrganizationCardUpdate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organization-card/';
+};
+
+export type OrganizationCardUpdateCardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type OrganizationCardUpdateCardError = OrganizationCardUpdateCardErrors[keyof OrganizationCardUpdateCardErrors];
+
+export type OrganizationCardUpdateCardResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationCardPublic;
+};
+
+export type OrganizationCardUpdateCardResponse = OrganizationCardUpdateCardResponses[keyof OrganizationCardUpdateCardResponses];
+
+export type OrganizationCardCreateCardData = {
+    body: OrganizationCardCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/organization-card/';
+};
+
+export type OrganizationCardCreateCardErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type OrganizationCardCreateCardError = OrganizationCardCreateCardErrors[keyof OrganizationCardCreateCardErrors];
+
+export type OrganizationCardCreateCardResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrganizationCardPublic;
+};
+
+export type OrganizationCardCreateCardResponse = OrganizationCardCreateCardResponses[keyof OrganizationCardCreateCardResponses];
 
 export type DocumentsReadPublicCategoriesData = {
     body?: never;

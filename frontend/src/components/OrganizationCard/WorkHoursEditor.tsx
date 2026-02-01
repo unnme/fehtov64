@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 import {
 	DAYS_OF_WEEK,
@@ -31,8 +32,10 @@ const validateTimeRange = (timeRange: string): boolean => {
 	return endTotal > startTotal
 }
 
+const EMPTY_DAYS: WorkHours['days'] = []
+
 export const WorkHoursEditor = ({ value, onChange }: WorkHoursEditorProps) => {
-	const days = value?.days || []
+	const days = value?.days ?? EMPTY_DAYS
 	const selectedDays = useMemo(() => new Set(days.map(d => d.day)), [days])
 
 	const handleDayToggle = (day: DayOfWeek, e?: React.MouseEvent) => {
@@ -76,11 +79,12 @@ export const WorkHoursEditor = ({ value, onChange }: WorkHoursEditorProps) => {
 						return (
 							<div
 								key={dayValue}
-								className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-md border transition-colors ${
+								className={cn(
+									"flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-md border transition-colors",
 									isSelected
-										? 'border-primary bg-primary/5'
-										: 'border-border hover:border-primary/50 hover:bg-accent/50'
-								}`}
+										? "border-primary bg-primary/5"
+										: "border-border hover:border-primary/50 hover:bg-accent/50"
+								)}
 							>
 								<Checkbox
 									checked={isSelected}

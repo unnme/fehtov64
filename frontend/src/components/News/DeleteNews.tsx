@@ -1,23 +1,9 @@
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useForm } from "react-hook-form"
 import { Trash2 } from "lucide-react"
 
 import { NewsService } from "@/client"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { DeleteConfirmationDialog } from "@/components/Common"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { LoadingButton } from "@/components/ui/loading-button"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
 
 interface DeleteNewsProps {
   id: string
@@ -26,36 +12,9 @@ interface DeleteNewsProps {
 
 const DeleteNews = ({ id, onSuccess }: DeleteNewsProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
-  const { handleSubmit } = useForm()
-
-  const deleteNews = async (id: string) => {
-    const response = await NewsService.newsDeleteNews({ path: { id } })
-    if ('error' in response && response.error) {
-      throw response
-    }
-  }
-
-  const mutation = useMutation({
-    mutationFn: deleteNews,
-    onSuccess: () => {
-      showSuccessToast("Новость успешно удалена")
-      setIsOpen(false)
-      onSuccess()
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries()
-    },
-  })
-
-  const onSubmit = async () => {
-    mutation.mutate(id)
-  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <>
       <DropdownMenuItem
         variant="destructive"
         onSelect={(e) => e.preventDefault()}
@@ -64,32 +23,22 @@ const DeleteNews = ({ id, onSuccess }: DeleteNewsProps) => {
         <Trash2 />
         Удалить новость
       </DropdownMenuItem>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogHeader>
-            <DialogTitle>Удалить новость</DialogTitle>
-            <DialogDescription>
-              Эта новость будет удалена навсегда. Вы уверены? Это действие нельзя отменить.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button variant="outline" disabled={mutation.isPending}>
-                Отмена
-              </Button>
-            </DialogClose>
-            <LoadingButton
-              variant="destructive"
-              type="submit"
-              loading={mutation.isPending}
-            >
-              Удалить
-            </LoadingButton>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <DeleteConfirmationDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        onConfirm={async () => {
+          const response = await NewsService.newsDeleteNews({ path: { id } })
+          if ('error' in response && response.error) {
+            throw response
+          }
+        }}
+        title="Удалить новость?"
+        description="Эта новость будет удалена навсегда. Вы уверены? Это действие нельзя отменить."
+        successMessage="Новость успешно удалена"
+        queryKeys={["news"]}
+        onSuccess={onSuccess}
+      />
+    </>
   )
 }
 

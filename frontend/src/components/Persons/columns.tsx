@@ -1,19 +1,19 @@
 import type { ColumnDef } from "@tanstack/react-table"
-
-import type { Person } from "@/services/personsService"
 import { Image as ImageIcon } from "lucide-react"
+
+import type { PersonPublic } from "@/client"
 
 import { Badge } from "@/components/ui/badge"
 import { getPersonImageFileUrl } from "@/utils/fileUrls"
 import PersonActionsMenu from "./PersonActionsMenu"
 
-function formatFullName(person: Person): string {
+function formatFullName(person: PersonPublic): string {
   return `${person.last_name} ${person.first_name} ${person.middle_name}`
 }
 
 const DEFAULT_POSITION_NAME = "Без должности"
 
-function getBaseColumns(): ColumnDef<Person>[] {
+function getBaseColumns(): ColumnDef<PersonPublic>[] {
   return [
     {
       accessorKey: "image",
@@ -74,7 +74,7 @@ function getBaseColumns(): ColumnDef<Person>[] {
   ]
 }
 
-export function getColumns(isSuperuser: boolean): ColumnDef<Person>[] {
+export function getColumns(isSuperuser: boolean): ColumnDef<PersonPublic>[] {
   const baseColumns = getBaseColumns()
   if (!isSuperuser) return baseColumns
 

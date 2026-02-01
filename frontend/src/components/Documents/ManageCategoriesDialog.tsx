@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Edit2, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
-import { DocumentsService, type DocumentCategoryPublic } from "@/client"
+import { DocumentsService, type DocumentCategoryPublic, type Message } from "@/client"
+import { cn } from "@/lib/utils"
 import { DeleteConfirmationDialog } from "@/components/Common"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,14 +28,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
-import { DocumentsService as LegacyDocumentsService } from "@/services/documentsService"
-import { handleError } from "@/utils"
+import { handleError, unwrapResponse } from "@/utils"
 
-const categoryFormSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100, "Maximum 100 characters"),
-})
+import {
+	createDocumentCategorySchema,
+	editDocumentCategorySchema,
+	type CreateDocumentCategoryFormData,
+	type EditDocumentCategoryFormData
+} from '@/schemas/document'
 
-type CategoryFormData = z.infer<typeof categoryFormSchema>
+type CategoryFormData = CreateDocumentCategoryFormData
+type EditCategoryFormData = EditDocumentCategoryFormData
 
 interface EditCategoryDialogProps {
   category: DocumentCategoryPublic
@@ -47,18 +50,21 @@ function EditCategoryDialog({ category, isOpen, onOpenChange }: EditCategoryDial
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
-  const form = useForm<CategoryFormData>({
-    resolver: zodResolver(categoryFormSchema),
+  const form = useForm<EditCategoryFormData>({
+    resolver: zodResolver(editDocumentCategorySchema),
     defaultValues: {
       name: category.name,
     },
   })
 
   const mutation = useMutation({
-    mutationFn: async (data: CategoryFormData) => {
-      // TODO: Replace with DocumentsService.documentsUpdateCategory when available in client
-      return LegacyDocumentsService.updateCategory(category.id, data.name)
-    },
+    mutationFn: (data: CategoryFormData) =>
+      unwrapResponse<DocumentCategoryPublic>(
+        DocumentsService.documentsUpdateCategory({
+          path: { category_id: category.id },
+          body: { name: data.name },
+        })
+      ),
     onSuccess: () => {
       showSuccessToast("Категория обновлена")
       queryClient.invalidateQueries({ queryKey: ["document-categories"] })
@@ -132,22 +138,19 @@ function AddCategoryDialog({ isOpen, onOpenChange }: AddCategoryDialogProps) {
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const form = useForm<CategoryFormData>({
-    resolver: zodResolver(categoryFormSchema),
+    resolver: zodResolver(createDocumentCategorySchema),
     defaultValues: {
       name: "",
     },
   })
 
   const mutation = useMutation({
-    mutationFn: async (data: CategoryFormData) => {
-      const response = await DocumentsService.documentsCreateCategory({
-        body: { name: data.name },
-      })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as DocumentCategoryPublic
-    },
+    mutationFn: (data: CategoryFormData) =>
+      unwrapResponse<DocumentCategoryPublic>(
+        DocumentsService.documentsCreateCategory({
+          body: { name: data.name },
+        })
+      ),
     onSuccess: () => {
       showSuccessToast("Категория создана")
       queryClient.invalidateQueries({ queryKey: ["document-categories"] })
@@ -234,12 +237,11 @@ function DeleteCategoryButton({ category }: DeleteCategoryButtonProps) {
         isOpen={isOpen}
         onOpenChange={setIsOpen}
         onConfirm={async () => {
-          const response = await DocumentsService.documentsDeleteCategory({
-            path: { category_id: category.id },
-          })
-          if ('error' in response && response.error) {
-            throw response
-          }
+          await unwrapResponse<Message>(
+            DocumentsService.documentsDeleteCategory({
+              path: { category_id: category.id },
+            })
+          )
         }}
         title="Удалить категорию?"
         description={
@@ -264,13 +266,9 @@ export function ManageCategoriesDialog() {
 
   const { data: categories = { data: [], count: 0 }, isLoading } = useQuery({
     queryKey: ["document-categories"],
-    queryFn: async () => {
-      const response = await DocumentsService.documentsReadCategories()
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data as { data: DocumentCategoryPublic[]; count: number }
-    },
+    queryFn: () => unwrapResponse<{ data: DocumentCategoryPublic[]; count: number }>(
+      DocumentsService.documentsReadCategories()
+    ),
     enabled: isOpen,
   })
   const hasScroll = categories.data.length > 7
@@ -306,7 +304,7 @@ export function ManageCategoriesDialog() {
               </div>
             ) : (
               <div
-                className={`border rounded-lg ${hasScroll ? "max-h-96 overflow-y-auto" : ""}`}
+                className={cn("border rounded-lg", hasScroll && "max-h-96 overflow-y-auto")}
               >
                 <div className="divide-y">
                   {categories.data.map((category) => (

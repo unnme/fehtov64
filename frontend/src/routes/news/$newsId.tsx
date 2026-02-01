@@ -5,12 +5,12 @@ import { ru } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import type { NewsImagePublic, NewsPublic } from '../../client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { getImageFileUrl } from '@/utils/fileUrls'
+import type { NewsImagePublic, NewsPublic } from '../../client'
 
 export const Route = createFileRoute('/news/$newsId')({
 	component: NewsDetails,
@@ -24,7 +24,9 @@ export const Route = createFileRoute('/news/$newsId')({
 })
 
 async function fetchPublicNewsItem(newsId: string): Promise<NewsPublic> {
-	const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/news/public/${newsId}`)
+	const response = await fetch(
+		`${import.meta.env.VITE_API_URL}/api/v1/news/public/${newsId}`
+	)
 	if (!response.ok) {
 		throw new Error('Failed to fetch news item')
 	}
@@ -100,9 +102,67 @@ function NewsDetails() {
 							)}
 						</div>
 
-						<p className="text-muted-foreground whitespace-pre-wrap">
-							{data.content}
-						</p>
+						{data.content ? (
+							<div className="space-y-4">
+								<div
+									className="prose prose-sm sm:prose-base lg:prose-lg max-w-none prose-headings:font-semibold prose-p:text-foreground prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-a:text-primary prose-a:underline prose-img:rounded-md prose-img:my-4 news-content"
+									dangerouslySetInnerHTML={{ __html: data.content }}
+								/>
+								<style>{`
+									.news-content table {
+										border-collapse: collapse;
+										margin: 1em 0;
+										overflow: visible;
+										table-layout: fixed;
+										width: 100%;
+										border: 2px solid #e5e7eb;
+										background-color: hsl(var(--background));
+									}
+									.news-content table td,
+									.news-content table th {
+										min-width: 1em;
+										border: 1px solid #e5e7eb;
+										padding: 8px 12px;
+										vertical-align: top;
+										box-sizing: border-box;
+										position: relative;
+										background-color: hsl(var(--background));
+									}
+									.news-content table th {
+										font-weight: 600;
+										background-color: hsl(var(--muted));
+										text-align: left;
+										color: hsl(var(--foreground));
+										border: 1px solid #e5e7eb;
+									}
+									.news-content table td {
+										color: hsl(var(--foreground));
+										border: 1px solid #e5e7eb;
+									}
+									.news-content table tbody tr {
+										border-top: 1px solid #e5e7eb;
+									}
+									.news-content table thead tr {
+										border-bottom: 2px solid #e5e7eb;
+									}
+									.dark .news-content table {
+										border-color: #4b5563;
+									}
+									.dark .news-content table td,
+									.dark .news-content table th {
+										border-color: #4b5563;
+									}
+									.dark .news-content table tbody tr {
+										border-color: #4b5563;
+									}
+									.dark .news-content table thead tr {
+										border-color: #4b5563;
+									}
+								`}</style>
+							</div>
+						) : (
+							<p className="text-muted-foreground">Нет содержимого</p>
+						)}
 
 						<div className="space-y-3">
 							{images.length === 0 ? (

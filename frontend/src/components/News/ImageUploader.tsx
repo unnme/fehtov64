@@ -216,7 +216,7 @@ export function ImageUploader({
 		}
 
 		// Sort images by order to correctly determine indices
-		const sortedImages = [...images].sort((a, b) => a.order - b.order)
+		const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
 		const oldIndex = sortedImages.findIndex(img => img.id === active.id)
 		const newIndex = sortedImages.findIndex(img => img.id === over.id)
@@ -232,7 +232,7 @@ export function ImageUploader({
 		}
 	}
 
-	const sortedImages = [...images].sort((a, b) => a.order - b.order)
+	const sortedImages = [...images].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
 	return (
 		<div

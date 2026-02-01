@@ -11,16 +11,16 @@ export type UserTableData = UserPublic & {
 
 export const columns: ColumnDef<UserTableData>[] = [
 	{
-		accessorKey: 'full_name',
-		header: 'ФИО',
+		accessorKey: 'nickname',
+		header: 'Псевдоним',
 		cell: ({ row }) => {
-			const fullName = row.original.full_name
+			const nickname = row.original.nickname
 			return (
 				<div className="flex items-center gap-2">
 					<span
-						className={cn('font-medium', !fullName && 'text-muted-foreground')}
+						className={cn('font-medium', !nickname && 'text-muted-foreground')}
 					>
-						{fullName || 'Не указано'}
+						{nickname || 'Не указано'}
 					</span>
 					{row.original.isCurrentUser && (
 						<Badge

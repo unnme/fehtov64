@@ -51,13 +51,13 @@ class EmailService:
     ) -> None:
         """Send email."""
         import logging
-        
+
         logger = logging.getLogger(__name__)
-        
+
         if not settings.emails_enabled:
             logger.warning("Email sending is disabled (emails_enabled=False)")
             return
-            
+
         if not self.fastmail:
             logger.warning("FastMail is not initialized")
             return
@@ -113,7 +113,7 @@ class EmailService:
     def send_new_account_email_sync(self, *, email_to: str, username: str) -> None:
         """Send new account email (synchronous wrapper for BackgroundTasks)."""
         import asyncio
-        
+
         # Create new event loop for background task
         try:
             loop = asyncio.new_event_loop()
@@ -148,10 +148,10 @@ class EmailService:
         """Send email verification code (synchronous wrapper for BackgroundTasks)."""
         import asyncio
         import logging
-        
+
         logger = logging.getLogger(__name__)
         logger.info(f"Attempting to send verification code email to {email_to}")
-        
+
         # Create new event loop for background task
         try:
             loop = asyncio.new_event_loop()

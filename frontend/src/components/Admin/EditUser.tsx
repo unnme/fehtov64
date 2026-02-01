@@ -1,25 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
 import { Pencil } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
 
-import { type UserPublic, UsersService } from "@/client"
-import { Button } from "@/components/ui/button"
+import { type UserPublic, type UserUpdate, UsersService } from "@/client"
+import { unwrapResponse } from "@/utils"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -27,24 +13,14 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { LoadingButton } from "@/components/ui/loading-button"
+import { useDialogForm } from "@/hooks/useDialogForm"
+import { useFormMutation } from "@/hooks/useFormMutation"
 import useAuth from "@/hooks/useAuth"
-import useCustomToast from "@/hooks/useCustomToast"
-import { handleError } from "@/utils"
+import { FORM_DEFAULT_OPTIONS } from "@/constants/form"
+import { editUserSchema, type EditUserFormData } from "@/schemas/user"
+import { FormDialog } from "@/components/Common"
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  full_name: z.string().min(1, { message: "Full name is required" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" })
-    .optional()
-    .or(z.literal("")),
-  is_active: z.boolean().optional(),
-  is_superuser: z.boolean().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
+type FormData = EditUserFormData
 
 interface EditUserProps {
   user: UserPublic
@@ -52,28 +28,24 @@ interface EditUserProps {
 }
 
 const EditUser = ({ user, onSuccess }: EditUserProps) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const { showSuccessToast, showErrorToast } = useCustomToast()
   const { user: currentUser } = useAuth()
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    mode: "onBlur",
-    criteriaMode: "all",
-    defaultValues: {
-      email: user.email,
-      full_name: user.full_name || "",
-      is_active: user.is_active,
-      is_superuser: user.is_superuser,
-    },
-  })
+  const defaultValues: FormData = {
+    email: user.email,
+    nickname: user.nickname || "",
+    password: "",
+    is_active: user.is_active,
+    is_superuser: user.is_superuser,
+  }
 
-  const mutation = useMutation({
+  const { form, handleSubmit, isPending, mutation } = useFormMutation({
+    schema: editUserSchema,
+    formOptions: FORM_DEFAULT_OPTIONS,
+    defaultValues,
     mutationFn: async (data: FormData) => {
-      const requestBody: any = {}
+      const requestBody: UserUpdate = {}
       if (data.email) requestBody.email = data.email
-      if (data.full_name) requestBody.full_name = data.full_name
+      if (data.nickname) requestBody.nickname = data.nickname
       if (data.password && data.password !== "") {
         requestBody.password = data.password
       }
@@ -81,153 +53,157 @@ const EditUser = ({ user, onSuccess }: EditUserProps) => {
       if (data.is_superuser !== undefined && currentUser?.is_superuser) {
         requestBody.is_superuser = data.is_superuser
       }
-      const response = await UsersService.usersUpdateUser({ path: { user_id: user.id }, body: requestBody })
-      if ('error' in response && response.error) {
-        throw response
-      }
-      return (response as any).data
+      return unwrapResponse<UserPublic>(
+        UsersService.usersUpdateUser({
+          path: { user_id: user.id },
+          body: requestBody
+        })
+      )
     },
+    successMessage: "Пользователь успешно обновлен",
+    invalidateKeys: ["users"],
     onSuccess: () => {
-      showSuccessToast("Пользователь успешно обновлен")
-      setIsOpen(false)
       onSuccess()
-    },
-    onError: handleError.bind(showErrorToast),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] })
     },
   })
 
-  const onSubmit = (data: FormData) => {
-    mutation.mutate(data)
-  }
+  const dialog = useDialogForm({
+    form,
+    defaultValues,
+  })
+
+  // Update form when user changes
+  useEffect(() => {
+    if (dialog.isOpen) {
+      form.reset({
+        email: user.email,
+        nickname: user.nickname || "",
+        password: "",
+        is_active: user.is_active,
+        is_superuser: user.is_superuser,
+      })
+    }
+  }, [user, dialog.isOpen, form])
+
+  // Close dialog when mutation succeeds
+  useEffect(() => {
+    if (mutation.isSuccess && dialog.isOpen) {
+      dialog.closeDialog()
+    }
+  }, [mutation.isSuccess, dialog.isOpen, dialog])
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuItem
-        onSelect={(e) => e.preventDefault()}
-        onClick={() => setIsOpen(true)}
-      >
-        <Pencil />
-        Редактировать пользователя
-      </DropdownMenuItem>
-      <DialogContent className="sm:max-w-md">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader>
-              <DialogTitle>Редактировать пользователя</DialogTitle>
-              <DialogDescription>
-                Обновите данные пользователя ниже.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Email <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Email"
-                        type="email"
-                        {...field}
-                        required
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <FormDialog
+      isOpen={dialog.isOpen}
+      onOpenChange={dialog.setIsOpen}
+      title="Редактировать пользователя"
+      description="Обновите данные пользователя ниже."
+      form={form}
+      onSubmit={handleSubmit}
+      isPending={isPending}
+      maxWidth="md"
+      trigger={
+        <DropdownMenuItem
+          onSelect={(e) => e.preventDefault()}
+          onClick={() => dialog.openDialog()}
+        >
+          <Pencil />
+          Редактировать пользователя
+        </DropdownMenuItem>
+      }
+    >
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              Email <span className="text-destructive">*</span>
+            </FormLabel>
+            <FormControl>
+              <Input
+                placeholder="Email"
+                type="email"
+                {...field}
+                required
               />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-              <FormField
-                control={form.control}
-                name="full_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Полное имя <span className="text-destructive">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="Full name" type="text" {...field} required />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+      <FormField
+        control={form.control}
+        name="nickname"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>
+              Псевдоним <span className="text-destructive">*</span>
+            </FormLabel>
+            <FormControl>
+              <Input placeholder="Псевдоним" type="text" {...field} required />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="password"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Установить пароль</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="Оставьте пустым, чтобы сохранить текущий пароль"
+                type="password"
+                {...field}
               />
+            </FormControl>
+            <FormMessage />
+            <p className="text-xs text-muted-foreground">
+              Оставьте пустым, чтобы сохранить текущий пароль. Минимум 8 символов, если указан.
+            </p>
+          </FormItem>
+        )}
+      />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Установить пароль</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Оставьте пустым, чтобы сохранить текущий пароль"
-                        type="password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      Оставьте пустым, чтобы сохранить текущий пароль. Минимум 8 символов, если указан.
-                    </p>
-                  </FormItem>
-                )}
+      <FormField
+        control={form.control}
+        name="is_active"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-3 space-y-0">
+            <FormControl>
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
               />
+            </FormControl>
+            <FormLabel className="font-normal">Is active</FormLabel>
+          </FormItem>
+        )}
+      />
 
-              <FormField
-                control={form.control}
-                name="is_active"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormLabel className="font-normal">Is active</FormLabel>
-                  </FormItem>
-                )}
-              />
-
-              {currentUser?.is_superuser && (
-                <FormField
-                  control={form.control}
-                  name="is_superuser"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">Is superuser</FormLabel>
-                    </FormItem>
-                  )}
+      {currentUser?.is_superuser && (
+        <FormField
+          control={form.control}
+          name="is_superuser"
+          render={({ field }) => (
+            <FormItem className="flex items-center gap-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
-              )}
-            </div>
-
-            <DialogFooter>
-              <DialogClose asChild>
-                  <Button variant="outline" disabled={mutation.isPending}>
-                    Отмена
-                  </Button>
-                </DialogClose>
-                <LoadingButton type="submit" loading={mutation.isPending}>
-                  Сохранить
-                </LoadingButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              </FormControl>
+              <FormLabel className="font-normal">Is superuser</FormLabel>
+            </FormItem>
+          )}
+        />
+      )}
+    </FormDialog>
   )
 }
 

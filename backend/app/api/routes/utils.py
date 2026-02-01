@@ -15,7 +15,7 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 async def health_check() -> bool:
     """
     Health check endpoint.
-    
+
     Returns:
         True if service is healthy
     """
@@ -30,19 +30,19 @@ async def health_check() -> bool:
 def get_blocked_ips() -> Any:
     """
     Get list of blocked IP addresses.
-    
+
     Only accessible by superusers.
-    
+
     Returns:
         List of blocked IPs with their information
     """
     middleware = get_ip_blocking_middleware()
     if not middleware:
         return BlockedIPsList(blocked_ips=[], count=0)
-    
+
     blocked_ips_dict = middleware.get_blocked_ips()
     now = time()
-    
+
     blocked_ips_list = [
         BlockedIPInfo(
             ip=block_info.ip,
@@ -55,9 +55,9 @@ def get_blocked_ips() -> Any:
             user_agent=block_info.user_agent,
             attempted_emails=block_info.attempted_emails,
         )
-        for ip, block_info in blocked_ips_dict.items()
+        for _, block_info in blocked_ips_dict.items()
     ]
-    
+
     return BlockedIPsList(blocked_ips=blocked_ips_list, count=len(blocked_ips_list))
 
 
@@ -69,22 +69,22 @@ def get_blocked_ips() -> Any:
 def unblock_ip(ip_address: str) -> Any:
     """
     Unblock IP address.
-    
+
     Only accessible by superusers.
-    
+
     Args:
         ip_address: IP address to unblock
-        
+
     Returns:
         Success message
-        
+
     Raises:
         HTTPException: If middleware is not available or IP is not blocked
     """
     middleware = get_ip_blocking_middleware()
     if not middleware:
         raise HTTPException(status_code=500, detail="IP blocking middleware not available")
-    
+
     if middleware.unblock_ip(ip_address):
         return Message(message=f"IP address {ip_address} has been unblocked")
     else:

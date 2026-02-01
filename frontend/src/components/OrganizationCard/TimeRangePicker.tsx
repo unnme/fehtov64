@@ -69,7 +69,7 @@ export const TimeRangePicker = ({ value, onChange, disabled }: TimeRangePickerPr
 					onValueChange={(hour) => handleStartTimeChange(hour, startMinute)}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-[60px]! sm:w-[70px]! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
+					<SelectTrigger className="w-15! sm:w-18! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -86,7 +86,7 @@ export const TimeRangePicker = ({ value, onChange, disabled }: TimeRangePickerPr
 					onValueChange={(minute) => handleStartTimeChange(startHour, minute)}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-[60px]! sm:w-[70px]! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
+					<SelectTrigger className="w-15! sm:w-18! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -105,7 +105,7 @@ export const TimeRangePicker = ({ value, onChange, disabled }: TimeRangePickerPr
 					onValueChange={(hour) => handleEndTimeChange(hour, endMinute)}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-[60px]! sm:w-[70px]! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
+					<SelectTrigger className="w-15! sm:w-18! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
@@ -122,7 +122,7 @@ export const TimeRangePicker = ({ value, onChange, disabled }: TimeRangePickerPr
 					onValueChange={(minute) => handleEndTimeChange(endHour, minute)}
 					disabled={disabled}
 				>
-					<SelectTrigger className="w-[60px]! sm:w-[70px]! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
+					<SelectTrigger className="w-15! sm:w-18! h-8 sm:h-9 [&_*[data-slot=select-value]]:line-clamp-none! [&_*[data-slot=select-value]]:whitespace-nowrap text-xs sm:text-sm">
 						<SelectValue />
 					</SelectTrigger>
 					<SelectContent>
