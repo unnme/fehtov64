@@ -1,15 +1,34 @@
 import { AxiosError } from "axios"
 
+import { errorMessages } from "@/constants/errorMessages"
+
 interface ApiErrorDetail {
   msg?: string
+  code?: string
+  message?: string
   [key: string]: unknown
 }
 
+interface StructuredErrorDetail {
+  code: string
+  message: string
+}
+
 interface ApiErrorData {
-  detail?: string | ApiErrorDetail[]
+  detail?: string | ApiErrorDetail[] | StructuredErrorDetail
   error?: { detail?: string }
   message?: string
   response?: { data?: { detail?: string } }
+}
+
+/**
+ * Get Russian translation for error code, or return original message
+ */
+function getLocalizedMessage(code: string | undefined, fallbackMessage: string): string {
+  if (code && errorMessages[code]) {
+    return errorMessages[code]
+  }
+  return fallbackMessage
 }
 
 /**
@@ -19,8 +38,18 @@ function extractErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
     const errorData = err.response?.data as ApiErrorData | undefined
     if (errorData?.detail) {
+      // Check for structured error format: { code: string, message: string }
+      if (typeof errorData.detail === 'object' && !Array.isArray(errorData.detail)) {
+        const structured = errorData.detail as StructuredErrorDetail
+        if (structured.code) {
+          return getLocalizedMessage(structured.code, structured.message || "Что-то пошло не так.")
+        }
+      }
       if (Array.isArray(errorData.detail) && errorData.detail.length > 0) {
         const first = errorData.detail[0]
+        if (typeof first === 'object' && first.code) {
+          return getLocalizedMessage(first.code, first.message || first.msg || String(first))
+        }
         return typeof first === 'string' ? first : (first.msg || String(first))
       }
       return String(errorData.detail)
@@ -32,8 +61,18 @@ function extractErrorMessage(err: unknown): string {
     const errObj = err as ApiErrorData
     const detail = errObj?.error?.detail ?? errObj?.detail ?? errObj?.response?.data?.detail
     if (detail) {
+      // Check for structured error format
+      if (typeof detail === 'object' && !Array.isArray(detail)) {
+        const structured = detail as StructuredErrorDetail
+        if (structured.code) {
+          return getLocalizedMessage(structured.code, structured.message || "Что-то пошло не так.")
+        }
+      }
       if (Array.isArray(detail) && detail.length > 0) {
         const first = detail[0]
+        if (typeof first === 'object' && first.code) {
+          return getLocalizedMessage(first.code, first.message || first.msg || String(first))
+        }
         return typeof first === 'string' ? first : (first.msg || String(first))
       }
       return String(detail)

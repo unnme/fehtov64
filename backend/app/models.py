@@ -30,6 +30,8 @@ class Position(SQLModel, table=True):
     """Position model for staff."""
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(unique=True, index=True, max_length=255)
+    is_management: bool = Field(default=False)
+    is_director: bool = Field(default=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     persons: list["Person"] = Relationship(back_populates="position")
 
@@ -156,6 +158,7 @@ class OrganizationCard(SQLModel, table=True):
     email: str | None = Field(default=None, max_length=255)
     address: str | None = Field(default=None, max_length=500)
     work_hours: str | None = Field(default=None, max_length=500)
+    director_hours: str | None = Field(default=None, max_length=500)
     vk_url: str | None = Field(default=None, max_length=500)
     telegram_url: str | None = Field(default=None, max_length=500)
     whatsapp_url: str | None = Field(default=None, max_length=500)

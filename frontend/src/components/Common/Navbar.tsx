@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 
 const navigationItems = [
 	{ href: '/', label: 'Главная', id: 'nav-home' },
-	{ href: '/about', label: 'О нас', id: 'nav-about' },
+	{ href: '/about', label: 'Сведения', id: 'nav-about' },
 	{
 		href: '/docs',
 		label: 'Документация',

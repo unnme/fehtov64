@@ -1,21 +1,25 @@
 from datetime import timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request as StarletteRequest
 
 from app.api.deps import SessionDep
-from app.core import security
 from app.core.config import settings
-from app.core.decorators import prevent_timing_attacks
-from app.core.ip_blocking import get_ip_blocking_middleware
-from app.core.jwt import (
+from app.core.errors import BadRequestError, ErrorCode, ForbiddenError, NotFoundError
+from app.core.security import (
+    AUTH_RATE_LIMIT,
+    LOGIN_RATE_LIMIT,
+    create_access_token,
     generate_password_reset_token,
+    get_client_ip,
+    get_ip_blocking_middleware,
+    get_password_hash,
+    limiter,
+    prevent_timing_attacks,
     verify_password_reset_token,
 )
-from app.core.rate_limit import AUTH_RATE_LIMIT, LOGIN_RATE_LIMIT, limiter
-from app.core.security import get_password_hash
 from app.repositories.user_repository import authenticate, get_user_by_email
 from app.schemas import Message, NewPassword, Token
 from app.services.email_service import email_service
@@ -37,12 +41,8 @@ def login_access_token(
     """
     # Get middleware for IP blocking
     middleware = get_ip_blocking_middleware()
-    client_ip = None
-    user_agent = None
-
-    if middleware:
-        client_ip = middleware._get_client_ip(request)
-        user_agent = request.headers.get("User-Agent")
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
 
     # Authenticate user
     db_user = authenticate(
@@ -55,7 +55,7 @@ def login_access_token(
             middleware._record_failed_attempt(
                 client_ip, user_agent, form_data.username
             )
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise BadRequestError(ErrorCode.AUTH_INVALID_CREDENTIALS, "Incorrect email or password")
 
     # If password correct but user inactive - specific message
     if not db_user.is_active:
@@ -63,15 +63,12 @@ def login_access_token(
             middleware._record_failed_attempt(
                 client_ip, user_agent, form_data.username
             )
-        raise HTTPException(
-            status_code=403,
-            detail="Your account is inactive. Please contact an administrator to activate your account.",
-        )
+        raise ForbiddenError(ErrorCode.AUTH_INACTIVE_USER, "Your account is inactive")
 
     # All checks passed - generate access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
-        access_token=security.create_access_token(
+        access_token=create_access_token(
             db_user.id, expires_delta=access_token_expires
         )
     )
@@ -113,15 +110,12 @@ def reset_password(
     """
     email = verify_password_reset_token(token=body.token)
     if not email:
-        raise HTTPException(status_code=400, detail="Invalid token")
+        raise BadRequestError(ErrorCode.AUTH_INVALID_TOKEN, "Invalid token")
     user = get_user_by_email(session=session, email=email)
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this email does not exist in the system.",
-        )
+        raise NotFoundError(ErrorCode.AUTH_USER_NOT_FOUND, "User not found")
     elif not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise BadRequestError(ErrorCode.AUTH_INACTIVE_USER, "User is inactive")
     hashed_password = get_password_hash(password=body.new_password)
     user.hashed_password = hashed_password
     session.add(user)

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { Image as ImageIcon } from "lucide-react"
+import { Crown, Image as ImageIcon, Users } from "lucide-react"
 
 import type { PersonPublic } from "@/client"
 
@@ -51,11 +51,26 @@ function getBaseColumns(): ColumnDef<PersonPublic>[] {
     {
       accessorKey: "position",
       header: "Должность",
-      cell: ({ row }) => (
-        <Badge variant="secondary">
-          {row.original.position?.name || DEFAULT_POSITION_NAME}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const position = row.original.position
+        return (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">
+              {position?.name || DEFAULT_POSITION_NAME}
+            </Badge>
+            {position?.is_management && (
+              <span title="Руководящая должность">
+                <Users className="h-4 w-4 text-blue-500" />
+              </span>
+            )}
+            {position?.is_director && (
+              <span title="Руководитель организации">
+                <Crown className="h-4 w-4 text-amber-500" />
+              </span>
+            )}
+          </div>
+        )
+      },
     },
     {
       accessorKey: "phone",

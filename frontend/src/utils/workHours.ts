@@ -46,8 +46,9 @@ export const getDayLabel = (day: DayOfWeek, short = false): string => {
 /**
  * Converts WorkHours object to string for server submission.
  * Format: "Пн-Пт: 09:00-18:00; Сб: 10:00-16:00; Вс: выходной"
+ * @param includeWeekends - whether to include weekend days in output (default: true)
  */
-export const workHoursToString = (workHours: WorkHours): string => {
+export const workHoursToString = (workHours: WorkHours, includeWeekends = true): string => {
 	if (!workHours.days || workHours.days.length === 0) {
 		return ''
 	}
@@ -87,17 +88,19 @@ export const workHoursToString = (workHours: WorkHours): string => {
 		}
 	}
 
-	const workingDays = new Set(sortedDays.map(d => d.day))
-	const allDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-	const weekends = allDays.filter(day => !workingDays.has(day))
-	
-	if (weekends.length > 0) {
-		if (weekends.length === 1) {
-			parts.push(`${getDayLabel(weekends[0], true)}: выходной`)
-		} else if (weekends.length === 2 && weekends[0] === 'saturday' && weekends[1] === 'sunday') {
-			parts.push('Сб-Вс: выходной')
-		} else {
-			parts.push(`${getDayLabel(weekends[0], true)}-${getDayLabel(weekends[weekends.length - 1], true)}: выходной`)
+	if (includeWeekends) {
+		const workingDays = new Set(sortedDays.map(d => d.day))
+		const allDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+		const weekends = allDays.filter(day => !workingDays.has(day))
+
+		if (weekends.length > 0) {
+			if (weekends.length === 1) {
+				parts.push(`${getDayLabel(weekends[0], true)}: выходной`)
+			} else if (weekends.length === 2 && weekends[0] === 'saturday' && weekends[1] === 'sunday') {
+				parts.push('Сб-Вс: выходной')
+			} else {
+				parts.push(`${getDayLabel(weekends[0], true)}-${getDayLabel(weekends[weekends.length - 1], true)}: выходной`)
+			}
 		}
 	}
 
@@ -168,8 +171,9 @@ export const stringToWorkHours = (str: string): WorkHours => {
 /**
  * Formats work hours for preview in a single line.
  * Format: "Пн-Пт 19:20-20:00, Сб-Вс Выходной" or "Пн-Пт 19:20-20:00, Сб 10:10-20:20, Вс Выходной"
+ * @param includeWeekends - whether to include weekend days in output (default: true)
  */
-export const formatWorkHoursPreview = (workHours: WorkHours): string => {
+export const formatWorkHoursPreview = (workHours: WorkHours, includeWeekends = true): string => {
 	if (!workHours.days || workHours.days.length === 0) {
 		return ''
 	}
@@ -179,14 +183,10 @@ export const formatWorkHoursPreview = (workHours: WorkHours): string => {
 		return order.indexOf(a.day) - order.indexOf(b.day)
 	})
 
-	const workingDays = new Set(sortedDays.map(d => d.day))
-	const allDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-	const weekends = allDays.filter(day => !workingDays.has(day))
-
 	const parts: string[] = []
-	
+
 	const groups: Array<{ days: DayOfWeek[], timeRange: string }> = []
-	
+
 	for (const dayData of sortedDays) {
 		let foundGroup = false
 		for (const group of groups) {
@@ -215,29 +215,35 @@ export const formatWorkHoursPreview = (workHours: WorkHours): string => {
 		}
 	}
 
-	if (weekends.length > 0) {
-		const weekendGroups: DayOfWeek[][] = []
-		let currentGroup: DayOfWeek[] = [weekends[0]]
-		
-		for (let i = 1; i < weekends.length; i++) {
-			const prevIndex = order.indexOf(weekends[i - 1])
-			const currentIndex = order.indexOf(weekends[i])
-			if (currentIndex === prevIndex + 1) {
-				currentGroup.push(weekends[i])
-			} else {
-				weekendGroups.push(currentGroup)
-				currentGroup = [weekends[i]]
-			}
-		}
-		weekendGroups.push(currentGroup)
+	if (includeWeekends) {
+		const workingDays = new Set(sortedDays.map(d => d.day))
+		const allDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+		const weekends = allDays.filter(day => !workingDays.has(day))
 
-		for (const group of weekendGroups) {
-			if (group.length === 1) {
-				parts.push(`${getDayLabel(group[0], true)} Выходной`)
-			} else {
-				const startLabel = getDayLabel(group[0], true)
-				const endLabel = getDayLabel(group[group.length - 1], true)
-				parts.push(`${startLabel}-${endLabel} Выходной`)
+		if (weekends.length > 0) {
+			const weekendGroups: DayOfWeek[][] = []
+			let currentGroup: DayOfWeek[] = [weekends[0]]
+
+			for (let i = 1; i < weekends.length; i++) {
+				const prevIndex = order.indexOf(weekends[i - 1])
+				const currentIndex = order.indexOf(weekends[i])
+				if (currentIndex === prevIndex + 1) {
+					currentGroup.push(weekends[i])
+				} else {
+					weekendGroups.push(currentGroup)
+					currentGroup = [weekends[i]]
+				}
+			}
+			weekendGroups.push(currentGroup)
+
+			for (const group of weekendGroups) {
+				if (group.length === 1) {
+					parts.push(`${getDayLabel(group[0], true)} Выходной`)
+				} else {
+					const startLabel = getDayLabel(group[0], true)
+					const endLabel = getDayLabel(group[group.length - 1], true)
+					parts.push(`${startLabel}-${endLabel} Выходной`)
+				}
 			}
 		}
 	}

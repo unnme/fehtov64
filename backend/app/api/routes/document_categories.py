@@ -1,11 +1,13 @@
 """Document category routes."""
+
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.errors import ConflictError, ErrorCode, ForbiddenError, NotFoundError
 from app.models import Document, DocumentCategory
 from app.schemas import (
     DocumentCategoriesPublic,
@@ -40,9 +42,7 @@ def read_categories(
 
     return DocumentCategoriesPublic(
         data=[
-            DocumentCategoryPublic(
-                id=c.id, name=c.name, created_at=c.created_at
-            )
+            DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at)
             for c in categories
         ],
         count=count,
@@ -69,9 +69,7 @@ def read_public_categories(
 
     return DocumentCategoriesPublic(
         data=[
-            DocumentCategoryPublic(
-                id=c.id, name=c.name, created_at=c.created_at
-            )
+            DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at)
             for c in categories
         ],
         count=count,
@@ -89,10 +87,7 @@ def create_category(
         select(DocumentCategory).where(DocumentCategory.name == category_in.name)
     ).first()
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Category with name '{category_in.name}' already exists",
-        )
+        raise ConflictError(ErrorCode.CATEGORY_EXISTS, "Category already exists")
 
     category = DocumentCategory(name=category_in.name)
     session.add(category)
@@ -113,11 +108,11 @@ def update_category(
 ) -> Any:
     """Update a document category."""
     if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.CATEGORY_FORBIDDEN, "Not enough permissions")
 
     category = session.get(DocumentCategory, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+        raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
 
     if category_in.name is not None:
         existing = session.exec(
@@ -127,10 +122,7 @@ def update_category(
             )
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Category with name '{category_in.name}' already exists",
-            )
+            raise ConflictError(ErrorCode.CATEGORY_EXISTS, "Category already exists")
         category.name = category_in.name
 
     session.add(category)
@@ -150,11 +142,11 @@ def delete_category(
 ) -> Any:
     """Delete a document category. Sets category_id to None for all associated documents."""
     if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.CATEGORY_FORBIDDEN, "Not enough permissions")
 
     category = session.get(DocumentCategory, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+        raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
 
     documents = session.exec(
         select(Document).where(Document.category_id == category_id)

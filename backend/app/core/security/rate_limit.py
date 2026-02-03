@@ -1,11 +1,18 @@
 """Rate limiting configuration using slowapi."""
+
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-
-__all__ = ["limiter", "_rate_limit_exceeded_handler", "RateLimitExceeded", "AUTH_RATE_LIMIT", "LOGIN_RATE_LIMIT"]
 from slowapi.util import get_remote_address
 
 from app.core.config import settings
+
+__all__ = [
+    "limiter",
+    "_rate_limit_exceeded_handler",
+    "RateLimitExceeded",
+    "AUTH_RATE_LIMIT",
+    "LOGIN_RATE_LIMIT",
+]
 
 # Initialize limiter
 limiter = Limiter(

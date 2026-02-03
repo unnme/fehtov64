@@ -1,16 +1,23 @@
-export { ContactField } from './ContactField'
-export { MapSection } from './MapSection'
-export { MessengersSection } from './MessengersSection'
-export { MaxIcon } from './MaxIcon'
-export { OrganizationEmailField } from './OrganizationEmailField'
-export { OrganizationNameField } from './OrganizationNameField'
-export { PhoneInputField } from './PhoneInputField'
-export { PhoneNumberInput } from './PhoneNumberInput'
-export { PhonesSection } from './PhonesSection'
-export { SocialLinks } from './SocialLinks'
-export { TelegramIcon } from './TelegramIcon'
-export { TimeRangePicker } from './TimeRangePicker'
-export { VkIcon } from './VkIcon'
-export { WhatsAppIcon } from './WhatsAppIcon'
-export { WorkHoursDialog } from './WorkHoursDialog'
-export { WorkHoursEditor } from './WorkHoursEditor'
+// Fields
+export { ContactField } from './fields/ContactField'
+export { OrganizationEmailField } from './fields/OrganizationEmailField'
+export { OrganizationNameField } from './fields/OrganizationNameField'
+export { PhoneInputField } from './fields/PhoneInputField'
+export { PhoneNumberInput } from './fields/PhoneNumberInput'
+
+// Icons
+export { MaxIcon } from './icons/MaxIcon'
+export { TelegramIcon } from './icons/TelegramIcon'
+export { VkIcon } from './icons/VkIcon'
+export { WhatsAppIcon } from './icons/WhatsAppIcon'
+
+// Sections
+export { MapSection } from './sections/MapSection'
+export { MessengersSection } from './sections/MessengersSection'
+export { PhonesSection } from './sections/PhonesSection'
+export { SocialLinks } from './sections/SocialLinks'
+
+// Work Hours
+export { TimeRangePicker } from './work-hours/TimeRangePicker'
+export { WorkHoursDialog } from './work-hours/WorkHoursDialog'
+export { WorkHoursEditor } from './work-hours/WorkHoursEditor'

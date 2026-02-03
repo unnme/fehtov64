@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.db import engine
+from app.core.errors import BadRequestError, ErrorCode, ForbiddenError, NotFoundError
 from app.models import News, NewsImage
 from app.schemas import Message, NewsImageList, NewsImagePublic
 from app.services.image_service import image_service
@@ -27,10 +28,10 @@ async def upload_image(
     """Upload an image for a news item."""
     news = session.get(News, news_id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     statement = select(NewsImage).where(NewsImage.news_id == news_id)
     existing_images = session.exec(statement).all()
@@ -73,7 +74,7 @@ def get_images(
     """Get all images for a news item."""
     news = session.get(News, news_id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     statement = (
         select(NewsImage)
@@ -98,11 +99,11 @@ def get_image_file(
     with Session(engine) as session:
         news = session.get(News, news_id)
         if not news:
-            raise HTTPException(status_code=404, detail="News not found")
+            raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
         image = session.get(NewsImage, image_id)
         if not image or image.news_id != news_id:
-            raise HTTPException(status_code=404, detail="Image not found")
+            raise NotFoundError(ErrorCode.NEWS_IMAGE_NOT_FOUND, "Image not found")
 
         upload_dir = image_service.UPLOAD_DIR
         file_path = upload_dir / image.file_path
@@ -153,14 +154,14 @@ def delete_image(
     """Delete an image."""
     news = session.get(News, news_id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     image = session.get(NewsImage, image_id)
     if not image or image.news_id != news_id:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.NEWS_IMAGE_NOT_FOUND, "Image not found")
 
     file_path = image_service.UPLOAD_DIR / image.file_path
     if file_path.exists():
@@ -183,20 +184,20 @@ def reorder_image(
     """Change image order."""
     news = session.get(News, news_id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     image = session.get(NewsImage, image_id)
     if not image or image.news_id != news_id:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.NEWS_IMAGE_NOT_FOUND, "Image not found")
 
     statement = select(NewsImage).where(NewsImage.news_id == news_id)
     all_images = session.exec(statement).all()
 
     if new_order < 0 or new_order >= len(all_images):
-        raise HTTPException(status_code=400, detail="Invalid order")
+        raise BadRequestError(ErrorCode.NEWS_IMAGE_INVALID_ORDER, "Invalid order")
 
     old_order = image.order
     if new_order > old_order:
@@ -237,14 +238,14 @@ def set_main_image(
     """Set image as main (for preview)."""
     news = session.get(News, news_id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     image = session.get(NewsImage, image_id)
     if not image or image.news_id != news_id:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.NEWS_IMAGE_NOT_FOUND, "Image not found")
 
     statement = select(NewsImage).where(NewsImage.news_id == news_id)
     all_images = session.exec(statement).all()

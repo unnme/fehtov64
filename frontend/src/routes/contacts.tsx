@@ -5,14 +5,14 @@ import {
 	Clock,
 	Mail,
 	MapPin,
-	Phone
+	Phone,
+	UserRound
 } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 
 import { OrganizationCardService, type OrganizationCardPublic } from '@/client'
 import { Breadcrumbs, Navbar } from '@/components/Common'
-import { ContactField } from '@/components/OrganizationCard/ContactField'
-import { SocialLinks } from '@/components/OrganizationCard/SocialLinks'
+import { ContactField, SocialLinks } from '@/components/OrganizationCard'
 import { Button } from '@/components/ui/button'
 import {
 	Card,
@@ -154,6 +154,24 @@ function Contacts() {
 													<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
 														<div className="space-y-1">
 															{formatWorkHours(data.work_hours).map((item, index) => (
+																<div key={index} className="flex gap-2">
+																	<span>{item.days}:</span>
+																	<span className="text-muted-foreground">{item.time}</span>
+																</div>
+															))}
+														</div>
+													</div>
+												</ContactField>
+											)}
+
+											{data.director_hours && (
+												<ContactField
+													icon={<UserRound className="h-4 w-4 text-muted-foreground" />}
+													label="Часы приёма директора"
+												>
+													<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
+														<div className="space-y-1">
+															{formatWorkHours(data.director_hours).map((item, index) => (
 																<div key={index} className="flex gap-2">
 																	<span>{item.days}:</span>
 																	<span className="text-muted-foreground">{item.time}</span>

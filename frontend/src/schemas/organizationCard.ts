@@ -66,6 +66,22 @@ export const organizationCardSchema = z.object({
 			},
 			{ message: 'Время окончания должно быть больше времени начала' }
 		),
+	director_hours: workHoursSchema
+		.optional()
+		.refine(
+			(workHours) => {
+				if (!workHours || !workHours.days) return true
+				return workHours.days.every(day => {
+					const [start, end] = day.timeRange.split('-')
+					const [startHour, startMin] = start.split(':').map(Number)
+					const [endHour, endMin] = end.split(':').map(Number)
+					const startTotal = startHour * 60 + startMin
+					const endTotal = endHour * 60 + endMin
+					return endTotal > startTotal
+				})
+			},
+			{ message: 'Время окончания должно быть больше времени начала' }
+		),
 	vk_url: optionalLinkSchema,
 	telegram_url: optionalLinkSchema,
 	whatsapp_url: optionalLinkSchema,
@@ -77,7 +93,8 @@ export const organizationCardSchema = z.object({
 export type OrganizationCardFormData = z.infer<typeof organizationCardSchema>
 
 export const organizationCardSubmitSchema = organizationCardSchema.extend({
-	work_hours: z.string().default('')
+	work_hours: z.string().default(''),
+	director_hours: z.string().default('')
 })
 
 export type OrganizationCardSubmitData = z.infer<typeof organizationCardSubmitSchema>

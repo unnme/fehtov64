@@ -25,6 +25,7 @@ class OrganizationCardCreate(SQLModel):
     email: str | None = Field(default=None, max_length=255)
     address: str | None = Field(default=None, max_length=500)
     work_hours: str | None = Field(default=None, max_length=500)
+    director_hours: str | None = Field(default=None, max_length=500)
     vk_url: str | None = Field(default=None, max_length=500)
     telegram_url: str | None = Field(default=None, max_length=500)
     whatsapp_url: str | None = Field(default=None, max_length=500)
@@ -51,7 +52,7 @@ class OrganizationCardCreate(SQLModel):
             raise ValueError("Укажите название организации")
         return value.strip()
 
-    @field_validator("address", "work_hours", mode="before")
+    @field_validator("address", "work_hours", "director_hours", mode="before")
     @classmethod
     def normalize_strings(cls, value: str | None) -> str | None:
         return normalize_optional_str(value)
@@ -75,6 +76,7 @@ class OrganizationCardUpdate(SQLModel):
     email: str | None = Field(default=None, max_length=255)
     address: str | None = Field(default=None, max_length=500)
     work_hours: str | None = Field(default=None, max_length=500)
+    director_hours: str | None = Field(default=None, max_length=500)
     vk_url: str | None = Field(default=None, max_length=500)
     telegram_url: str | None = Field(default=None, max_length=500)
     whatsapp_url: str | None = Field(default=None, max_length=500)
@@ -103,7 +105,7 @@ class OrganizationCardUpdate(SQLModel):
             raise ValueError("Укажите название организации")
         return value.strip()
 
-    @field_validator("address", "work_hours", mode="before")
+    @field_validator("address", "work_hours", "director_hours", mode="before")
     @classmethod
     def normalize_strings(cls, value: str | None) -> str | None:
         return normalize_optional_str(value)
@@ -128,6 +130,7 @@ class OrganizationCardPublic(SQLModel):
     email: str | None
     address: str | None
     work_hours: str | None
+    director_hours: str | None
     vk_url: str | None
     telegram_url: str | None
     whatsapp_url: str | None

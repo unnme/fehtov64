@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dialog'
 import { FormLabel } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { PhoneInputField } from '@/components/OrganizationCard/PhoneInputField'
-import { PhoneNumberInput } from '@/components/OrganizationCard/PhoneNumberInput'
+import { PhoneInputField } from '@/components/OrganizationCard/fields/PhoneInputField'
+import { PhoneNumberInput } from '@/components/OrganizationCard/fields/PhoneNumberInput'
 import { type OrganizationCardFormData } from '@/schemas/organizationCard'
 import { isValidPhone } from '@/utils/phone'
 

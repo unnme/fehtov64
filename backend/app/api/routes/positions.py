@@ -1,10 +1,11 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlmodel import func, select
 
 from app.api.deps import SessionDep, get_current_active_superuser
+from app.core.errors import BadRequestError, ConflictError, ErrorCode, NotFoundError
 from app.models import Position
 from app.schemas import PositionCreate, PositionPublic, PositionsPublic, PositionUpdate
 from app.services.position_service import reassign_persons_to_default
@@ -20,9 +21,7 @@ DEFAULT_POSITION_NAME = "Без должности"
     response_model=PositionsPublic,
 )
 def read_positions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
-    """
-    Retrieve positions.
-    """
+    """Retrieve positions."""
     count_statement = select(func.count()).select_from(Position)
     count = session.exec(count_statement).one()
     statement = select(Position).offset(skip).limit(limit).order_by(Position.name)
@@ -36,21 +35,32 @@ def read_positions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     response_model=PositionPublic,
 )
 def create_position(*, session: SessionDep, position_in: PositionCreate) -> Any:
-    """
-    Create position.
-    """
+    """Create position."""
     if position_in.name == DEFAULT_POSITION_NAME:
-        raise HTTPException(
-            status_code=400, detail="Default position cannot be created manually"
+        raise BadRequestError(
+            ErrorCode.POSITION_DEFAULT_PROTECTED,
+            "Default position cannot be created manually",
         )
 
     existing = session.exec(
         select(Position).where(Position.name == position_in.name)
     ).first()
     if existing:
-        raise HTTPException(status_code=409, detail="Position already exists")
+        raise ConflictError(ErrorCode.POSITION_EXISTS, "Position already exists")
 
-    position = Position.model_validate(position_in)
+    position_data = position_in.model_dump()
+
+    # Director must always be management position
+    if position_data.get("is_director"):
+        current_director = session.exec(
+            select(Position).where(Position.is_director == True)  # noqa: E712
+        ).first()
+        if current_director:
+            current_director.is_director = False
+            session.add(current_director)
+        position_data["is_management"] = True
+
+    position = Position.model_validate(position_data)
     session.add(position)
     session.commit()
     session.refresh(position)
@@ -68,23 +78,23 @@ def update_position(
     position_id: uuid.UUID,
     position_in: PositionUpdate,
 ) -> Any:
-    """
-    Update position.
-    """
+    """Update position."""
     position = session.get(Position, position_id)
     if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise NotFoundError(ErrorCode.POSITION_NOT_FOUND, "Position not found")
 
     if position.name == DEFAULT_POSITION_NAME and position_in.name:
-        raise HTTPException(
-            status_code=400, detail="Default position cannot be renamed"
+        raise BadRequestError(
+            ErrorCode.POSITION_DEFAULT_PROTECTED,
+            "Default position cannot be renamed",
         )
     if (
         position_in.name == DEFAULT_POSITION_NAME
         and position.name != DEFAULT_POSITION_NAME
     ):
-        raise HTTPException(
-            status_code=400, detail="Default position name is reserved"
+        raise BadRequestError(
+            ErrorCode.POSITION_DEFAULT_PROTECTED,
+            "Default position name is reserved",
         )
 
     if position_in.name and position_in.name != position.name:
@@ -92,9 +102,28 @@ def update_position(
             select(Position).where(Position.name == position_in.name)
         ).first()
         if existing:
-            raise HTTPException(status_code=409, detail="Position already exists")
+            raise ConflictError(ErrorCode.POSITION_EXISTS, "Position already exists")
 
     position_data = position_in.model_dump(exclude_unset=True)
+
+    # Handle director flag changes
+    if "is_director" in position_data:
+        if position_data["is_director"] and not position.is_director:
+            # Becoming director: transfer from current director, set management
+            current_director = session.exec(
+                select(Position).where(
+                    Position.is_director == True,  # noqa: E712
+                    Position.id != position_id,
+                )
+            ).first()
+            if current_director:
+                current_director.is_director = False
+                session.add(current_director)
+            position_data["is_management"] = True
+        elif not position_data["is_director"] and position.is_director:
+            # Removing director: also remove management
+            position_data["is_management"] = False
+
     position.sqlmodel_update(position_data)
     session.add(position)
     session.commit()
@@ -107,16 +136,15 @@ def update_position(
     dependencies=[Depends(get_current_active_superuser)],
 )
 def delete_position(*, session: SessionDep, position_id: uuid.UUID) -> Any:
-    """
-    Delete position.
-    """
+    """Delete position."""
     position = session.get(Position, position_id)
     if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
+        raise NotFoundError(ErrorCode.POSITION_NOT_FOUND, "Position not found")
 
     if position.name == DEFAULT_POSITION_NAME:
-        raise HTTPException(
-            status_code=400, detail="Default position cannot be deleted"
+        raise BadRequestError(
+            ErrorCode.POSITION_DEFAULT_PROTECTED,
+            "Default position cannot be deleted",
         )
 
     reassign_persons_to_default(session=session, position_id=position_id)

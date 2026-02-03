@@ -129,8 +129,7 @@ htmlcov/
 *.tmp
 *.temp
 *.bak
-.backups/
-backups/**/*.sql.gz
+backups/
 .cache/
 
 # ---------------------------------------------------------

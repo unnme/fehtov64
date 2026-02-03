@@ -10,8 +10,11 @@ from starlette.requests import Request
 
 from app.api.main import api_router
 from app.core.config import settings
-from app.core.ip_blocking import IPBlockingMiddleware
-from app.core.rate_limit import _rate_limit_exceeded_handler, limiter
+from app.core.security import (
+    IPBlockingMiddleware,
+    _rate_limit_exceeded_handler,
+    limiter,
+)
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:

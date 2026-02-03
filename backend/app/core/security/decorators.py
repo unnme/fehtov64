@@ -1,5 +1,7 @@
-"""Decorators for common functionality."""
+"""Security decorators."""
+
 import asyncio
+import inspect
 import time
 from collections.abc import Callable
 from functools import wraps
@@ -9,7 +11,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def prevent_timing_attacks(min_time: float = 0.2):
+def prevent_timing_attacks(min_time: float = 0.2) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator to prevent timing attacks by ensuring minimum processing time.
 
@@ -22,7 +24,7 @@ def prevent_timing_attacks(min_time: float = 0.2):
         async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             start = time.time()
             try:
-                result = await func(*args, **kwargs)
+                result = await func(*args, **kwargs)  # type: ignore[misc]
                 elapsed = time.time() - start
                 if elapsed < min_time:
                     await asyncio.sleep(min_time - elapsed)
@@ -49,9 +51,8 @@ def prevent_timing_attacks(min_time: float = 0.2):
                 raise
 
         # Return appropriate wrapper based on whether function is async
-        import inspect
         if inspect.iscoroutinefunction(func):
-            return async_wrapper
-        return sync_wrapper
+            return async_wrapper  # type: ignore[return-value]
+        return sync_wrapper  # type: ignore[return-value]
 
     return decorator

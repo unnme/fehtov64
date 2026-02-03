@@ -5,7 +5,7 @@ import { Suspense } from 'react'
 
 import { type UserPublic, UsersService } from '@/client'
 import { unwrapResponse } from '@/utils'
-import { AddUser, columns, type UserTableData } from '@/components/Admin'
+import { AddUser, columns, type UserTableData } from '@/components/Users'
 import { DataTable } from '@/components/Common'
 import { PendingUsers } from '@/components/Pending'
 import useAuth from '@/hooks/useAuth'

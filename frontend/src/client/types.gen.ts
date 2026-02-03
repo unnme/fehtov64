@@ -534,6 +534,10 @@ export type OrganizationCardCreate = {
      */
     work_hours?: string | null;
     /**
+     * Director Hours
+     */
+    director_hours?: string | null;
+    /**
      * Vk Url
      */
     vk_url?: string | null;
@@ -591,6 +595,10 @@ export type OrganizationCardPublic = {
      * Work Hours
      */
     work_hours: string | null;
+    /**
+     * Director Hours
+     */
+    director_hours: string | null;
     /**
      * Vk Url
      */
@@ -653,6 +661,10 @@ export type OrganizationCardUpdate = {
      * Work Hours
      */
     work_hours?: string | null;
+    /**
+     * Director Hours
+     */
+    director_hours?: string | null;
     /**
      * Vk Url
      */
@@ -859,6 +871,14 @@ export type PositionCreate = {
      * Name
      */
     name: string;
+    /**
+     * Is Management
+     */
+    is_management?: boolean;
+    /**
+     * Is Director
+     */
+    is_director?: boolean;
 };
 
 /**
@@ -876,6 +896,14 @@ export type PositionPublic = {
      */
     name: string;
     /**
+     * Is Management
+     */
+    is_management: boolean;
+    /**
+     * Is Director
+     */
+    is_director: boolean;
+    /**
      * Created At
      */
     created_at: string;
@@ -891,6 +919,14 @@ export type PositionUpdate = {
      * Name
      */
     name?: string | null;
+    /**
+     * Is Management
+     */
+    is_management?: boolean | null;
+    /**
+     * Is Director
+     */
+    is_director?: boolean | null;
 };
 
 /**
@@ -956,9 +992,9 @@ export type UserCreate = {
      */
     password: string;
     /**
-     * Full Name
+     * Nickname
      */
-    full_name: string;
+    nickname: string;
     /**
      * Is Active
      */
@@ -988,9 +1024,9 @@ export type UserPublic = {
      */
     is_superuser?: boolean;
     /**
-     * Full Name
+     * Nickname
      */
-    full_name: string;
+    nickname: string;
     /**
      * Id
      */
@@ -1017,9 +1053,9 @@ export type UserUpdate = {
      */
     password?: string | null;
     /**
-     * Full Name
+     * Nickname
      */
-    full_name?: string | null;
+    nickname?: string | null;
     /**
      * Is Active
      */
@@ -1037,9 +1073,9 @@ export type UserUpdate = {
  */
 export type UserUpdateMe = {
     /**
-     * Full Name
+     * Nickname
      */
-    full_name?: string | null;
+    nickname?: string | null;
     /**
      * Email
      */
@@ -1627,6 +1663,40 @@ export type PositionsUpdatePositionResponses = {
 };
 
 export type PositionsUpdatePositionResponse = PositionsUpdatePositionResponses[keyof PositionsUpdatePositionResponses];
+
+export type PersonsReadPublicPersonsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/persons/public';
+};
+
+export type PersonsReadPublicPersonsErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type PersonsReadPublicPersonsError = PersonsReadPublicPersonsErrors[keyof PersonsReadPublicPersonsErrors];
+
+export type PersonsReadPublicPersonsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PersonsPublic;
+};
+
+export type PersonsReadPublicPersonsResponse = PersonsReadPublicPersonsResponses[keyof PersonsReadPublicPersonsResponses];
 
 export type PersonsReadPersonsData = {
     body?: never;

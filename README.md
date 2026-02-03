@@ -170,7 +170,9 @@ ruff format app scripts                       # Formatting
 backend/
 ├── app/
 │   ├── api/routes/      # API endpoints
-│   ├── core/            # Config, security, middleware
+│   ├── core/            # Config, security, errors
+│   │   ├── security/    # Auth, IP blocking, rate limiting
+│   │   └── errors/      # Error codes and exceptions
 │   ├── schemas/         # Pydantic schemas
 │   ├── services/        # Business logic
 │   ├── repositories/    # Data access layer
@@ -231,8 +233,10 @@ npm run generate-client  # Regenerate OpenAPI client (requires running backend)
 ```
 frontend/src/
 ├── routes/              # File-based routing (_layout/ = protected)
-├── components/          # By feature: News, Documents, Persons, etc.
-├── components/ui/       # shadcn/ui components
+├── components/          # By feature: Users, News, Documents, Persons, etc.
+│   ├── Common/          # Reusable components
+│   ├── OrganizationCard/ # fields/, icons/, sections/, work-hours/
+│   └── ui/              # shadcn/ui components
 ├── client/              # Auto-generated OpenAPI client
 ├── schemas/             # Zod validation schemas
 ├── hooks/               # Custom hooks

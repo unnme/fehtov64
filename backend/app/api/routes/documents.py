@@ -1,4 +1,5 @@
 """Document routes for uploading and managing documents."""
+
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,13 @@ from sqlmodel import Session, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.db import engine
+from app.core.errors import (
+    BadRequestError,
+    ConflictError,
+    ErrorCode,
+    ForbiddenError,
+    NotFoundError,
+)
 from app.models import Document, DocumentCategory
 from app.schemas import (
     DocumentCategoriesPublic,
@@ -32,6 +40,7 @@ public_router = APIRouter(prefix="/documents", tags=["documents"])
 # Document Category Routes
 # ============================================================================
 
+
 @router.get("/categories", response_model=DocumentCategoriesPublic)
 def read_categories(
     session: SessionDep,
@@ -42,11 +51,19 @@ def read_categories(
     count_statement = select(func.count()).select_from(DocumentCategory)
     count = session.exec(count_statement).one()
 
-    statement = select(DocumentCategory).offset(skip).limit(limit).order_by(DocumentCategory.name)
+    statement = (
+        select(DocumentCategory)
+        .offset(skip)
+        .limit(limit)
+        .order_by(DocumentCategory.name)
+    )
     categories = session.exec(statement).all()
 
     return DocumentCategoriesPublic(
-        data=[DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at) for c in categories],
+        data=[
+            DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at)
+            for c in categories
+        ],
         count=count,
     )
 
@@ -61,11 +78,19 @@ def read_public_categories(
     count_statement = select(func.count()).select_from(DocumentCategory)
     count = session.exec(count_statement).one()
 
-    statement = select(DocumentCategory).offset(skip).limit(limit).order_by(DocumentCategory.name)
+    statement = (
+        select(DocumentCategory)
+        .offset(skip)
+        .limit(limit)
+        .order_by(DocumentCategory.name)
+    )
     categories = session.exec(statement).all()
 
     return DocumentCategoriesPublic(
-        data=[DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at) for c in categories],
+        data=[
+            DocumentCategoryPublic(id=c.id, name=c.name, created_at=c.created_at)
+            for c in categories
+        ],
         count=count,
     )
 
@@ -82,17 +107,16 @@ def create_category(
         select(DocumentCategory).where(DocumentCategory.name == category_in.name)
     ).first()
     if existing:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Category with name '{category_in.name}' already exists",
-        )
+        raise ConflictError(ErrorCode.CATEGORY_EXISTS, "Category already exists")
 
     category = DocumentCategory(name=category_in.name)
     session.add(category)
     session.commit()
     session.refresh(category)
 
-    return DocumentCategoryPublic(id=category.id, name=category.name, created_at=category.created_at)
+    return DocumentCategoryPublic(
+        id=category.id, name=category.name, created_at=category.created_at
+    )
 
 
 @router.patch("/categories/{category_id}", response_model=DocumentCategoryPublic)
@@ -104,11 +128,11 @@ def update_category(
 ) -> Any:
     """Update a document category."""
     if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.CATEGORY_FORBIDDEN, "Not enough permissions")
 
     category = session.get(DocumentCategory, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+        raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
 
     # Update name if provided
     if category_in.name is not None:
@@ -116,21 +140,20 @@ def update_category(
         existing = session.exec(
             select(DocumentCategory).where(
                 DocumentCategory.name == category_in.name,
-                DocumentCategory.id != category_id
+                DocumentCategory.id != category_id,
             )
         ).first()
         if existing:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Category with name '{category_in.name}' already exists",
-            )
+            raise ConflictError(ErrorCode.CATEGORY_EXISTS, "Category already exists")
         category.name = category_in.name
 
     session.add(category)
     session.commit()
     session.refresh(category)
 
-    return DocumentCategoryPublic(id=category.id, name=category.name, created_at=category.created_at)
+    return DocumentCategoryPublic(
+        id=category.id, name=category.name, created_at=category.created_at
+    )
 
 
 @router.delete("/categories/{category_id}", response_model=Message)
@@ -141,11 +164,11 @@ def delete_category(
 ) -> Any:
     """Delete a document category. Sets category_id to None for all associated documents."""
     if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.CATEGORY_FORBIDDEN, "Not enough permissions")
 
     category = session.get(DocumentCategory, category_id)
     if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+        raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
 
     # Set category_id to None for all documents with this category
     documents = session.exec(
@@ -165,6 +188,7 @@ def delete_category(
 # ============================================================================
 # Document Routes
 # ============================================================================
+
 
 @router.get("/", response_model=DocumentsPublic)
 def read_documents(
@@ -196,24 +220,29 @@ def read_documents(
         doc.owner = session.get(type(current_user), doc.owner_id)
 
     return DocumentsPublic(
-        data=[DocumentPublic(
-            id=d.id,
-            name=d.name,
-            file_name=d.file_name,
-            file_path=d.file_path,
-            file_size=d.file_size,
-            mime_type=d.mime_type,
-            category_id=d.category_id,
-            category=DocumentCategoryPublic(
-                id=d.category.id,
-                name=d.category.name,
-                created_at=d.category.created_at,
-            ) if d.category else None,
-            owner_id=d.owner_id,
-            owner=None,  # Don't expose owner details in list
-            created_at=d.created_at,
-            updated_at=d.updated_at,
-        ) for d in documents],
+        data=[
+            DocumentPublic(
+                id=d.id,
+                name=d.name,
+                file_name=d.file_name,
+                file_path=d.file_path,
+                file_size=d.file_size,
+                mime_type=d.mime_type,
+                category_id=d.category_id,
+                category=DocumentCategoryPublic(
+                    id=d.category.id,
+                    name=d.category.name,
+                    created_at=d.category.created_at,
+                )
+                if d.category
+                else None,
+                owner_id=d.owner_id,
+                owner=None,  # Don't expose owner details in list
+                created_at=d.created_at,
+                updated_at=d.updated_at,
+            )
+            for d in documents
+        ],
         count=count,
     )
 
@@ -242,24 +271,29 @@ def read_public_documents(
             doc.category = session.get(DocumentCategory, doc.category_id)
 
     return DocumentsPublic(
-        data=[DocumentPublic(
-            id=d.id,
-            name=d.name,
-            file_name=d.file_name,
-            file_path=d.file_path,
-            file_size=d.file_size,
-            mime_type=d.mime_type,
-            category_id=d.category_id,
-            category=DocumentCategoryPublic(
-                id=d.category.id,
-                name=d.category.name,
-                created_at=d.category.created_at,
-            ) if d.category else None,
-            owner_id=d.owner_id,
-            owner=None,
-            created_at=d.created_at,
-            updated_at=d.updated_at,
-        ) for d in documents],
+        data=[
+            DocumentPublic(
+                id=d.id,
+                name=d.name,
+                file_name=d.file_name,
+                file_path=d.file_path,
+                file_size=d.file_size,
+                mime_type=d.mime_type,
+                category_id=d.category_id,
+                category=DocumentCategoryPublic(
+                    id=d.category.id,
+                    name=d.category.name,
+                    created_at=d.category.created_at,
+                )
+                if d.category
+                else None,
+                owner_id=d.owner_id,
+                owner=None,
+                created_at=d.created_at,
+                updated_at=d.updated_at,
+            )
+            for d in documents
+        ],
         count=count,
     )
 
@@ -285,9 +319,11 @@ async def create_document(
             category_uuid = uuid.UUID(category_id)
             category = session.get(DocumentCategory, category_uuid)
             if not category:
-                raise HTTPException(status_code=404, detail="Category not found")
+                raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid category_id format")
+            raise BadRequestError(
+                ErrorCode.CATEGORY_INVALID_ID, "Invalid category_id format"
+            )
 
     # Save file
     file_path, file_size = document_service.save_document(file)
@@ -308,7 +344,9 @@ async def create_document(
         ".ods": "application/vnd.oasis.opendocument.spreadsheet",
         ".odp": "application/vnd.oasis.opendocument.presentation",
     }
-    mime_type = mime_type_map.get(file_ext, file.content_type or "application/octet-stream")
+    mime_type = mime_type_map.get(
+        file_ext, file.content_type or "application/octet-stream"
+    )
 
     # Create document record
     document = Document(
@@ -340,7 +378,9 @@ async def create_document(
             id=category.id,
             name=category.name,
             created_at=category.created_at,
-        ) if category else None,
+        )
+        if category
+        else None,
         owner_id=document.owner_id,
         owner=None,
         created_at=document.created_at,
@@ -356,7 +396,7 @@ def read_document(
     """Get a specific document."""
     document = session.get(Document, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise NotFoundError(ErrorCode.DOCUMENT_NOT_FOUND, "Document not found")
 
     # Get category (if exists)
     category = None
@@ -366,14 +406,19 @@ def read_document(
     # Get owner
     from app.models import User
     from app.schemas import UserPublic
+
     owner = session.get(User, document.owner_id)
-    owner_public = UserPublic(
-        id=owner.id,
-        email=owner.email,
-        is_active=owner.is_active,
-        is_superuser=owner.is_superuser,
-        nickname=owner.nickname,
-    ) if owner else None
+    owner_public = (
+        UserPublic(
+            id=owner.id,
+            email=owner.email,
+            is_active=owner.is_active,
+            is_superuser=owner.is_superuser,
+            nickname=owner.nickname,
+        )
+        if owner
+        else None
+    )
 
     return DocumentPublic(
         id=document.id,
@@ -387,7 +432,9 @@ def read_document(
             id=category.id,
             name=category.name,
             created_at=category.created_at,
-        ) if category else None,
+        )
+        if category
+        else None,
         owner_id=document.owner_id,
         owner=owner_public,
         created_at=document.created_at,
@@ -403,11 +450,11 @@ def get_document_file(
     with Session(engine) as session:
         document = session.get(Document, document_id)
         if not document:
-            raise HTTPException(status_code=404, detail="Document not found")
+            raise NotFoundError(ErrorCode.DOCUMENT_NOT_FOUND, "Document not found")
 
         file_path = document_service.UPLOAD_DIR / document.file_path
         if not file_path.exists():
-            raise HTTPException(status_code=404, detail="File not found")
+            raise NotFoundError(ErrorCode.DOCUMENT_FILE_NOT_FOUND, "File not found")
 
         return FileResponse(
             path=str(file_path),
@@ -426,11 +473,11 @@ def update_document(
     """Update document (name or category)."""
     document = session.get(Document, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise NotFoundError(ErrorCode.DOCUMENT_NOT_FOUND, "Document not found")
 
     # Only owner or superuser can update
     if not current_user.is_superuser and document.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.DOCUMENT_FORBIDDEN, "Not enough permissions")
 
     # Update name if provided
     if document_in.name:
@@ -443,7 +490,7 @@ def update_document(
         if document_in.category_id:
             category = session.get(DocumentCategory, document_in.category_id)
             if not category:
-                raise HTTPException(status_code=404, detail="Category not found")
+                raise NotFoundError(ErrorCode.CATEGORY_NOT_FOUND, "Category not found")
             document.category_id = document_in.category_id
         else:
             # Set category_id to None to remove category
@@ -461,14 +508,19 @@ def update_document(
         category = session.get(DocumentCategory, document.category_id)
     from app.models import User
     from app.schemas import UserPublic
+
     owner = session.get(User, document.owner_id)
-    owner_public = UserPublic(
-        id=owner.id,
-        email=owner.email,
-        is_active=owner.is_active,
-        is_superuser=owner.is_superuser,
-        nickname=owner.nickname,
-    ) if owner else None
+    owner_public = (
+        UserPublic(
+            id=owner.id,
+            email=owner.email,
+            is_active=owner.is_active,
+            is_superuser=owner.is_superuser,
+            nickname=owner.nickname,
+        )
+        if owner
+        else None
+    )
 
     return DocumentPublic(
         id=document.id,
@@ -482,7 +534,9 @@ def update_document(
             id=category.id,
             name=category.name,
             created_at=category.created_at,
-        ) if category else None,
+        )
+        if category
+        else None,
         owner_id=document.owner_id,
         owner=owner_public,
         created_at=document.created_at,
@@ -499,11 +553,11 @@ def delete_document(
     """Delete document and its file."""
     document = session.get(Document, document_id)
     if not document:
-        raise HTTPException(status_code=404, detail="Document not found")
+        raise NotFoundError(ErrorCode.DOCUMENT_NOT_FOUND, "Document not found")
 
     # Only owner or superuser can delete
     if not current_user.is_superuser and document.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.DOCUMENT_FORBIDDEN, "Not enough permissions")
 
     # Delete file from disk
     document_service.delete_document(document.file_path)

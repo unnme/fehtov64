@@ -1,13 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Edit2, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { Crown, Edit2, Plus, Trash2, Users } from "lucide-react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
 import { cn } from "@/lib/utils"
 import { DeleteConfirmationDialog } from "@/components/Common"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -43,34 +45,41 @@ const positionFormSchema = z.object({
       message: "Одно слово, без пробелов, допускается одно тире",
     })
     .transform(normalizePositionName),
+  is_management: z.boolean(),
+  is_director: z.boolean(),
 })
 
 type PositionFormData = z.infer<typeof positionFormSchema>
 
 interface EditPositionDialogProps {
   position: PositionPublic
+  hasDirector: boolean
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
 function EditPositionDialog({
   position,
+  hasDirector,
   isOpen,
   onOpenChange,
 }: EditPositionDialogProps) {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
+  const canEditDirector = position.is_director || !hasDirector
 
   const form = useForm<PositionFormData>({
     resolver: zodResolver(positionFormSchema),
     defaultValues: {
       name: position.name,
+      is_management: position.is_management,
+      is_director: position.is_director,
     },
   })
 
   const mutation = useMutation({
     mutationFn: (data: PositionFormData) =>
-      unwrapResponse<PositionPublic>(PositionsService.positionsUpdatePosition({ path: { position_id: position.id }, body: { name: data.name } })),
+      unwrapResponse<PositionPublic>(PositionsService.positionsUpdatePosition({ path: { position_id: position.id }, body: data })),
     onSuccess: () => {
       showSuccessToast("Должность обновлена")
       queryClient.invalidateQueries({ queryKey: ["positions"] })
@@ -83,7 +92,7 @@ function EditPositionDialog({
   const handleClose = (open: boolean) => {
     if (!open && !mutation.isPending) {
       onOpenChange(false)
-      form.reset({ name: position.name })
+      form.reset({ name: position.name, is_management: position.is_management, is_director: position.is_director })
     }
   }
 
@@ -120,6 +129,44 @@ function EditPositionDialog({
                 </FormItem>
               )}
             />
+            {canEditDirector ? (
+              <FormField
+                control={form.control}
+                name="is_director"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Руководитель организации</FormLabel>
+                      <FormDescription>Может быть только один</FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="is_management"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Руководящая должность</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -141,11 +188,12 @@ function EditPositionDialog({
 }
 
 interface AddPositionDialogProps {
+  hasDirector: boolean
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
 
-function AddPositionDialog({ isOpen, onOpenChange }: AddPositionDialogProps) {
+function AddPositionDialog({ hasDirector, isOpen, onOpenChange }: AddPositionDialogProps) {
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -153,12 +201,14 @@ function AddPositionDialog({ isOpen, onOpenChange }: AddPositionDialogProps) {
     resolver: zodResolver(positionFormSchema),
     defaultValues: {
       name: "",
+      is_management: false,
+      is_director: false,
     },
   })
 
   const mutation = useMutation({
     mutationFn: (data: PositionFormData) =>
-      unwrapResponse<PositionPublic>(PositionsService.positionsCreatePosition({ body: { name: data.name } })),
+      unwrapResponse<PositionPublic>(PositionsService.positionsCreatePosition({ body: data })),
     onSuccess: () => {
       showSuccessToast("Должность создана")
       queryClient.invalidateQueries({ queryKey: ["positions"] })
@@ -208,6 +258,44 @@ function AddPositionDialog({ isOpen, onOpenChange }: AddPositionDialogProps) {
                 </FormItem>
               )}
             />
+            {hasDirector ? (
+              <FormField
+                control={form.control}
+                name="is_management"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Руководящая должность</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="is_director"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Руководитель организации</FormLabel>
+                      <FormDescription>Может быть только один</FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -276,6 +364,10 @@ export function ManagePositionsDialog() {
     (position) => position.name !== DEFAULT_POSITION_NAME
   )
   const hasScroll = filteredPositions.length > 7
+  const hasDirector = useMemo(
+    () => positions.data.some(p => p.is_director),
+    [positions.data]
+  )
 
   return (
     <>
@@ -316,7 +408,19 @@ export function ManagePositionsDialog() {
                       key={position.id}
                       className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                     >
-                      <span className="font-medium">{position.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{position.name}</span>
+                        {position.is_management && (
+                          <span title="Руководящая должность">
+                            <Users className="h-4 w-4 text-blue-500" />
+                          </span>
+                        )}
+                        {position.is_director && (
+                          <span title="Руководитель организации">
+                            <Crown className="h-4 w-4 text-amber-500" />
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
@@ -344,11 +448,12 @@ export function ManagePositionsDialog() {
       {editingPosition && (
         <EditPositionDialog
           position={editingPosition}
+          hasDirector={hasDirector}
           isOpen={!!editingPosition}
           onOpenChange={(open) => !open && setEditingPosition(null)}
         />
       )}
-      <AddPositionDialog isOpen={isAddOpen} onOpenChange={setIsAddOpen} />
+      <AddPositionDialog hasDirector={hasDirector} isOpen={isAddOpen} onOpenChange={setIsAddOpen} />
     </>
   )
 }

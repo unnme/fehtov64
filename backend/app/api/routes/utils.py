@@ -1,11 +1,12 @@
 """Utility routes for health checks and IP blocking management."""
+
 from time import time
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import get_current_active_superuser
-from app.core.ip_blocking import get_ip_blocking_middleware
+from app.core.security import get_ip_blocking_middleware
 from app.schemas import BlockedIPInfo, BlockedIPsList, Message
 
 router = APIRouter(prefix="/utils", tags=["utils"])
@@ -83,9 +84,13 @@ def unblock_ip(ip_address: str) -> Any:
     """
     middleware = get_ip_blocking_middleware()
     if not middleware:
-        raise HTTPException(status_code=500, detail="IP blocking middleware not available")
+        raise HTTPException(
+            status_code=500, detail="IP blocking middleware not available"
+        )
 
     if middleware.unblock_ip(ip_address):
         return Message(message=f"IP address {ip_address} has been unblocked")
     else:
-        raise HTTPException(status_code=404, detail=f"IP address {ip_address} is not blocked")
+        raise HTTPException(
+            status_code=404, detail=f"IP address {ip_address} is not blocked"
+        )

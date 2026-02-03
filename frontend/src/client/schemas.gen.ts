@@ -883,6 +883,18 @@ export const OrganizationCardCreateSchema = {
             ],
             title: 'Work Hours'
         },
+        director_hours: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Director Hours'
+        },
         vk_url: {
             anyOf: [
                 {
@@ -1021,6 +1033,17 @@ export const OrganizationCardPublicSchema = {
             ],
             title: 'Work Hours'
         },
+        director_hours: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Director Hours'
+        },
         vk_url: {
             anyOf: [
                 {
@@ -1106,6 +1129,7 @@ export const OrganizationCardPublicSchema = {
         'email',
         'address',
         'work_hours',
+        'director_hours',
         'vk_url',
         'telegram_url',
         'whatsapp_url',
@@ -1183,6 +1207,18 @@ export const OrganizationCardUpdateSchema = {
                 }
             ],
             title: 'Work Hours'
+        },
+        director_hours: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Director Hours'
         },
         vk_url: {
             anyOf: [
@@ -1565,6 +1601,16 @@ export const PositionCreateSchema = {
             maxLength: 255,
             minLength: 1,
             title: 'Name'
+        },
+        is_management: {
+            type: 'boolean',
+            title: 'Is Management',
+            default: false
+        },
+        is_director: {
+            type: 'boolean',
+            title: 'Is Director',
+            default: false
         }
     },
     type: 'object',
@@ -1586,6 +1632,14 @@ export const PositionPublicSchema = {
             type: 'string',
             title: 'Name'
         },
+        is_management: {
+            type: 'boolean',
+            title: 'Is Management'
+        },
+        is_director: {
+            type: 'boolean',
+            title: 'Is Director'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -1596,6 +1650,8 @@ export const PositionPublicSchema = {
     required: [
         'id',
         'name',
+        'is_management',
+        'is_director',
         'created_at'
     ],
     title: 'PositionPublic',
@@ -1616,6 +1672,28 @@ export const PositionUpdateSchema = {
                 }
             ],
             title: 'Name'
+        },
+        is_management: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Management'
+        },
+        is_director: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Director'
         }
     },
     type: 'object',
@@ -1704,11 +1782,11 @@ export const UserCreateSchema = {
             minLength: 8,
             title: 'Password'
         },
-        full_name: {
+        nickname: {
             type: 'string',
             maxLength: 255,
             minLength: 1,
-            title: 'Full Name'
+            title: 'Nickname'
         },
         is_active: {
             type: 'boolean',
@@ -1725,7 +1803,7 @@ export const UserCreateSchema = {
     required: [
         'email',
         'password',
-        'full_name'
+        'nickname'
     ],
     title: 'UserCreate',
     description: 'Schema for creating user via API.'
@@ -1749,10 +1827,10 @@ export const UserPublicSchema = {
             title: 'Is Superuser',
             default: false
         },
-        full_name: {
+        nickname: {
             type: 'string',
             maxLength: 255,
-            title: 'Full Name'
+            title: 'Nickname'
         },
         id: {
             type: 'string',
@@ -1768,7 +1846,7 @@ export const UserPublicSchema = {
     type: 'object',
     required: [
         'email',
-        'full_name',
+        'nickname',
         'id'
     ],
     title: 'UserPublic',
@@ -1803,7 +1881,7 @@ export const UserUpdateSchema = {
             ],
             title: 'Password'
         },
-        full_name: {
+        nickname: {
             anyOf: [
                 {
                     type: 'string',
@@ -1814,7 +1892,7 @@ export const UserUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Full Name'
+            title: 'Nickname'
         },
         is_active: {
             anyOf: [
@@ -1846,7 +1924,7 @@ export const UserUpdateSchema = {
 
 export const UserUpdateMeSchema = {
     properties: {
-        full_name: {
+        nickname: {
             anyOf: [
                 {
                     type: 'string',
@@ -1857,7 +1935,7 @@ export const UserUpdateMeSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Full Name'
+            title: 'Nickname'
         },
         email: {
             anyOf: [

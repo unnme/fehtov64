@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlmodel import select
 
 from app.api.deps import SessionDep, get_current_active_superuser
+from app.core.errors import ConflictError, ErrorCode, NotFoundError
 from app.models import OrganizationCard
 from app.schemas import (
     OrganizationCardCreate,
@@ -33,7 +34,7 @@ def _normalize_phones(card: OrganizationCard) -> None:
 def read_public_card(session: SessionDep) -> Any:
     card = _get_single_card(session)
     if not card:
-        raise HTTPException(status_code=404, detail="Organization card not found")
+        raise NotFoundError(ErrorCode.ORG_CARD_NOT_FOUND, "Organization card not found")
     _normalize_phones(card)
     return card
 
@@ -46,7 +47,7 @@ def read_public_card(session: SessionDep) -> Any:
 def read_card(session: SessionDep) -> Any:
     card = _get_single_card(session)
     if not card:
-        raise HTTPException(status_code=404, detail="Organization card not found")
+        raise NotFoundError(ErrorCode.ORG_CARD_NOT_FOUND, "Organization card not found")
     _normalize_phones(card)
     return card
 
@@ -59,7 +60,7 @@ def read_card(session: SessionDep) -> Any:
 def create_card(session: SessionDep, card_in: OrganizationCardCreate) -> Any:
     existing = _get_single_card(session)
     if existing:
-        raise HTTPException(status_code=409, detail="Organization card already exists")
+        raise ConflictError(ErrorCode.ORG_CARD_EXISTS, "Organization card already exists")
 
     card = OrganizationCard(**card_in.model_dump())
     session.add(card)
@@ -76,7 +77,7 @@ def create_card(session: SessionDep, card_in: OrganizationCardCreate) -> Any:
 def update_card(session: SessionDep, card_in: OrganizationCardUpdate) -> Any:
     card = _get_single_card(session)
     if not card:
-        raise HTTPException(status_code=404, detail="Organization card not found")
+        raise NotFoundError(ErrorCode.ORG_CARD_NOT_FOUND, "Organization card not found")
 
     update_data = card_in.model_dump(exclude_unset=True)
     if update_data:

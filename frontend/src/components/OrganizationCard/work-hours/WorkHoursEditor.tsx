@@ -16,6 +16,7 @@ import { TimeRangePicker } from './TimeRangePicker'
 interface WorkHoursEditorProps {
 	value: WorkHours
 	onChange: (value: WorkHours) => void
+	includeWeekends?: boolean
 }
 
 const TIME_RANGE_PATTERN = /^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$/
@@ -34,7 +35,7 @@ const validateTimeRange = (timeRange: string): boolean => {
 
 const EMPTY_DAYS: WorkHours['days'] = []
 
-export const WorkHoursEditor = ({ value, onChange }: WorkHoursEditorProps) => {
+export const WorkHoursEditor = ({ value, onChange, includeWeekends = true }: WorkHoursEditorProps) => {
 	const days = value?.days ?? EMPTY_DAYS
 	const selectedDays = useMemo(() => new Set(days.map(d => d.day)), [days])
 
@@ -137,7 +138,7 @@ export const WorkHoursEditor = ({ value, onChange }: WorkHoursEditorProps) => {
 						<Label className="text-sm sm:text-base font-medium block mb-2 sm:mb-3">Предпросмотр</Label>
 						<div className="bg-muted/50 rounded-md p-3 sm:p-4">
 							<div className="text-xs sm:text-sm text-foreground">
-								{formatWorkHoursPreview(value) || 'Выберите дни и укажите время'}
+								{formatWorkHoursPreview(value, includeWeekends) || 'Выберите дни и укажите время'}
 							</div>
 						</div>
 					</div>

@@ -1,14 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock, MapPin, MapPinned, Navigation } from "lucide-react";
+import { Building2, Clock, MapPin, MapPinned, Navigation, UserRound } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { OrganizationCardService, type OrganizationCardPublic } from "@/client";
-import { MessengersSection } from "@/components/OrganizationCard/MessengersSection";
-import { PhonesSection } from "@/components/OrganizationCard/PhonesSection";
-import { WorkHoursDialog } from "@/components/OrganizationCard/WorkHoursDialog";
+import { MessengersSection, PhonesSection } from "@/components/OrganizationCard/sections";
+import { WorkHoursDialog } from "@/components/OrganizationCard/work-hours";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,6 +58,7 @@ function OrganizationCardPage() {
   const { apiKey, hasApiKey, rawKey } = useYandexMapsApiKey();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [isWorkHoursDialogOpen, setIsWorkHoursDialogOpen] = useState(false);
+  const [isDirectorHoursDialogOpen, setIsDirectorHoursDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: QUERY_KEY,
@@ -79,6 +79,7 @@ function OrganizationCardPage() {
       email: "",
       address: "",
       work_hours: { days: [] },
+      director_hours: { days: [] },
       vk_url: "",
       telegram_url: "",
       whatsapp_url: "",
@@ -125,6 +126,7 @@ function OrganizationCardPage() {
       email: data.email || "",
       address: data.address || "",
       work_hours: stringToWorkHours(data.work_hours ?? ""),
+      director_hours: stringToWorkHours(data.director_hours ?? ""),
       vk_url: data.vk_url || "",
       telegram_url: data.telegram_url || "",
       whatsapp_url: data.whatsapp_url || "",
@@ -156,6 +158,9 @@ function OrganizationCardPage() {
         address: payload.address?.trim() || null,
         work_hours: payload.work_hours?.days?.length
           ? workHoursToString(payload.work_hours)
+          : null,
+        director_hours: payload.director_hours?.days?.length
+          ? workHoursToString(payload.director_hours, false)
           : null,
         vk_url: payload.vk_url?.trim() || null,
         telegram_url: payload.telegram_url?.trim() || null,
@@ -323,6 +328,53 @@ function OrganizationCardPage() {
                           onChange={field.onChange}
                           isOpen={isWorkHoursDialogOpen}
                           onOpenChange={setIsWorkHoursDialogOpen}
+                        />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                {/* Часы приема директора */}
+                <FormField
+                  control={form.control}
+                  name="director_hours"
+                  render={({ field }) => {
+                    const preview = field.value
+                      ? formatWorkHoursPreview(field.value, false)
+                      : "";
+                    return (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <UserRound className="h-4 w-4" />
+                          Часы приёма директора
+                        </FormLabel>
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full justify-start text-left h-auto py-3"
+                            onClick={() => setIsDirectorHoursDialogOpen(true)}
+                          >
+                            <div className="flex flex-col items-start gap-1 w-full">
+                              <span className="text-sm font-medium">
+                                {preview || "Настроить дни и время приёма"}
+                              </span>
+                              {preview && (
+                                <span className="text-xs text-muted-foreground">
+                                  Нажмите для редактирования
+                                </span>
+                              )}
+                            </div>
+                          </Button>
+                        </FormControl>
+                        <FormMessage />
+                        <WorkHoursDialog
+                          value={field.value ?? { days: [] }}
+                          onChange={field.onChange}
+                          isOpen={isDirectorHoursDialogOpen}
+                          onOpenChange={setIsDirectorHoursDialogOpen}
+                          title="Часы приёма директора"
+                          includeWeekends={false}
                         />
                       </FormItem>
                     );

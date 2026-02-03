@@ -3,11 +3,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
+from app.core.errors import ErrorCode, ForbiddenError, NotFoundError
 from app.models import News, NewsImage
 from app.repositories.news_repository import create_news as create_news_repo
 from app.schemas import (
@@ -25,9 +26,7 @@ public_router = APIRouter(prefix="/news", tags=["news"])
 
 
 @public_router.get("/public", response_model=NewsPublicList)
-def read_public_news(
-    skip: int = 0, limit: int = 10
-) -> Any:
+def read_public_news(skip: int = 0, limit: int = 10) -> Any:
     """
     Retrieve published news. Public endpoint - no authentication required.
     """
@@ -36,7 +35,9 @@ def read_public_news(
     from app.core.db import engine
 
     with Session(engine) as session:
-        count_statement = select(func.count()).select_from(News).where(News.is_published.is_(True))
+        count_statement = (
+            select(func.count()).select_from(News).where(News.is_published.is_(True))
+        )
         count = session.exec(count_statement).one()
 
         statement = (
@@ -61,7 +62,9 @@ def read_public_news(
                 owner = session.get(User, news_item.owner_id)
                 if owner:
                     owner_dict = owner.model_dump()
-                    owner_dict["is_first_superuser"] = owner.email == app_settings.FIRST_SUPERUSER
+                    owner_dict["is_first_superuser"] = (
+                        owner.email == app_settings.FIRST_SUPERUSER
+                    )
                     owner_public = UserPublic.model_validate(owner_dict)
 
             # Load images
@@ -87,7 +90,11 @@ def read_public_news(
                 published_at=news_item.published_at,
                 created_at=news_item.created_at,
                 updated_at=news_item.updated_at,
-                images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+                images=[
+                    NewsImagePublic.model_validate(img.model_dump()) for img in images
+                ]
+                if images
+                else None,
             )
             news_public_list.append(news_public)
 
@@ -110,7 +117,7 @@ def read_public_news_item(id: uuid.UUID) -> Any:
         )
         news_item = session.exec(statement).first()
         if not news_item:
-            raise HTTPException(status_code=404, detail="News not found")
+            raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
         from app.core.config import settings as app_settings
         from app.models import User
@@ -121,7 +128,9 @@ def read_public_news_item(id: uuid.UUID) -> Any:
             owner = session.get(User, news_item.owner_id)
             if owner:
                 owner_dict = owner.model_dump()
-                owner_dict["is_first_superuser"] = owner.email == app_settings.FIRST_SUPERUSER
+                owner_dict["is_first_superuser"] = (
+                    owner.email == app_settings.FIRST_SUPERUSER
+                )
                 owner_public = UserPublic.model_validate(owner_dict)
 
         images = []
@@ -145,7 +154,9 @@ def read_public_news_item(id: uuid.UUID) -> Any:
             published_at=news_item.published_at,
             created_at=news_item.created_at,
             updated_at=news_item.updated_at,
-            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images]
+            if images
+            else None,
         )
 
 
@@ -158,12 +169,7 @@ def read_news(
     """
     count_statement = select(func.count()).select_from(News)
     count = session.exec(count_statement).one()
-    statement = (
-        select(News)
-        .order_by(News.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-    )
+    statement = select(News).order_by(News.created_at.desc()).offset(skip).limit(limit)
     news_list = session.exec(statement).all()
 
     from app.models import User
@@ -178,7 +184,9 @@ def read_news(
             owner = session.get(User, news_item.owner_id)
             if owner:
                 owner_dict = owner.model_dump()
-                owner_dict["is_first_superuser"] = owner.email == settings.FIRST_SUPERUSER
+                owner_dict["is_first_superuser"] = (
+                    owner.email == settings.FIRST_SUPERUSER
+                )
                 owner_public = UserPublic.model_validate(owner_dict)
 
         # Load images
@@ -204,7 +212,9 @@ def read_news(
             published_at=news_item.published_at,
             created_at=news_item.created_at,
             updated_at=news_item.updated_at,
-            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+            images=[NewsImagePublic.model_validate(img.model_dump()) for img in images]
+            if images
+            else None,
         )
         news_public_list.append(news_public)
 
@@ -220,7 +230,7 @@ def read_news_item(
     """
     news_item = session.get(News, id)
     if not news_item:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
 
     # Load owner and convert to UserPublic
     from app.models import User
@@ -257,7 +267,9 @@ def read_news_item(
         published_at=news_item.published_at,
         created_at=news_item.created_at,
         updated_at=news_item.updated_at,
-        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images]
+        if images
+        else None,
     )
 
 
@@ -268,9 +280,7 @@ def create_news(
     """
     Create new news.
     """
-    news = create_news_repo(
-        session=session, news_in=news_in, owner_id=current_user.id
-    )
+    news = create_news_repo(session=session, news_in=news_in, owner_id=current_user.id)
     return news
 
 
@@ -287,23 +297,27 @@ def update_news(
     """
     news = session.get(News, id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     update_dict = news_in.model_dump(exclude_unset=True)
     now = datetime.now(timezone.utc)
 
     # Only superusers can change owner
     # Check if owner_id is explicitly provided (even if None)
-    if hasattr(news_in, 'owner_id') and news_in.owner_id is not None:
+    if hasattr(news_in, "owner_id") and news_in.owner_id is not None:
         if not current_user.is_superuser:
-            raise HTTPException(status_code=403, detail="Only superusers can change news owner")
+            raise ForbiddenError(
+                ErrorCode.NEWS_OWNER_CHANGE_FORBIDDEN,
+                "Only superusers can change news owner",
+            )
         # Validate that the new owner exists
         from app.models import User
+
         new_owner = session.get(User, news_in.owner_id)
         if not new_owner:
-            raise HTTPException(status_code=404, detail="Owner user not found")
+            raise NotFoundError(ErrorCode.NEWS_OWNER_NOT_FOUND, "Owner user not found")
         update_dict["owner_id"] = news_in.owner_id
 
     if "is_published" in update_dict:
@@ -351,7 +365,9 @@ def update_news(
         published_at=news.published_at,
         created_at=news.created_at,
         updated_at=news.updated_at,
-        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images] if images else None,
+        images=[NewsImagePublic.model_validate(img.model_dump()) for img in images]
+        if images
+        else None,
     )
 
 
@@ -365,9 +381,9 @@ def delete_news(
     """
     news = session.get(News, id)
     if not news:
-        raise HTTPException(status_code=404, detail="News not found")
+        raise NotFoundError(ErrorCode.NEWS_NOT_FOUND, "News not found")
     if not current_user.is_superuser and news.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+        raise ForbiddenError(ErrorCode.NEWS_FORBIDDEN, "Not enough permissions")
 
     # Get all images for this news item
     images_statement = select(NewsImage).where(NewsImage.news_id == id)
@@ -395,4 +411,3 @@ def delete_news(
     session.commit()
 
     return Message(message="News deleted successfully")
-

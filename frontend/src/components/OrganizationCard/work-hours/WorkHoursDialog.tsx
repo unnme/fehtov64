@@ -17,6 +17,8 @@ interface WorkHoursDialogProps {
 	onChange: (value: WorkHours) => void
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
+	title?: string
+	includeWeekends?: boolean
 }
 
 export const WorkHoursDialog = ({
@@ -24,6 +26,8 @@ export const WorkHoursDialog = ({
 	onChange,
 	isOpen,
 	onOpenChange,
+	title = 'Режим работы',
+	includeWeekends = true,
 }: WorkHoursDialogProps) => {
 	const [localValue, setLocalValue] = useState<WorkHours>(value)
 
@@ -54,10 +58,10 @@ export const WorkHoursDialog = ({
 				}}
 			>
 				<DialogHeader>
-					<DialogTitle className="text-lg sm:text-xl">Режим работы</DialogTitle>
+					<DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
 				</DialogHeader>
 				<div className="py-4 sm:py-6">
-					<WorkHoursEditor value={localValue} onChange={setLocalValue} />
+					<WorkHoursEditor value={localValue} onChange={setLocalValue} includeWeekends={includeWeekends} />
 				</div>
 				<DialogFooter className="gap-2 border-t pt-3 sm:pt-4 mt-3 sm:mt-4 flex-col sm:flex-row">
 					<Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto sm:min-w-25">

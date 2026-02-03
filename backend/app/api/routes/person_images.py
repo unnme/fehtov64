@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from sqlmodel import select
 
 from app.api.deps import SessionDep, get_current_active_superuser
+from app.core.errors import ErrorCode, NotFoundError
 from app.models import Person, PersonImage
 from app.schemas import Message, PersonImagePublic
 from app.services.image_service import image_service
@@ -23,7 +24,7 @@ async def upload_person_image(
 ) -> Any:
     person = session.get(Person, person_id)
     if not person:
-        raise HTTPException(status_code=404, detail="Person not found")
+        raise NotFoundError(ErrorCode.PERSON_NOT_FOUND, "Person not found")
 
     existing = session.exec(
         select(PersonImage).where(PersonImage.person_id == person_id)
@@ -70,13 +71,13 @@ async def upload_person_image(
 def get_person_image(person_id: uuid.UUID, session: SessionDep) -> Any:
     person = session.get(Person, person_id)
     if not person:
-        raise HTTPException(status_code=404, detail="Person not found")
+        raise NotFoundError(ErrorCode.PERSON_NOT_FOUND, "Person not found")
 
     image = session.exec(
         select(PersonImage).where(PersonImage.person_id == person_id)
     ).first()
     if not image:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.PERSON_IMAGE_NOT_FOUND, "Person image not found")
     return image
 
 
@@ -84,13 +85,13 @@ def get_person_image(person_id: uuid.UUID, session: SessionDep) -> Any:
 def get_person_image_file(person_id: uuid.UUID, session: SessionDep) -> FileResponse:
     person = session.get(Person, person_id)
     if not person:
-        raise HTTPException(status_code=404, detail="Person not found")
+        raise NotFoundError(ErrorCode.PERSON_NOT_FOUND, "Person not found")
 
     image = session.exec(
         select(PersonImage).where(PersonImage.person_id == person_id)
     ).first()
     if not image:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.PERSON_IMAGE_NOT_FOUND, "Person image not found")
 
     upload_dir = image_service.UPLOAD_DIR
     file_path = upload_dir / image.file_path
@@ -117,6 +118,7 @@ def get_person_image_file(person_id: uuid.UUID, session: SessionDep) -> FileResp
             break
 
     if not found_path:
+        # 404 with technical details for debugging
         raise HTTPException(
             status_code=404,
             detail=f"Image file not found. Checked paths: {[str(p) for p in possible_paths[:3]]}",
@@ -133,13 +135,13 @@ def get_person_image_file(person_id: uuid.UUID, session: SessionDep) -> FileResp
 def delete_person_image(person_id: uuid.UUID, session: SessionDep) -> Message:
     person = session.get(Person, person_id)
     if not person:
-        raise HTTPException(status_code=404, detail="Person not found")
+        raise NotFoundError(ErrorCode.PERSON_NOT_FOUND, "Person not found")
 
     image = session.exec(
         select(PersonImage).where(PersonImage.person_id == person_id)
     ).first()
     if not image:
-        raise HTTPException(status_code=404, detail="Image not found")
+        raise NotFoundError(ErrorCode.PERSON_IMAGE_NOT_FOUND, "Person image not found")
 
     file_path = image_service.UPLOAD_DIR / image.file_path
     if file_path.exists():

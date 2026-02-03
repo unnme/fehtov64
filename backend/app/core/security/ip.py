@@ -1,11 +1,52 @@
+"""IP-based security: blocking and registration tracking."""
+
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from time import time
+from typing import Any
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 from starlette.responses import Response
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Get client IP address considering proxy headers.
+
+    Priority:
+    1. X-Forwarded-For header (first IP)
+    2. X-Real-IP header
+    3. Direct client IP
+    """
+    if not request:
+        return "unknown"
+
+    # Check X-Forwarded-For header (priority 1)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        first_ip = forwarded_for.split(",")[0].strip()
+        if first_ip:
+            return first_ip
+
+    # Check X-Real-IP header (priority 2)
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        real_ip_clean = real_ip.strip()
+        if real_ip_clean:
+            return real_ip_clean
+
+    # Fallback to direct IP (priority 3)
+    if request.client and request.client.host:
+        return request.client.host
+
+    return "unknown"
+
+
+# =============================================================================
+# IP Blocking
+# =============================================================================
 
 # Global instance for access from routers
 _ip_blocking_instance: "IPBlockingMiddleware | None" = None
@@ -14,6 +55,7 @@ _ip_blocking_instance: "IPBlockingMiddleware | None" = None
 @dataclass
 class IPBlockInfo:
     """IP blocking information."""
+
     ip: str
     blocked_until: float
     failed_attempts_count: int
@@ -32,7 +74,7 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
 
     def __init__(
         self,
-        app,
+        app: Any,
         max_failed_attempts: int = 5,
         block_duration: int = 3600,  # 1 hour by default
         window_period: int = 900,  # 15 minutes for counting attempts
@@ -46,39 +88,11 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
         # Store blocked IPs with full info: {ip: IPBlockInfo}
         self.blocked_ips: dict[str, IPBlockInfo] = {}
         # Store additional attempt metadata: {ip: {user_agent, attempted_emails}}
-        self.ip_metadata: dict[str, dict[str, any]] = {}
+        self.ip_metadata: dict[str, dict[str, Any]] = {}
 
         # Save instance globally for access from routers
         global _ip_blocking_instance
         _ip_blocking_instance = self
-
-    def _get_client_ip(self, request: Request) -> str:
-        """Get client IP address considering proxy headers."""
-        if not request:
-            return "unknown"
-
-        # Check X-Forwarded-For header (priority 1)
-        forwarded_for = request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            # Take first IP from list (real client IP)
-            first_ip = forwarded_for.split(",")[0].strip()
-            # Only return if we got a non-empty IP address
-            if first_ip:
-                return first_ip
-
-        # Check X-Real-IP header (priority 2)
-        real_ip = request.headers.get("X-Real-IP")
-        if real_ip:
-            real_ip_clean = real_ip.strip()
-            # Only return if we got a non-empty IP address
-            if real_ip_clean:
-                return real_ip_clean
-
-        # Fallback to direct IP (priority 3)
-        if request.client and request.client.host:
-            return request.client.host
-
-        return "unknown"
 
     def _is_ip_blocked(self, ip: str) -> bool:
         """Check if IP is blocked."""
@@ -119,7 +133,10 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
         if user_agent and not self.ip_metadata[ip].get("user_agent"):
             self.ip_metadata[ip]["user_agent"] = user_agent
 
-        if attempted_email and attempted_email not in self.ip_metadata[ip]["attempted_emails"]:
+        if (
+            attempted_email
+            and attempted_email not in self.ip_metadata[ip]["attempted_emails"]
+        ):
             self.ip_metadata[ip]["attempted_emails"].append(attempted_email)
 
         # Clean old attempts (older than window_period)
@@ -133,7 +150,9 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
         if len(self.failed_attempts[ip]) >= self.max_failed_attempts:
             block_until = now + self.block_duration
             metadata = self.ip_metadata.get(ip, {})
-            first_attempt = min(self.failed_attempts[ip]) if self.failed_attempts[ip] else now
+            first_attempt = (
+                min(self.failed_attempts[ip]) if self.failed_attempts[ip] else now
+            )
 
             self.blocked_ips[ip] = IPBlockInfo(
                 ip=ip,
@@ -158,7 +177,7 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
     def _block_ip_honeypot(self, ip: str, request: Request) -> None:
         """Immediately block IP on honeypot trigger."""
         now = time()
-        block_until = now + self.block_duration * 2  # Block for double duration for honeypot
+        block_until = now + self.block_duration * 2  # Block for double duration
 
         user_agent = request.headers.get("User-Agent")
 
@@ -182,11 +201,12 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Check honeypot endpoint
         if request.url.path == "/api/v1/auth/honeypot" and request.method == "POST":
-            client_ip = self._get_client_ip(request)
+            client_ip = get_client_ip(request)
             # Immediately block IP on honeypot trigger
             self._block_ip_honeypot(client_ip, request)
             # Return success response so bot doesn't realize it was caught
             from fastapi.responses import JSONResponse
+
             return JSONResponse(
                 content={"message": "OK"},
                 status_code=200,
@@ -194,7 +214,7 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
 
         # Check only login endpoint
         if request.url.path == "/api/v1/auth/access-token" and request.method == "POST":
-            client_ip = self._get_client_ip(request)
+            client_ip = get_client_ip(request)
 
             # Check if IP is blocked
             if self._is_ip_blocked(client_ip):
@@ -203,24 +223,26 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
                 hours = remaining_time // 3600
                 minutes = (remaining_time % 3600) // 60
 
-                reason_msg = "multiple failed login attempts" if block_info.block_reason == "multiple_failed_logins" else "suspicious activity detected"
+                reason_msg = (
+                    "multiple failed login attempts"
+                    if block_info.block_reason == "multiple_failed_logins"
+                    else "suspicious activity detected"
+                )
 
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"IP address blocked due to {reason_msg}. "
-                           f"Please try again in {hours}h {minutes}m.",
+                    f"Please try again in {hours}h {minutes}m.",
                 )
 
             # Get metadata from request
             user_agent = request.headers.get("User-Agent")
-            # Email will be recorded in endpoint on error, here only basic info
 
             # Execute request and catch exceptions
             try:
                 response = await call_next(request)
 
                 # If login failed (400 or 401), record attempt
-                # (email already recorded in endpoint)
                 if response.status_code in (400, 401):
                     self._record_failed_attempt(client_ip, user_agent, None)
                 # If login successful (200), clear failed attempts
@@ -230,13 +252,10 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
                 return response
             except HTTPException as e:
                 # If 400 or 401 error, record failed attempt
-                # (email already recorded in endpoint on error)
                 if e.status_code in (400, 401):
                     self._record_failed_attempt(client_ip, user_agent, None)
-                # Re-raise exception
                 raise
             except Exception:
-                # For other exceptions just re-raise
                 raise
 
         return await call_next(request)
@@ -257,7 +276,8 @@ class IPBlockingMiddleware(BaseHTTPMiddleware):
         now = time()
         # Clear expired blocks
         expired_ips = [
-            ip for ip, block_info in self.blocked_ips.items()
+            ip
+            for ip, block_info in self.blocked_ips.items()
             if now >= block_info.blocked_until
         ]
         for ip in expired_ips:
@@ -274,3 +294,44 @@ def get_ip_blocking_middleware() -> IPBlockingMiddleware | None:
     """Get IP blocking middleware instance for use in routers."""
     return _ip_blocking_instance
 
+
+# =============================================================================
+# IP Registration Tracking
+# =============================================================================
+
+
+class IPRegistrationTracker:
+    """
+    IP address registration tracker.
+    Limits number of registrations from single IP.
+    """
+
+    def __init__(self, max_registrations_per_ip: int = 2):
+        self.max_registrations_per_ip = max_registrations_per_ip
+        # Store number of registered users from each IP: {ip: count}
+        self.ip_registrations: dict[str, int] = defaultdict(int)
+
+    def can_register(self, ip: str) -> bool:
+        """Check if IP can register a new user."""
+        # Ignore "unknown" IP for softer validation
+        if ip == "unknown":
+            return True
+        return self.ip_registrations[ip] < self.max_registrations_per_ip
+
+    def record_registration(self, ip: str) -> None:
+        """Record registration from IP."""
+        if ip != "unknown":
+            self.ip_registrations[ip] += 1
+
+    def get_registration_count(self, ip: str) -> int:
+        """Get registration count from IP."""
+        return self.ip_registrations.get(ip, 0)
+
+
+# Global tracker instance
+_ip_registration_tracker = IPRegistrationTracker(max_registrations_per_ip=2)
+
+
+def get_ip_registration_tracker() -> IPRegistrationTracker:
+    """Get global registration tracker instance."""
+    return _ip_registration_tracker
