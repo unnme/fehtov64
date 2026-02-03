@@ -1,6 +1,6 @@
-# Organization Management System
+# Fencing School Portal
 
-Full-stack application for managing organization: news, documents, employees, positions, organization card.
+Web portal for fencing school management: news, documents, coaches, and contact information.
 
 ## Architecture Overview
 
