@@ -1,7 +1,9 @@
 /**
  * Common components exports
  */
-export { Appearance, SidebarAppearance } from './Appearance'
+export { AccessibilityWidget } from './AccessibilityWidget'
+export { AdminNavbar } from './AdminNavbar'
+export { Appearance } from './Appearance'
 export { ActionsMenu } from './ActionsMenu'
 export { AuthLayout } from './AuthLayout'
 export { Breadcrumbs } from './Breadcrumbs'

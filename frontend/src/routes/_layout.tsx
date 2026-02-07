@@ -1,8 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 import { UsersService } from "@/client";
-import { AppSidebar } from "@/components/Sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AdminNavbar } from "@/components/Common/AdminNavbar";
 import { isLoggedIn } from "@/hooks/useAuth";
 
 // Protected layout route - requires authentication
@@ -30,14 +29,12 @@ export const Route = createFileRoute("/_layout")({
 
 function Layout() {
   return (
-    <SidebarProvider className="h-svh">
-      <AppSidebar />
-      <SidebarInset className="h-full flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-hidden flex flex-col min-h-0">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="h-svh flex flex-col">
+      <AdminNavbar />
+      <main className="flex-1 overflow-hidden flex flex-col min-h-0">
+        <Outlet />
+      </main>
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { Menu } from 'lucide-react'
 
+import { AccessibilityWidget } from '@/components/Common/AccessibilityWidget'
 import { Appearance } from '@/components/Common/Appearance'
 import { Button } from '@/components/ui/button'
 import {
@@ -128,9 +129,10 @@ export function Navbar() {
 					</ul>
 				</nav>
 
-				{/* Theme Toggle */}
-				<div className="ml-auto">
+				{/* Theme Toggle & Accessibility */}
+				<div className="ml-auto flex items-center gap-2">
 					<Appearance />
+					<AccessibilityWidget />
 				</div>
 			</div>
 		</header>
