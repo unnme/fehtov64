@@ -20,6 +20,7 @@ interface UseYandexMapProps {
 	initialCoords?: MapCoords | null
 	onCoordsChange?: (coords: MapCoords) => void
 	interactive?: boolean
+	enabled?: boolean
 }
 
 const DEFAULT_CENTER: [number, number] = [55.751244, 37.618423]
@@ -32,7 +33,8 @@ export const useYandexMap = ({
 	containerRef,
 	initialCoords = null,
 	onCoordsChange,
-	interactive = true
+	interactive = true,
+	enabled = true
 }: UseYandexMapProps) => {
 	const [isReady, setIsReady] = useState(false)
 
@@ -70,7 +72,7 @@ export const useYandexMap = ({
 	}, [])
 
 	useEffect(() => {
-		if (!hasApiKey || !apiKey) return
+		if (!enabled || !hasApiKey || !apiKey) return
 
 		let isMounted = true
 		let animationFrameId: number | null = null
@@ -157,7 +159,7 @@ export const useYandexMap = ({
 				setIsReady(false)
 			}
 		}
-	}, [hasApiKey, apiKey, containerRef, interactive])
+	}, [enabled, hasApiKey, apiKey, containerRef, interactive])
 
 	// Update marker when coords change externally (for read-only map)
 	useEffect(() => {

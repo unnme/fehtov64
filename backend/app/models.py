@@ -165,5 +165,22 @@ class OrganizationCard(SQLModel, table=True):
     max_url: str | None = Field(default=None, max_length=500)
     latitude: float | None = None
     longitude: float | None = None
+    # Organization details (requisites)
+    legal_address: str | None = Field(default=None, max_length=500)
+    legal_latitude: float | None = None
+    legal_longitude: float | None = None
+    inn: str | None = Field(default=None, max_length=10)
+    kpp: str | None = Field(default=None, max_length=9)
+    okpo: str | None = Field(default=None, max_length=8)
+    ogrn: str | None = Field(default=None, max_length=13)
+    okfs: str | None = Field(default=None, max_length=2)
+    okogu: str | None = Field(default=None, max_length=7)
+    okopf: str | None = Field(default=None, max_length=5)
+    oktmo: str | None = Field(default=None, max_length=11)
+    okato: str | None = Field(default=None, max_length=11)
+    # Bank details
+    bank_recipient: str | None = Field(default=None, max_length=500)
+    bank_account: str | None = Field(default=None, max_length=20)
+    bank_bik: str | None = Field(default=None, max_length=9)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -964,6 +964,184 @@ export const OrganizationCardCreateSchema = {
                 }
             ],
             title: 'Longitude'
+        },
+        legal_address: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Address'
+        },
+        legal_latitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Latitude'
+        },
+        legal_longitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Longitude'
+        },
+        inn: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 10
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Inn'
+        },
+        kpp: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 9
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Kpp'
+        },
+        okpo: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 8
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okpo'
+        },
+        ogrn: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 13
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ogrn'
+        },
+        okfs: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okfs'
+        },
+        okogu: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 7
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okogu'
+        },
+        okopf: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okopf'
+        },
+        oktmo: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 11
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oktmo'
+        },
+        okato: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 11
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okato'
+        },
+        bank_recipient: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Recipient'
+        },
+        bank_account: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Account'
+        },
+        bank_bik: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 9
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Bik'
         }
     },
     type: 'object',
@@ -1110,6 +1288,171 @@ export const OrganizationCardPublicSchema = {
             ],
             title: 'Longitude'
         },
+        legal_address: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Address'
+        },
+        legal_latitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Latitude'
+        },
+        legal_longitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Longitude'
+        },
+        inn: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Inn'
+        },
+        kpp: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Kpp'
+        },
+        okpo: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okpo'
+        },
+        ogrn: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ogrn'
+        },
+        okfs: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okfs'
+        },
+        okogu: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okogu'
+        },
+        okopf: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okopf'
+        },
+        oktmo: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oktmo'
+        },
+        okato: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okato'
+        },
+        bank_recipient: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Recipient'
+        },
+        bank_account: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Account'
+        },
+        bank_bik: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Bik'
+        },
         created_at: {
             type: 'string',
             format: 'date-time',
@@ -1136,6 +1479,21 @@ export const OrganizationCardPublicSchema = {
         'max_url',
         'latitude',
         'longitude',
+        'legal_address',
+        'legal_latitude',
+        'legal_longitude',
+        'inn',
+        'kpp',
+        'okpo',
+        'ogrn',
+        'okfs',
+        'okogu',
+        'okopf',
+        'oktmo',
+        'okato',
+        'bank_recipient',
+        'bank_account',
+        'bank_bik',
         'created_at',
         'updated_at'
     ],
@@ -1289,6 +1647,184 @@ export const OrganizationCardUpdateSchema = {
                 }
             ],
             title: 'Longitude'
+        },
+        legal_address: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Address'
+        },
+        legal_latitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Latitude'
+        },
+        legal_longitude: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Legal Longitude'
+        },
+        inn: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 10
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Inn'
+        },
+        kpp: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 9
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Kpp'
+        },
+        okpo: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 8
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okpo'
+        },
+        ogrn: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 13
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ogrn'
+        },
+        okfs: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 2
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okfs'
+        },
+        okogu: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 7
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okogu'
+        },
+        okopf: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 5
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okopf'
+        },
+        oktmo: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 11
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oktmo'
+        },
+        okato: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 11
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Okato'
+        },
+        bank_recipient: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 500
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Recipient'
+        },
+        bank_account: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 20
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Account'
+        },
+        bank_bik: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 9
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Bank Bik'
         }
     },
     type: 'object',
@@ -1722,6 +2258,64 @@ export const PositionsPublicSchema = {
     ],
     title: 'PositionsPublic',
     description: 'Position list with count.'
+} as const;
+
+export const SignatureInfoSchema = {
+    properties: {
+        signer_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Signer Name'
+        },
+        signer_position: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Signer Position'
+        },
+        signing_time: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Signing Time'
+        },
+        signature_hash: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Signature Hash'
+        },
+        is_signed: {
+            type: 'boolean',
+            title: 'Is Signed',
+            default: false
+        }
+    },
+    type: 'object',
+    title: 'SignatureInfo',
+    description: 'Information about PDF digital signature.'
 } as const;
 
 export const TokenSchema = {

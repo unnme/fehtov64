@@ -1,11 +1,23 @@
 """Document file service for saving and managing document files."""
 import shutil
 import uuid
+from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from fastapi import HTTPException, UploadFile
+from pydantic import BaseModel
 
 from app.core.config import settings
+
+
+class SignatureInfo(BaseModel):
+    """Information about PDF digital signature."""
+    signer_name: str | None = None
+    signer_position: str | None = None
+    signing_time: datetime | None = None
+    signature_hash: str | None = None
+    is_signed: bool = False
 
 UPLOAD_DIR = Path(settings.UPLOAD_DIR)
 if not UPLOAD_DIR.is_absolute():
@@ -126,6 +138,116 @@ class DocumentService:
             except Exception:
                 # Log error but don't fail
                 pass
+
+
+    @classmethod
+    def get_signature_info(cls, file_path: str) -> SignatureInfo:
+        """
+        Extract digital signature information from PDF file.
+
+        Args:
+            file_path: Relative path to document file
+
+        Returns:
+            SignatureInfo with signature details or is_signed=False if not signed
+        """
+        full_path = cls.UPLOAD_DIR / file_path
+
+        if not full_path.exists() or not full_path.is_file():
+            return SignatureInfo(is_signed=False)
+
+        if not str(full_path).lower().endswith(".pdf"):
+            return SignatureInfo(is_signed=False)
+
+        try:
+            from pypdf import PdfReader
+
+            reader = PdfReader(str(full_path))
+
+            if "/AcroForm" not in reader.trailer.get("/Root", {}):
+                return SignatureInfo(is_signed=False)
+
+            root = reader.trailer["/Root"]
+            if "/AcroForm" not in root:
+                return SignatureInfo(is_signed=False)
+
+            acro_form = root["/AcroForm"]
+            if "/Fields" not in acro_form:
+                return SignatureInfo(is_signed=False)
+
+            fields = acro_form["/Fields"]
+
+            for field_ref in fields:
+                field = field_ref.get_object()
+                field_type = field.get("/FT")
+
+                if field_type == "/Sig":
+                    sig_value = field.get("/V")
+                    if sig_value is None:
+                        continue
+
+                    sig_obj = sig_value.get_object() if hasattr(sig_value, "get_object") else sig_value
+
+                    signer_name = None
+                    signer_position = None
+                    signing_time = None
+                    signature_hash = None
+
+                    if "/Name" in sig_obj:
+                        signer_name = str(sig_obj["/Name"])
+
+                    if "/Reason" in sig_obj:
+                        signer_position = str(sig_obj["/Reason"])
+
+                    if "/M" in sig_obj:
+                        time_str = str(sig_obj["/M"])
+                        signing_time = cls._parse_pdf_date(time_str)
+
+                    if "/Contents" in sig_obj:
+                        contents = sig_obj["/Contents"]
+                        if isinstance(contents, bytes):
+                            signature_hash = contents[:32].hex().upper()
+                        else:
+                            signature_hash = str(contents)[:64].upper()
+
+                    return SignatureInfo(
+                        signer_name=signer_name,
+                        signer_position=signer_position,
+                        signing_time=signing_time,
+                        signature_hash=signature_hash,
+                        is_signed=True,
+                    )
+
+            return SignatureInfo(is_signed=False)
+
+        except Exception:
+            return SignatureInfo(is_signed=False)
+
+    @staticmethod
+    def _parse_pdf_date(date_str: str) -> datetime | None:
+        """Parse PDF date string format: D:YYYYMMDDHHmmSS+HH'mm'"""
+        try:
+            if date_str.startswith("D:"):
+                date_str = date_str[2:]
+
+            date_str = date_str.replace("'", "")
+
+            if len(date_str) >= 14:
+                year = int(date_str[0:4])
+                month = int(date_str[4:6])
+                day = int(date_str[6:8])
+                hour = int(date_str[8:10])
+                minute = int(date_str[10:12])
+                second = int(date_str[12:14])
+                return datetime(year, month, day, hour, minute, second)
+            elif len(date_str) >= 8:
+                year = int(date_str[0:4])
+                month = int(date_str[4:6])
+                day = int(date_str[6:8])
+                return datetime(year, month, day)
+        except (ValueError, IndexError):
+            pass
+        return None
 
 
 # Global instance

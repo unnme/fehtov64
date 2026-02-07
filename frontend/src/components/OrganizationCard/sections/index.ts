@@ -1,4 +1,6 @@
+export { AddressSection } from './AddressSection'
 export { MapSection } from './MapSection'
 export { MessengersSection } from './MessengersSection'
 export { PhonesSection } from './PhonesSection'
+export { RequisitesSection } from './RequisitesSection'
 export { SocialLinks } from './SocialLinks'

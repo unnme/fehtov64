@@ -1,21 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock, MapPin, MapPinned, Navigation, UserRound } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, Clock, Mail, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { OrganizationCardService, type OrganizationCardPublic } from "@/client";
-import { MessengersSection, PhonesSection } from "@/components/OrganizationCard/sections";
+import { AddressSection, MessengersSection, PhonesSection, RequisitesSection } from "@/components/OrganizationCard/sections";
 import { WorkHoursDialog } from "@/components/OrganizationCard/work-hours";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -28,8 +22,6 @@ import { Input } from "@/components/ui/input";
 import { LoadingButton } from "@/components/ui/loading-button";
 import useAuth from "@/hooks/useAuth";
 import useCustomToast from "@/hooks/useCustomToast";
-import { useOrganizationCardMap } from "@/hooks/useOrganizationCardMap";
-import { useYandexMapsApiKey } from "@/hooks/useYandexMapsApiKey";
 import {
   organizationCardSchema,
   type OrganizationCardFormData,
@@ -55,8 +47,6 @@ function OrganizationCardPage() {
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const { showSuccessToast, showErrorToast } = useCustomToast();
-  const { apiKey, hasApiKey, rawKey } = useYandexMapsApiKey();
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [isWorkHoursDialogOpen, setIsWorkHoursDialogOpen] = useState(false);
   const [isDirectorHoursDialogOpen, setIsDirectorHoursDialogOpen] = useState(false);
 
@@ -86,22 +76,25 @@ function OrganizationCardPage() {
       max_url: "",
       latitude: undefined,
       longitude: undefined,
+      // Requisites
+      legal_address: "",
+      legal_latitude: undefined,
+      legal_longitude: undefined,
+      inn: "",
+      kpp: "",
+      okpo: "",
+      ogrn: "",
+      okfs: "",
+      okogu: "",
+      okopf: "",
+      oktmo: "",
+      okato: "",
+      // Bank details
+      bank_recipient: "",
+      bank_account: "",
+      bank_bik: "",
     },
   });
-
-  const initialCoords = useMemo(() => {
-    if (!data?.latitude || !data?.longitude) return null;
-    return { latitude: data.latitude, longitude: data.longitude };
-  }, [data?.latitude, data?.longitude]);
-
-  const { isGeocoding, isMapReady, handleGetCurrentLocation } =
-    useOrganizationCardMap({
-      apiKey,
-      hasApiKey,
-      initialCoords,
-      mapContainerRef,
-      setValue: form.setValue,
-    });
 
   useEffect(() => {
     if (!data) return;
@@ -133,6 +126,23 @@ function OrganizationCardPage() {
       max_url: data.max_url || "",
       latitude: data.latitude ?? undefined,
       longitude: data.longitude ?? undefined,
+      // Requisites
+      legal_address: data.legal_address || "",
+      legal_latitude: data.legal_latitude ?? undefined,
+      legal_longitude: data.legal_longitude ?? undefined,
+      inn: data.inn || "",
+      kpp: data.kpp || "",
+      okpo: data.okpo || "",
+      ogrn: data.ogrn || "",
+      okfs: data.okfs || "",
+      okogu: data.okogu || "",
+      okopf: data.okopf || "",
+      oktmo: data.oktmo || "",
+      okato: data.okato || "",
+      // Bank details
+      bank_recipient: data.bank_recipient || "",
+      bank_account: data.bank_account || "",
+      bank_bik: data.bank_bik || "",
     });
   }, [data, form]);
 
@@ -168,6 +178,23 @@ function OrganizationCardPage() {
         max_url: payload.max_url?.trim() || null,
         latitude: payload.latitude ?? null,
         longitude: payload.longitude ?? null,
+        // Requisites
+        legal_address: payload.legal_address?.trim() || null,
+        legal_latitude: payload.legal_latitude ?? null,
+        legal_longitude: payload.legal_longitude ?? null,
+        inn: payload.inn?.trim() || null,
+        kpp: payload.kpp?.trim() || null,
+        okpo: payload.okpo?.trim() || null,
+        ogrn: payload.ogrn?.trim() || null,
+        okfs: payload.okfs?.trim() || null,
+        okogu: payload.okogu?.trim() || null,
+        okopf: payload.okopf?.trim() || null,
+        oktmo: payload.oktmo?.trim() || null,
+        okato: payload.okato?.trim() || null,
+        // Bank details
+        bank_recipient: payload.bank_recipient?.trim() || null,
+        bank_account: payload.bank_account?.trim() || null,
+        bank_bik: payload.bank_bik?.trim() || null,
       };
 
       // Try update, create on 404
@@ -221,16 +248,9 @@ function OrganizationCardPage() {
 
       <div className="flex-1 overflow-auto px-4 pb-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Основные данные</CardTitle>
-            <CardDescription>
-              Заполните карточку, чтобы информация отображалась на странице
-              контактов
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {isLoading && (
-              <div className="text-sm text-muted-foreground mb-4">
+              <div className="text-sm text-muted-foreground mb-6">
                 Загрузка...
               </div>
             )}
@@ -240,14 +260,15 @@ function OrganizationCardPage() {
                 onSubmit={form.handleSubmit(handleSubmit)}
                 className="space-y-6 w-full"
               >
-                {/* Название и Email */}
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Основная информация */}
+                <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
                           Название организации
                           <span className="text-destructive ml-0.5">*</span>
                         </FormLabel>
@@ -266,7 +287,10 @@ function OrganizationCardPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Email
+                        </FormLabel>
                         <FormControl>
                           <Input
                             type="email"
@@ -280,188 +304,120 @@ function OrganizationCardPage() {
                   />
                 </div>
 
-                {/* Телефоны */}
-                <PhonesSection control={form.control} />
+                <hr className="border-border" />
 
-                {/* Мессенджеры и соц. сети */}
-                <MessengersSection
-                  control={form.control}
-                  setValue={form.setValue}
-                />
-
-                {/* Режим работы */}
-                <FormField
-                  control={form.control}
-                  name="work_hours"
-                  render={({ field }) => {
-                    const preview = field.value
-                      ? formatWorkHoursPreview(field.value)
-                      : "";
-                    return (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Режим работы
-                        </FormLabel>
-                        <FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full justify-start text-left h-auto py-3"
-                            onClick={() => setIsWorkHoursDialogOpen(true)}
-                          >
-                            <div className="flex flex-col items-start gap-1 w-full">
-                              <span className="text-sm font-medium">
-                                {preview || "Настроить рабочие дни и время"}
-                              </span>
-                              {preview && (
-                                <span className="text-xs text-muted-foreground">
-                                  Нажмите для редактирования
-                                </span>
-                              )}
-                            </div>
-                          </Button>
-                        </FormControl>
-                        <FormMessage />
-                        <WorkHoursDialog
-                          value={field.value ?? { days: [] }}
-                          onChange={field.onChange}
-                          isOpen={isWorkHoursDialogOpen}
-                          onOpenChange={setIsWorkHoursDialogOpen}
-                        />
-                      </FormItem>
-                    );
-                  }}
-                />
-
-                {/* Часы приема директора */}
-                <FormField
-                  control={form.control}
-                  name="director_hours"
-                  render={({ field }) => {
-                    const preview = field.value
-                      ? formatWorkHoursPreview(field.value, false)
-                      : "";
-                    return (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <UserRound className="h-4 w-4" />
-                          Часы приёма директора
-                        </FormLabel>
-                        <FormControl>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full justify-start text-left h-auto py-3"
-                            onClick={() => setIsDirectorHoursDialogOpen(true)}
-                          >
-                            <div className="flex flex-col items-start gap-1 w-full">
-                              <span className="text-sm font-medium">
-                                {preview || "Настроить дни и время приёма"}
-                              </span>
-                              {preview && (
-                                <span className="text-xs text-muted-foreground">
-                                  Нажмите для редактирования
-                                </span>
-                              )}
-                            </div>
-                          </Button>
-                        </FormControl>
-                        <FormMessage />
-                        <WorkHoursDialog
-                          value={field.value ?? { days: [] }}
-                          onChange={field.onChange}
-                          isOpen={isDirectorHoursDialogOpen}
-                          onOpenChange={setIsDirectorHoursDialogOpen}
-                          title="Часы приёма директора"
-                          includeWeekends={false}
-                        />
-                      </FormItem>
-                    );
-                  }}
-                />
-
-                {/* Адрес и карта */}
-                <div className="space-y-4">
-                  <FormField
+                {/* Контакты */}
+                <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+                  <PhonesSection
                     control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Адрес организации
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              {...field}
-                              readOnly
-                              value={field.value || ""}
-                              className="absolute opacity-0 pointer-events-none h-0 p-0 border-0"
-                              tabIndex={-1}
-                            />
-                            {field.value ? (
-                              <div className="text-sm py-2 wrap-break-words">
-                                {field.value}
-                              </div>
-                            ) : (
-                              <div className="text-sm text-muted-foreground py-2">
-                                Выберите точку на карте
-                              </div>
-                            )}
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    setValue={form.setValue}
                   />
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPinned className="h-4 w-4" />
-                        <span>Укажите адрес на карте</span>
-                        {isGeocoding && (
-                          <span className="animate-pulse">· ищу адрес...</span>
-                        )}
-                      </div>
-                      {hasApiKey && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleGetCurrentLocation}
-                          disabled={!isMapReady}
-                          className="flex items-center gap-2"
-                        >
-                          <Navigation className="h-4 w-4" />
-                          Моё местоположение
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="overflow-hidden rounded-lg border h-72 w-full">
-                      {hasApiKey ? (
-                        <div ref={mapContainerRef} className="h-full w-full" />
-                      ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-sm text-muted-foreground p-4">
-                          <div>
-                            Укажите VITE_YANDEX_MAPS_API_KEY в файле .env
-                          </div>
-                          <div className="text-xs mt-2 text-center opacity-50">
-                            Значение:{" "}
-                            {rawKey
-                              ? `"${String(rawKey).slice(0, 20)}..."`
-                              : "не задано"}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <MessengersSection
+                    control={form.control}
+                    setValue={form.setValue}
+                  />
                 </div>
 
-                <div className="flex justify-end">
+                <hr className="border-border" />
+
+                {/* Расписание */}
+                <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="work_hours"
+                    render={({ field }) => {
+                      const preview = field.value
+                        ? formatWorkHoursPreview(field.value)
+                        : "";
+                      return (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Режим работы
+                          </FormLabel>
+                          <FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full justify-start text-left h-auto min-h-[58px] py-2.5"
+                              onClick={() => setIsWorkHoursDialogOpen(true)}
+                            >
+                              <div className="flex flex-col items-start gap-0.5 w-full min-w-0">
+                                <span className="text-xs text-muted-foreground whitespace-normal text-left" style={{ wordBreak: 'break-word' }}>
+                                  {preview || 'Режим работы не указан'}
+                                </span>
+                              </div>
+                            </Button>
+                          </FormControl>
+                          <FormMessage />
+                          <WorkHoursDialog
+                            value={field.value ?? { days: [] }}
+                            onChange={field.onChange}
+                            isOpen={isWorkHoursDialogOpen}
+                            onOpenChange={setIsWorkHoursDialogOpen}
+                          />
+                        </FormItem>
+                      );
+                    }}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="director_hours"
+                    render={({ field }) => {
+                      const preview = field.value
+                        ? formatWorkHoursPreview(field.value, false)
+                        : "";
+                      return (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            <UserRound className="h-4 w-4" />
+                            Часы приёма директора
+                          </FormLabel>
+                          <FormControl>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="w-full justify-start text-left h-auto min-h-[58px] py-2.5"
+                              onClick={() => setIsDirectorHoursDialogOpen(true)}
+                            >
+                              <div className="flex flex-col items-start gap-0.5 w-full min-w-0">
+                                <span className="text-xs text-muted-foreground whitespace-normal text-left" style={{ wordBreak: 'break-word' }}>
+                                  {preview || 'Часы приёма не указаны'}
+                                </span>
+                              </div>
+                            </Button>
+                          </FormControl>
+                          <FormMessage />
+                          <WorkHoursDialog
+                            value={field.value ?? { days: [] }}
+                            onChange={field.onChange}
+                            isOpen={isDirectorHoursDialogOpen}
+                            onOpenChange={setIsDirectorHoursDialogOpen}
+                            title="Часы приёма директора"
+                            includeWeekends={false}
+                          />
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
+
+                <hr className="border-border" />
+
+                {/* Адрес и Реквизиты */}
+                <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
+                  <AddressSection
+                    control={form.control}
+                    setValue={form.setValue}
+                  />
+                  <RequisitesSection
+                    control={form.control}
+                    setValue={form.setValue}
+                  />
+                </div>
+
+                <div className="flex justify-end pt-4">
                   <LoadingButton type="submit" loading={mutation.isPending}>
                     Сохранить
                   </LoadingButton>

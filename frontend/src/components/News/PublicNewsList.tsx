@@ -2,19 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
-import { Image as ImageIcon } from 'lucide-react'
+import { Calendar, Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { ImagesService, NewsService, type NewsImagePublic, type NewsPublic, type NewsPublicList } from '@/client'
 import { unwrapResponse } from '@/utils'
 import { extractTextFromHTML } from '@/utils/html'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '@/components/ui/card'
 import {
 	Pagination,
 	PaginationContent,
@@ -48,7 +41,7 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg flex items-center justify-center animate-pulse shrink-0">
+			<div className="w-32 h-24 sm:w-40 sm:h-28 bg-muted rounded-xl flex items-center justify-center animate-pulse shrink-0">
 				<span className="text-xs text-muted-foreground">...</span>
 			</div>
 		)
@@ -56,8 +49,8 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 
 	if (!firstImage) {
 		return (
-			<div className="w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg border border-dashed flex items-center justify-center shrink-0">
-				<ImageIcon className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/50" />
+			<div className="w-32 h-24 sm:w-40 sm:h-28 bg-muted/50 rounded-xl flex items-center justify-center shrink-0">
+				<ImageIcon className="size-10 text-muted-foreground/30" />
 			</div>
 		)
 	}
@@ -65,18 +58,18 @@ function NewsPreviewImage({ newsId }: { newsId: string }) {
 	const imageUrl = getImageFileUrl(newsId, firstImage.id)
 
 	return (
-		<div className="w-32 h-32 sm:w-40 sm:h-40 rounded-lg overflow-hidden border bg-muted shrink-0">
+		<div className="w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden bg-muted shrink-0">
 			<img
 				src={imageUrl}
 				alt={firstImage.file_name}
-				className="w-full h-full object-cover"
+				className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
 				loading="lazy"
 				onError={e => {
 					const target = e.target as HTMLImageElement
 					target.style.display = 'none'
 					if (target.parentElement) {
 						target.parentElement.className =
-							'w-32 h-32 sm:w-40 sm:h-40 bg-muted rounded-lg flex items-center justify-center flex-shrink-0'
+							'w-32 h-24 sm:w-40 sm:h-28 bg-muted rounded-xl flex items-center justify-center shrink-0'
 						target.parentElement.innerHTML =
 							'<span class="text-xs text-muted-foreground">Ошибка</span>'
 					}
@@ -138,54 +131,45 @@ export function PublicNewsList() {
 
 	return (
 		<div className="container py-6 sm:py-8 lg:py-12 mx-auto px-4 sm:px-6">
-			<div className="space-y-4 sm:space-y-6 mb-8">
+			<div className="space-y-4 mb-8">
 				{data.data.map((news: NewsPublic) => (
-					<Card
+					<Link
 						key={news.id}
-						className="hover:shadow-lg transition-shadow"
+						to="/news/$newsId"
+						params={{ newsId: news.id }}
+						className="group block"
 					>
-						<div className="flex flex-col sm:flex-row gap-4 p-4 sm:p-6">
+						<article className="flex gap-4 sm:gap-6 p-4 sm:p-5 rounded-xl border bg-card transition-colors hover:bg-muted/50 hover:border-primary/20">
 							<NewsPreviewImage newsId={news.id} />
-							<div className="flex-1 min-w-0">
-								<CardHeader className="p-0 pb-3 sm:pb-4">
-									<CardTitle className="text-xl sm:text-2xl mb-2">
-										<Link
-											to="/news/$newsId"
-											params={{ newsId: news.id }}
-											className="transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-										>
-											{news.title}
-										</Link>
-									</CardTitle>
-									<div className="space-y-1">
-										{news.published_at && (
-											<CardDescription>
+							<div className="flex-1 min-w-0 flex flex-col gap-3">
+								<div className="space-y-1.5">
+									<h2 className="font-semibold text-lg sm:text-xl leading-tight transition-colors group-hover:text-primary line-clamp-2">
+										{news.title}
+									</h2>
+									{news.published_at && (
+										<div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+											<Calendar className="size-3.5" />
+											<time dateTime={news.published_at}>
 												{format(
 													new Date(news.published_at),
-													'd MMMM yyyy, HH:mm',
-													{
-														locale: ru
-													}
+													'd MMMM yyyy',
+													{ locale: ru }
 												)}
-											</CardDescription>
-										)}
-									</div>
-								</CardHeader>
-								<CardContent className="p-0">
-									{(() => {
-										const textContent = extractTextFromHTML(news.content || '')
-										return textContent ? (
-											<p className="text-muted-foreground line-clamp-3">
-												{textContent}
-											</p>
-										) : (
-											<p className="text-muted-foreground line-clamp-3">...</p>
-										)
-									})()}
-								</CardContent>
+											</time>
+										</div>
+									)}
+								</div>
+								{(() => {
+									const textContent = extractTextFromHTML(news.content || '')
+									return textContent ? (
+										<p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+											{textContent}
+										</p>
+									) : null
+								})()}
 							</div>
-						</div>
-					</Card>
+						</article>
+					</Link>
 				))}
 			</div>
 

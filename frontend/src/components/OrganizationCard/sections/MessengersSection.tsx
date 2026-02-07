@@ -79,41 +79,36 @@ export const MessengersSection = ({
 	}
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-2">
 			<FormLabel className="flex items-center gap-2">
 				<Link2 className="h-4 w-4" />
-				Мессенджеры и соц. сети
+				Соцсети и мессенджеры
 			</FormLabel>
 
 			<Button
 				type="button"
 				variant="outline"
-				className="w-full justify-start text-left h-auto py-3"
+				className="w-full justify-start text-left h-auto min-h-[58px] py-2.5"
 				onClick={handleOpen}
 			>
-				<div className="flex flex-col items-start gap-1 w-full">
-					<div className="flex items-center gap-2">
-						{hasAnyMessenger ? (
-							<>
-								<div className="flex items-center gap-1.5">
-									{vkUrl && <VkIcon className="h-4 w-4" />}
-									{telegramUrl && <TelegramIcon className="h-4 w-4" />}
-									{whatsappUrl && <WhatsAppIcon className="h-4 w-4" />}
-									{maxUrl && <MaxIcon className="h-4 w-4" />}
-								</div>
-								<span className="text-sm font-medium">
-									{messengerCount} {messengerCount === 1 ? 'ссылка' : messengerCount < 5 ? 'ссылки' : 'ссылок'}
-								</span>
-							</>
-						) : (
-							<span className="text-sm font-medium">
-								Добавить мессенджеры и соц. сети
+				<div className="flex flex-col items-start gap-0.5 w-full min-w-0">
+					{hasAnyMessenger ? (
+						<div className="flex items-center gap-2">
+							<div className="flex items-center gap-1 shrink-0">
+								{vkUrl && <VkIcon className="h-4 w-4" />}
+								{telegramUrl && <TelegramIcon className="h-4 w-4" />}
+								{whatsappUrl && <WhatsAppIcon className="h-4 w-4" />}
+								{maxUrl && <MaxIcon className="h-4 w-4" />}
+							</div>
+							<span className="text-xs text-muted-foreground whitespace-normal text-left" style={{ wordBreak: 'break-word' }}>
+								{getPreviewText()}
 							</span>
-						)}
-					</div>
-					<span className="text-xs text-muted-foreground">
-						{getPreviewText()}
-					</span>
+						</div>
+					) : (
+						<span className="text-xs text-muted-foreground">
+							Ссылки не добавлены
+						</span>
+					)}
 				</div>
 			</Button>
 
@@ -187,7 +182,7 @@ export const MessengersSection = ({
 						<Button variant="ghost" onClick={handleClose}>
 							Отменить
 						</Button>
-						<Button onClick={handleSave}>Сохранить</Button>
+						<Button onClick={handleSave}>ОК</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

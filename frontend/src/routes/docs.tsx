@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import { Breadcrumbs, Navbar } from '@/components/Common'
 import { FileTypeIcon } from '@/components/Documents/FileTypeIcon'
+import { SignaturePopover } from '@/components/Documents/SignaturePopover'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
 	Pagination,
@@ -13,7 +14,7 @@ import {
 	PaginationItem
 } from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
-import { getDocumentFileUrl } from '@/utils/fileUrls'
+import { canPreviewInBrowser, getDocumentFileUrl, getDocumentPreviewUrl } from '@/utils/fileUrls'
 import type {
 	DocumentCategoriesPublic,
 	DocumentPublic,
@@ -112,7 +113,7 @@ function DocsPage() {
 	const categories = useMemo<CategoryOption[]>(() => {
 		const base = categoriesData?.data ?? []
 		return [
-			{ id: 'all', name: 'Документы' },
+			{ id: 'all', name: 'Все документы' },
 			...base.map((category: DocumentCategoriesPublic['data'][number]) => ({
 				id: category.id,
 				name: category.name
@@ -213,7 +214,8 @@ function DocsPage() {
 							) : (
 								<div className="divide-y border rounded-xl">
 									{documents.map((doc: DocumentPublic) => {
-										const fileUrl = getDocumentFileUrl(doc.id)
+										const previewUrl = getDocumentPreviewUrl(doc.id)
+										const downloadUrl = getDocumentFileUrl(doc.id)
 										return (
 											<div
 												key={doc.id}
@@ -232,11 +234,12 @@ function DocsPage() {
 														</p>
 													</div>
 												</div>
-												<div className="flex items-center gap-4">
-													<span className="text-xs text-muted-foreground whitespace-nowrap">
-														{formatFileSize(doc.file_size)}
-													</span>
-													<div className="flex items-center gap-2">
+												<div className="flex items-center gap-2">
+													<SignaturePopover
+														documentId={doc.id}
+														mimeType={doc.mime_type}
+													/>
+													{canPreviewInBrowser(doc.mime_type) && (
 														<Button
 															asChild
 															variant="ghost"
@@ -244,27 +247,30 @@ function DocsPage() {
 															className="h-8 w-8"
 														>
 															<a
-																href={fileUrl}
+																href={previewUrl}
 																target="_blank"
 																rel="noreferrer"
 															>
 																<Eye className="h-4 w-4" />
 															</a>
 														</Button>
-														<Button
-															asChild
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8"
+													)}
+													<Button
+														asChild
+														variant="ghost"
+														size="icon"
+														className="h-8 w-8"
+													>
+														<a
+															href={downloadUrl}
+															download
 														>
-															<a
-																href={fileUrl}
-																download
-															>
-																<Download className="h-4 w-4" />
-															</a>
-														</Button>
-													</div>
+															<Download className="h-4 w-4" />
+														</a>
+													</Button>
+													<span className="text-xs text-muted-foreground whitespace-nowrap min-w-[60px] text-right">
+														{formatFileSize(doc.file_size)}
+													</span>
 												</div>
 											</div>
 										)

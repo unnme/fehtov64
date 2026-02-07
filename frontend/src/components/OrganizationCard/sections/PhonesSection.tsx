@@ -1,7 +1,8 @@
-import { Phone } from 'lucide-react'
+import { Phone, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Control, useFieldArray, useWatch } from 'react-hook-form'
+import { Control, useWatch } from 'react-hook-form'
 
+import { PhoneNumberInput } from '@/components/OrganizationCard/fields/PhoneNumberInput'
 import { Button } from '@/components/ui/button'
 import {
 	Dialog,
@@ -13,181 +14,188 @@ import {
 } from '@/components/ui/dialog'
 import { FormLabel } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { PhoneInputField } from '@/components/OrganizationCard/fields/PhoneInputField'
-import { PhoneNumberInput } from '@/components/OrganizationCard/fields/PhoneNumberInput'
 import { type OrganizationCardFormData } from '@/schemas/organizationCard'
-import { isValidPhone } from '@/utils/phone'
+import { formatPhoneDisplay, isValidPhone, normalizePhone } from '@/utils/phone'
 
 interface PhonesSectionProps {
 	control: Control<OrganizationCardFormData>
+	setValue: (
+		name: keyof OrganizationCardFormData,
+		value: OrganizationCardFormData['phones']
+	) => void
 }
 
-export const PhonesSection = ({ control }: PhonesSectionProps) => {
-	const { fields, append, remove, update } = useFieldArray({
-		control,
-		name: 'phones'
-	})
+interface LocalPhone {
+	value: string
+	description: string
+}
 
-	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-	const [editIndex, setEditIndex] = useState<number | null>(null)
+export const PhonesSection = ({ control, setValue }: PhonesSectionProps) => {
+	const [isDialogOpen, setIsDialogOpen] = useState(false)
+	const [localPhones, setLocalPhones] = useState<LocalPhone[]>([])
 
-	const [newPhone, setNewPhone] = useState({ value: '+7', label: '' })
-	const [editPhone, setEditPhone] = useState({ value: '', label: '' })
+	const phones = useWatch({ control, name: 'phones' }) ?? []
 
-	const phones = useWatch({ control, name: 'phones' })
-
-	const handleOpenAdd = () => {
-		setNewPhone({ value: '+7', label: '' })
-		setIsAddDialogOpen(true)
+	const handleOpen = () => {
+		setLocalPhones(
+			phones.length > 0
+				? phones.map((p) => ({
+						value: p.value || '+7',
+						description: p.description ?? ''
+					}))
+				: [{ value: '+7', description: '' }]
+		)
+		setIsDialogOpen(true)
 	}
 
-	const handleCloseAdd = () => {
-		setIsAddDialogOpen(false)
+	const handleClose = () => {
+		setIsDialogOpen(false)
 	}
 
-	const handleAdd = () => {
-		append({ value: newPhone.value, description: newPhone.label || undefined })
-		handleCloseAdd()
+	const handleSave = () => {
+		const validPhones = localPhones
+			.filter((p) => isValidPhone(p.value))
+			.map((p) => ({
+				value: p.value,
+				description: p.description.trim() || undefined
+			}))
+		setValue('phones', validPhones)
+		handleClose()
 	}
 
-	const handleOpenEdit = (index: number) => {
-		const phone = phones?.[index]
-		if (phone) {
-			setEditPhone({ value: phone.value, label: phone.description ?? '' })
-			setEditIndex(index)
-			setIsEditDialogOpen(true)
-		}
+	const handleAddPhone = () => {
+		setLocalPhones([...localPhones, { value: '+7', description: '' }])
 	}
 
-	const handleCloseEdit = () => {
-		setIsEditDialogOpen(false)
-		setEditIndex(null)
+	const handleRemovePhone = (index: number) => {
+		setLocalPhones(localPhones.filter((_, i) => i !== index))
 	}
 
-	const handleSaveEdit = () => {
-		if (editIndex !== null) {
-			update(editIndex, {
-				value: editPhone.value,
-				description: editPhone.label || undefined
+	const handlePhoneChange = (index: number, value: string) => {
+		setLocalPhones(localPhones.map((p, i) => (i === index ? { ...p, value } : p)))
+	}
+
+	const handleDescriptionChange = (index: number, description: string) => {
+		setLocalPhones(localPhones.map((p, i) => (i === index ? { ...p, description } : p)))
+	}
+
+	const validPhonesCount = phones.filter((p) => isValidPhone(p.value)).length
+
+	const getPreviewText = () => {
+		if (validPhonesCount === 0) return 'Телефоны не добавлены'
+
+		return phones
+			.filter((p) => isValidPhone(p.value))
+			.map((p) => {
+				const normalized = normalizePhone({ phone: p.value })
+				const formatted = normalized ? formatPhoneDisplay(normalized.phone) : p.value
+				return p.description ? `${formatted} (${p.description})` : formatted
 			})
-		}
-		handleCloseEdit()
+			.join(', ')
 	}
 
-	const isNewPhoneValid = isValidPhone(newPhone.value)
-	const isEditPhoneValid = isValidPhone(editPhone.value)
+	const hasValidLocalPhones = localPhones.some((p) => isValidPhone(p.value))
 
 	return (
-		<div className="space-y-3">
+		<div className="space-y-2">
 			<FormLabel className="flex items-center gap-2">
 				<Phone className="h-4 w-4" />
 				Телефоны
 			</FormLabel>
 
-			{fields.length > 0 && (
-				<div className="rounded-2xl border border-border bg-muted/30 p-4 shadow-sm space-y-3">
-					{fields.map((fieldItem, index) => (
-						<PhoneInputField
-							key={fieldItem.id}
-							control={control}
-							index={index}
-							remove={remove}
-							onEdit={handleOpenEdit}
-						/>
-					))}
+			<Button
+				type="button"
+				variant="outline"
+				className="w-full justify-start text-left h-auto min-h-[58px] py-2.5"
+				onClick={handleOpen}
+			>
+				<div className="flex flex-col items-start gap-0.5 w-full min-w-0">
+					<span className="text-xs text-muted-foreground whitespace-normal text-left" style={{ wordBreak: 'break-word' }}>
+						{getPreviewText()}
+					</span>
 				</div>
-			)}
-
-			<Button type="button" variant="secondary" onClick={handleOpenAdd}>
-				Добавить телефон
 			</Button>
 
-			{/* Add Dialog */}
-			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-				<DialogContent>
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogContent className="sm:max-w-lg">
 					<DialogHeader>
-						<DialogTitle>Добавить телефон</DialogTitle>
+						<DialogTitle>Телефоны</DialogTitle>
 						<DialogDescription>
-							Задайте новый номер и краткую этикетку.
+							Укажите контактные телефоны организации.
 						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-4">
-						<div className="flex flex-col gap-1">
-							<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-								Телефон
-							</span>
-							<PhoneNumberInput
-								value={newPhone.value}
-								onChange={(value) => setNewPhone((p) => ({ ...p, value }))}
-								placeholder="+7 ___-___-__-__"
-								className="h-10"
-								autoFocus
-							/>
-						</div>
-						<div className="flex flex-col gap-1">
-							<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-								Этикетка
-							</span>
-							<Input
-								value={newPhone.label}
-								onChange={(e) => setNewPhone((p) => ({ ...p, label: e.target.value }))}
-								placeholder="Этикетка"
-								className="h-10"
-							/>
-						</div>
-					</div>
-					<DialogFooter className="mt-4">
-						<Button variant="ghost" onClick={handleCloseAdd}>
-							Отменить
-						</Button>
-						<Button onClick={handleAdd} disabled={!isNewPhoneValid}>
-							Сохранить
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 
-			{/* Edit Dialog */}
-			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Редактировать телефон</DialogTitle>
-						<DialogDescription>
-							Измените номер и этикетку телефона.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div className="flex flex-col gap-1">
-							<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-								Телефон
-							</span>
-							<PhoneNumberInput
-								value={editPhone.value}
-								onChange={(value) => setEditPhone((p) => ({ ...p, value }))}
-								placeholder="+7 ___-___-__-__"
-								className="h-10"
-								autoFocus
-							/>
-						</div>
-						<div className="flex flex-col gap-1">
-							<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-								Этикетка
-							</span>
-							<Input
-								value={editPhone.label}
-								onChange={(e) => setEditPhone((p) => ({ ...p, label: e.target.value }))}
-								placeholder="Этикетка"
-								className="h-10"
-							/>
-						</div>
+					<div className="space-y-4 max-h-[60vh] overflow-y-auto">
+						{localPhones.length === 0 ? (
+							<div className="text-center py-8 border border-dashed rounded-lg">
+								<p className="text-sm text-muted-foreground">
+									Нет добавленных телефонов
+								</p>
+							</div>
+						) : (
+							localPhones.map((phone, index) => (
+								<div
+									key={index}
+									className="rounded-lg border border-border bg-muted/30 p-4 space-y-3"
+								>
+									<div className="flex items-start justify-between gap-2">
+										<span className="text-sm font-medium">Телефон {index + 1}</span>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											onClick={() => handleRemovePhone(index)}
+											className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+											aria-label="Удалить телефон"
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</div>
+									<div className="space-y-3">
+										<div className="flex flex-col gap-1">
+											<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+												Номер
+											</span>
+											<PhoneNumberInput
+												value={phone.value}
+												onChange={(value) => handlePhoneChange(index, value)}
+												placeholder="+7 ___-___-__-__"
+												className="h-10"
+											/>
+										</div>
+										<div className="flex flex-col gap-1">
+											<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+												Описание
+											</span>
+											<Input
+												value={phone.description}
+												onChange={(e) => handleDescriptionChange(index, e.target.value)}
+												placeholder="Например: Приёмная"
+												className="h-10"
+											/>
+										</div>
+									</div>
+								</div>
+							))
+						)}
+
+						<Button
+							type="button"
+							variant="outline"
+							onClick={handleAddPhone}
+							className="w-full"
+						>
+							<Plus className="h-4 w-4 mr-2" />
+							Добавить телефон
+						</Button>
 					</div>
+
 					<DialogFooter className="mt-4">
-						<Button variant="ghost" onClick={handleCloseEdit}>
+						<Button variant="ghost" onClick={handleClose}>
 							Отменить
 						</Button>
-						<Button onClick={handleSaveEdit} disabled={!isEditPhoneValid}>
-							Сохранить
+						<Button onClick={handleSave} disabled={!hasValidLocalPhones && localPhones.length > 0}>
+							ОК
 						</Button>
 					</DialogFooter>
 				</DialogContent>

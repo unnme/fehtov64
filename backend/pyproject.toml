@@ -22,6 +22,7 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "pillow<11.0.0,>=10.0.0",
     "aiofiles<24.0.0,>=23.0.0",
+    "pypdf<6.0.0,>=5.0.0",
     # New dependencies for refactoring
     "slowapi<1.0.0,>=0.1.9",
     "fastapi-mail<2.0.0,>=1.4.1",

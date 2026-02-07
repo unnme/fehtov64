@@ -68,7 +68,7 @@ export const WorkHoursDialog = ({
 						Отмена
 					</Button>
 					<Button onClick={handleSave} className="w-full sm:w-auto sm:min-w-25">
-						Сохранить
+						ОК
 					</Button>
 				</DialogFooter>
 			</DialogContent>

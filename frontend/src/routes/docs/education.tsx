@@ -13,7 +13,7 @@ export const Route = createFileRoute('/docs/education')({
 	head: () => ({
 		meta: [
 			{
-				title: 'Образовательные документы - Документация'
+				title: 'Образовательные документы - Документы'
 			}
 		]
 	})

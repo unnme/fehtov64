@@ -29,7 +29,7 @@ from app.schemas import (
     DocumentUpdate,
     Message,
 )
-from app.services.document_service import document_service
+from app.services.document_service import SignatureInfo, document_service
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -445,8 +445,14 @@ def read_document(
 @public_router.get("/{document_id}/file")
 def get_document_file(
     document_id: uuid.UUID,
+    inline: bool = False,
 ) -> FileResponse:
-    """Download document file. Public endpoint."""
+    """Download or view document file. Public endpoint.
+
+    Args:
+        document_id: Document UUID
+        inline: If True, opens file in browser (for preview). If False, downloads file.
+    """
     with Session(engine) as session:
         document = session.get(Document, document_id)
         if not document:
@@ -460,7 +466,21 @@ def get_document_file(
             path=str(file_path),
             filename=document.file_name,
             media_type=document.mime_type,
+            content_disposition_type="inline" if inline else "attachment",
         )
+
+
+@public_router.get("/{document_id}/signature", response_model=SignatureInfo)
+def get_document_signature(
+    document_id: uuid.UUID,
+) -> SignatureInfo:
+    """Get digital signature information from document (PDF only). Public endpoint."""
+    with Session(engine) as session:
+        document = session.get(Document, document_id)
+        if not document:
+            raise NotFoundError(ErrorCode.DOCUMENT_NOT_FOUND, "Document not found")
+
+        return document_service.get_signature_info(document.file_path)
 
 
 @router.patch("/{document_id}", response_model=DocumentPublic)

@@ -10,6 +10,34 @@ const optionalLinkSchema = z
 	})
 	.optional()
 
+const digitsOnlySchema = (length: number, fieldName: string) =>
+	z
+		.string()
+		.optional()
+		.transform(value => value?.trim() || '')
+		.refine(
+			value => !value || /^\d+$/.test(value),
+			{ message: `${fieldName} должен содержать только цифры` }
+		)
+		.refine(
+			value => !value || value.length === length,
+			{ message: `${fieldName} должен содержать ${length} цифр` }
+		)
+
+const digitsOnlyMaxSchema = (maxLength: number, fieldName: string) =>
+	z
+		.string()
+		.optional()
+		.transform(value => value?.trim() || '')
+		.refine(
+			value => !value || /^\d+$/.test(value),
+			{ message: `${fieldName} должен содержать только цифры` }
+		)
+		.refine(
+			value => !value || value.length <= maxLength,
+			{ message: `${fieldName} должен содержать не более ${maxLength} цифр` }
+		)
+
 const workHoursDaySchema = z.object({
 	day: z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
 	timeRange: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
@@ -87,7 +115,24 @@ export const organizationCardSchema = z.object({
 	whatsapp_url: optionalLinkSchema,
 	max_url: optionalLinkSchema,
 	latitude: z.number().optional(),
-	longitude: z.number().optional()
+	longitude: z.number().optional(),
+	// Requisites
+	legal_address: z.string().optional().transform(value => value?.trim() || ''),
+	legal_latitude: z.number().optional(),
+	legal_longitude: z.number().optional(),
+	inn: digitsOnlySchema(10, 'ИНН'),
+	kpp: digitsOnlySchema(9, 'КПП'),
+	okpo: digitsOnlySchema(8, 'ОКПО'),
+	ogrn: digitsOnlySchema(13, 'ОГРН'),
+	okfs: digitsOnlySchema(2, 'ОКФС'),
+	okogu: digitsOnlySchema(7, 'ОКОГУ'),
+	okopf: digitsOnlySchema(5, 'ОКОПФ'),
+	oktmo: digitsOnlyMaxSchema(11, 'ОКТМО'),
+	okato: digitsOnlySchema(11, 'ОКАТО'),
+	// Bank details
+	bank_recipient: z.string().optional().transform(value => value?.trim() || ''),
+	bank_account: digitsOnlySchema(20, 'Расчётный счёт'),
+	bank_bik: digitsOnlySchema(9, 'БИК')
 })
 
 export type OrganizationCardFormData = z.infer<typeof organizationCardSchema>

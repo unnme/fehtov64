@@ -13,14 +13,15 @@ import {
 interface BreadcrumbItem {
 	label: string
 	href?: string
+	noLink?: boolean
 }
 
 // Breadcrumb configuration for routes
-const breadcrumbConfig: Record<string, { label: string; parent?: string }> = {
+const breadcrumbConfig: Record<string, { label: string; parent?: string; noLink?: boolean }> = {
 	'/': { label: 'Главная' },
-	'/about': { label: 'Сведения об образовательной организации', parent: '/' },
+	'/about': { label: 'Сведения об образовательной организации', parent: '/', noLink: true },
 	'/news': { label: 'Новости', parent: '/' },
-	'/docs': { label: 'Документация', parent: '/' },
+	'/docs': { label: 'Документы', parent: '/' },
 	'/docs/rules': { label: 'Правила и регламенты', parent: '/docs' },
 	'/docs/education': { label: 'Образовательные документы', parent: '/docs' },
 	'/docs/organizational': {
@@ -47,7 +48,7 @@ const buildBreadcrumbs = (path: string): BreadcrumbItem[] => {
 	}
 
 	// Add current page
-	items.push({ label: config.label, href: path })
+	items.push({ label: config.label, href: path, noLink: config.noLink })
 
 	// Recursively add parent pages
 	if (config.parent) {
@@ -59,15 +60,33 @@ const buildBreadcrumbs = (path: string): BreadcrumbItem[] => {
 }
 
 const ABOUT_SECTIONS: Record<string, string> = {
-	basic: 'Основные сведения',
-	vacancies: 'Вакансии',
+	general: 'Общая информация',
+	staff: 'Кадры',
 	education: 'Образовательный процесс',
-	staff: 'Кадры'
+	'student-support': 'Поддержка обучающихся',
+	finance: 'Финансы и отчётность',
+	regulations: 'Нормативные требования',
+	partnership: 'Партнёрство'
 }
 
-const STAFF_SUBSECTIONS: Record<string, string> = {
+const ABOUT_SUBSECTIONS: Record<string, string> = {
+	basic: 'Основные сведения',
+	structure: 'Структура и органы управления',
 	leadership: 'Руководство',
-	teachers: 'Педагогический состав'
+	teachers: 'Педагогический состав',
+	vacancies: 'Вакансии',
+	programs: 'Образование',
+	'paid-services': 'Платные образовательные услуги',
+	admission: 'Вакантные места для приёма',
+	scholarships: 'Стипендии и меры поддержки',
+	catering: 'Организация питания',
+	accessibility: 'Доступная среда',
+	documents: 'Документы',
+	'state-task': 'Госзадание',
+	'financial-activity': 'Финансово-хозяйственная деятельность',
+	'anti-corruption': 'Реализация антикоррупционной политики',
+	'federal-standard': 'Федеральный стандарт СП',
+	international: 'Международное сотрудничество'
 }
 
 export function Breadcrumbs() {
@@ -87,9 +106,7 @@ export function Breadcrumbs() {
 			? currentSearch.section.trim()
 			: ''
 	const selectedAboutSubsection =
-		currentPath === '/about' &&
-		selectedAboutSection === 'staff' &&
-		typeof currentSearch.subsection === 'string'
+		currentPath === '/about' && typeof currentSearch.subsection === 'string'
 			? currentSearch.subsection.trim()
 			: ''
 	const isNewsDetails = currentPath.startsWith('/news/') && currentPath !== '/news'
@@ -107,13 +124,13 @@ export function Breadcrumbs() {
 	} else if (currentPath === '/about') {
 		const sectionLabel = selectedAboutSection
 			? ABOUT_SECTIONS[selectedAboutSection] || selectedAboutSection
-			: 'Основные сведения'
+			: 'Общая информация'
 		if (selectedAboutSubsection) {
 			const subsectionLabel =
-				STAFF_SUBSECTIONS[selectedAboutSubsection] || selectedAboutSubsection
+				ABOUT_SUBSECTIONS[selectedAboutSubsection] || selectedAboutSubsection
 			resolvedBreadcrumbs = [
 				...breadcrumbs,
-				{ label: sectionLabel, href: '/about?section=staff' },
+				{ label: sectionLabel, href: `/about?section=${selectedAboutSection || 'general'}` },
 				{ label: subsectionLabel }
 			]
 		} else {
@@ -142,7 +159,7 @@ export function Breadcrumbs() {
 								</BreadcrumbSeparator>
 							)}
 							<BreadcrumbItem>
-								{isLast ? (
+								{isLast || item.noLink ? (
 									<BreadcrumbPage>{item.label}</BreadcrumbPage>
 								) : (
 									<BreadcrumbLink asChild>

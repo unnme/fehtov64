@@ -1,12 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { Download } from "lucide-react"
+import { Download, Eye } from "lucide-react"
 
 import { type DocumentPublic } from "@/client"
 import { Button } from "@/components/ui/button"
-import { getDocumentFileUrl } from "@/utils/fileUrls"
+import { canPreviewInBrowser, getDocumentFileUrl, getDocumentPreviewUrl } from "@/utils/fileUrls"
 import { DocumentsActionsMenu } from "./DocumentsActionsMenu"
 import { FileTypeIcon } from "./FileTypeIcon"
+import { SignaturePopover } from "./SignaturePopover"
 
 export const columns: ColumnDef<DocumentPublic>[] = [
   {
@@ -36,8 +37,8 @@ export const columns: ColumnDef<DocumentPublic>[] = [
     accessorKey: "mime_type",
     header: "Тип",
     cell: ({ row }) => (
-      <FileTypeIcon 
-        mimeType={row.original.mime_type} 
+      <FileTypeIcon
+        mimeType={row.original.mime_type}
         fileName={row.original.file_name}
       />
     ),
@@ -58,16 +59,36 @@ export const columns: ColumnDef<DocumentPublic>[] = [
     id: "actions",
     header: () => <span className="sr-only">Действия</span>,
     cell: ({ row }) => (
-      <div className="flex items-center gap-2 justify-end">
+      <div className="flex items-center gap-1 justify-end">
+        <SignaturePopover
+          documentId={row.original.id}
+          mimeType={row.original.mime_type}
+        />
+        {canPreviewInBrowser(row.original.mime_type) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            asChild
+          >
+            <a
+              href={getDocumentPreviewUrl(row.original.id)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Eye className="h-4 w-4" />
+            </a>
+          </Button>
+        )}
         <Button
           variant="ghost"
-          size="sm"
-          onClick={() => {
-            const url = getDocumentFileUrl(row.original.id)
-            window.open(url, "_blank", "noopener,noreferrer")
-          }}
+          size="icon"
+          className="h-8 w-8"
+          asChild
         >
-          <Download className="h-4 w-4" />
+          <a href={getDocumentFileUrl(row.original.id)} download>
+            <Download className="h-4 w-4" />
+          </a>
         </Button>
         <DocumentsActionsMenu document={row.original} />
       </div>

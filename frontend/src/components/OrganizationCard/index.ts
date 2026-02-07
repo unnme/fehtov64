@@ -2,7 +2,6 @@
 export { ContactField } from './fields/ContactField'
 export { OrganizationEmailField } from './fields/OrganizationEmailField'
 export { OrganizationNameField } from './fields/OrganizationNameField'
-export { PhoneInputField } from './fields/PhoneInputField'
 export { PhoneNumberInput } from './fields/PhoneNumberInput'
 
 // Icons

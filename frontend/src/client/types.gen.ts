@@ -561,6 +561,66 @@ export type OrganizationCardCreate = {
      * Longitude
      */
     longitude?: number | null;
+    /**
+     * Legal Address
+     */
+    legal_address?: string | null;
+    /**
+     * Legal Latitude
+     */
+    legal_latitude?: number | null;
+    /**
+     * Legal Longitude
+     */
+    legal_longitude?: number | null;
+    /**
+     * Inn
+     */
+    inn?: string | null;
+    /**
+     * Kpp
+     */
+    kpp?: string | null;
+    /**
+     * Okpo
+     */
+    okpo?: string | null;
+    /**
+     * Ogrn
+     */
+    ogrn?: string | null;
+    /**
+     * Okfs
+     */
+    okfs?: string | null;
+    /**
+     * Okogu
+     */
+    okogu?: string | null;
+    /**
+     * Okopf
+     */
+    okopf?: string | null;
+    /**
+     * Oktmo
+     */
+    oktmo?: string | null;
+    /**
+     * Okato
+     */
+    okato?: string | null;
+    /**
+     * Bank Recipient
+     */
+    bank_recipient?: string | null;
+    /**
+     * Bank Account
+     */
+    bank_account?: string | null;
+    /**
+     * Bank Bik
+     */
+    bank_bik?: string | null;
 };
 
 /**
@@ -623,6 +683,66 @@ export type OrganizationCardPublic = {
      * Longitude
      */
     longitude: number | null;
+    /**
+     * Legal Address
+     */
+    legal_address: string | null;
+    /**
+     * Legal Latitude
+     */
+    legal_latitude: number | null;
+    /**
+     * Legal Longitude
+     */
+    legal_longitude: number | null;
+    /**
+     * Inn
+     */
+    inn: string | null;
+    /**
+     * Kpp
+     */
+    kpp: string | null;
+    /**
+     * Okpo
+     */
+    okpo: string | null;
+    /**
+     * Ogrn
+     */
+    ogrn: string | null;
+    /**
+     * Okfs
+     */
+    okfs: string | null;
+    /**
+     * Okogu
+     */
+    okogu: string | null;
+    /**
+     * Okopf
+     */
+    okopf: string | null;
+    /**
+     * Oktmo
+     */
+    oktmo: string | null;
+    /**
+     * Okato
+     */
+    okato: string | null;
+    /**
+     * Bank Recipient
+     */
+    bank_recipient: string | null;
+    /**
+     * Bank Account
+     */
+    bank_account: string | null;
+    /**
+     * Bank Bik
+     */
+    bank_bik: string | null;
     /**
      * Created At
      */
@@ -689,6 +809,66 @@ export type OrganizationCardUpdate = {
      * Longitude
      */
     longitude?: number | null;
+    /**
+     * Legal Address
+     */
+    legal_address?: string | null;
+    /**
+     * Legal Latitude
+     */
+    legal_latitude?: number | null;
+    /**
+     * Legal Longitude
+     */
+    legal_longitude?: number | null;
+    /**
+     * Inn
+     */
+    inn?: string | null;
+    /**
+     * Kpp
+     */
+    kpp?: string | null;
+    /**
+     * Okpo
+     */
+    okpo?: string | null;
+    /**
+     * Ogrn
+     */
+    ogrn?: string | null;
+    /**
+     * Okfs
+     */
+    okfs?: string | null;
+    /**
+     * Okogu
+     */
+    okogu?: string | null;
+    /**
+     * Okopf
+     */
+    okopf?: string | null;
+    /**
+     * Oktmo
+     */
+    oktmo?: string | null;
+    /**
+     * Okato
+     */
+    okato?: string | null;
+    /**
+     * Bank Recipient
+     */
+    bank_recipient?: string | null;
+    /**
+     * Bank Account
+     */
+    bank_account?: string | null;
+    /**
+     * Bank Bik
+     */
+    bank_bik?: string | null;
 };
 
 /**
@@ -943,6 +1123,34 @@ export type PositionsPublic = {
      * Count
      */
     count: number;
+};
+
+/**
+ * SignatureInfo
+ *
+ * Information about PDF digital signature.
+ */
+export type SignatureInfo = {
+    /**
+     * Signer Name
+     */
+    signer_name?: string | null;
+    /**
+     * Signer Position
+     */
+    signer_position?: string | null;
+    /**
+     * Signing Time
+     */
+    signing_time?: string | null;
+    /**
+     * Signature Hash
+     */
+    signature_hash?: string | null;
+    /**
+     * Is Signed
+     */
+    is_signed?: boolean;
 };
 
 /**
@@ -2539,7 +2747,12 @@ export type DocumentsGetDocumentFileData = {
          */
         document_id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Inline
+         */
+        inline?: boolean;
+    };
     url: '/api/v1/documents/{document_id}/file';
 };
 
@@ -2558,6 +2771,36 @@ export type DocumentsGetDocumentFileResponses = {
      */
     200: unknown;
 };
+
+export type DocumentsGetDocumentSignatureData = {
+    body?: never;
+    path: {
+        /**
+         * Document Id
+         */
+        document_id: string;
+    };
+    query?: never;
+    url: '/api/v1/documents/{document_id}/signature';
+};
+
+export type DocumentsGetDocumentSignatureErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DocumentsGetDocumentSignatureError = DocumentsGetDocumentSignatureErrors[keyof DocumentsGetDocumentSignatureErrors];
+
+export type DocumentsGetDocumentSignatureResponses = {
+    /**
+     * Successful Response
+     */
+    200: SignatureInfo;
+};
+
+export type DocumentsGetDocumentSignatureResponse = DocumentsGetDocumentSignatureResponses[keyof DocumentsGetDocumentSignatureResponses];
 
 export type DocumentsReadCategoriesData = {
     body?: never;

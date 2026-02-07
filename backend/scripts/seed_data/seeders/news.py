@@ -19,9 +19,71 @@ from ..utils.image_handler import has_missing_image_files, save_image_from_file
 logger = logging.getLogger(__name__)
 
 # Constants for news creation
-NUM_NEWS_ITEMS = 30
 MIN_NEWS_WITHOUT_IMAGES = 3
 IMAGE_PROBABILITY = 0.6  # Probability of adding images to news
+
+NEWS_DATA = [
+    {
+        "title": "Открыт набор в группу начальной подготовки",
+        "content": "Школа фехтования объявляет набор детей от 7 лет в группу начальной подготовки. Занятия проводятся три раза в неделю под руководством опытных тренеров. Первое пробное занятие бесплатно. Запись по телефону или через форму на сайте. Количество мест ограничено.",
+    },
+    {
+        "title": "Наши спортсмены завоевали медали на чемпионате города",
+        "content": "Поздравляем воспитанников школы с успешным выступлением на городском чемпионате по фехтованию! Иван Петров занял первое место в категории юниоров, а команда девушек завоевала серебро в командном зачёте. Благодарим тренерский состав за отличную подготовку спортсменов.",
+    },
+    {
+        "title": "Изменение расписания тренировок на летний период",
+        "content": "С 1 июня вступает в силу летнее расписание занятий. Утренние тренировки начинаются в 9:00, вечерние — в 18:00. По субботам добавлена дополнительная группа для взрослых. Актуальное расписание доступно в разделе «Расписание» на нашем сайте.",
+    },
+    {
+        "title": "Мастер-класс от чемпиона России",
+        "content": "Приглашаем на мастер-класс, который проведёт многократный чемпион России по фехтованию на шпагах. Участники смогут получить ценные советы по технике, тактике и психологической подготовке. Мероприятие состоится в субботу в 14:00. Регистрация обязательна.",
+    },
+    {
+        "title": "Закупка нового тренировочного оборудования",
+        "content": "Благодаря поддержке спонсоров школа приобрела современное тренировочное оборудование: электрические фиксаторы уколов, новые дорожки и защитную экипировку. Это позволит повысить качество подготовки спортсменов и проводить соревнования на профессиональном уровне.",
+    },
+    {
+        "title": "Поздравляем Анну Сидорову с присвоением разряда КМС",
+        "content": "Воспитанница нашей школы Анна Сидорова выполнила норматив кандидата в мастера спорта по фехтованию на рапирах. Это заслуженный результат многолетних упорных тренировок. Желаем Анне дальнейших спортивных успехов и покорения новых вершин!",
+    },
+    {
+        "title": "Турнир памяти основателя школы",
+        "content": "В декабре состоится ежегодный турнир памяти основателя школы фехтования. К участию приглашаются спортсмены всех возрастных категорий. Победители получат кубки и ценные призы. Заявки принимаются до 1 декабря. Подробности у администратора.",
+    },
+    {
+        "title": "Открытая тренировка для родителей",
+        "content": "Приглашаем родителей посетить открытую тренировку, которая состоится в пятницу в 17:00. Вы сможете увидеть, как проходят занятия, познакомиться с тренерами и задать интересующие вопросы. После тренировки — чаепитие и обсуждение планов на сезон.",
+    },
+    {
+        "title": "Каникулярная программа для детей",
+        "content": "На время школьных каникул подготовлена специальная программа интенсивных тренировок. Ежедневные занятия с 10:00 до 13:00 включают разминку, работу над техникой, спарринги и подвижные игры. Записаться можно по телефону школы или у тренера.",
+    },
+    {
+        "title": "Сборы перед чемпионатом области",
+        "content": "Команда школы отправляется на учебно-тренировочные сборы в рамках подготовки к чемпионату области. Сборы пройдут на базе спортивного комплекса с 15 по 25 октября. Участники получат интенсивную подготовку и возможность спаррингов с сильными соперниками.",
+    },
+    {
+        "title": "Новый тренер в нашей команде",
+        "content": "Рады представить нового тренера — мастера спорта международного класса Дмитрия Волкова. Дмитрий имеет богатый опыт выступлений на международных соревнованиях и работы с молодыми спортсменами. Он будет вести группы по фехтованию на саблях.",
+    },
+    {
+        "title": "Участие в международном турнире",
+        "content": "Сборная школы примет участие в международном юношеском турнире, который пройдёт в Будапеште. Это отличная возможность для наших спортсменов получить опыт международных соревнований и познакомиться с фехтовальщиками из других стран.",
+    },
+    {
+        "title": "Ремонт раздевалок завершён",
+        "content": "Завершён капитальный ремонт раздевалок. Установлены новые шкафчики, обновлена сантехника, сделана современная отделка. Теперь наши спортсмены могут готовиться к тренировкам в комфортных условиях. Благодарим всех за терпение во время ремонтных работ.",
+    },
+    {
+        "title": "Онлайн-семинар по правилам соревнований",
+        "content": "Для тренеров и спортсменов школы организован онлайн-семинар по актуальным правилам соревнований FIE. Ведущий — судья международной категории. Участие бесплатное, необходима предварительная регистрация. Ссылка для подключения будет отправлена на email.",
+    },
+    {
+        "title": "Фотоотчёт с соревнований опубликован",
+        "content": "В разделе «Галерея» опубликован фотоотчёт с прошедших городских соревнований. Более 200 фотографий запечатлели яркие моменты боёв, церемонию награждения и закулисную атмосферу турнира. Благодарим фотографа Елену Михайлову за отличную работу!",
+    },
+]
 
 
 def get_superuser(session: Session) -> User | None:
@@ -50,12 +112,13 @@ def add_images_to_news(
 def create_news_item(
     session: Session,
     superuser: User,
+    news_data: dict[str, str],
     index: int,
     news_without_images_count: int,
     min_news_without_images: int,
 ) -> None:
     """Creates a single news item with optional images."""
-    news_title = f"News {index}"
+    news_title = news_data["title"]
 
     existing_news = session.exec(
         select(News).where(
@@ -69,24 +132,21 @@ def create_news_item(
         ).all()
 
         if not existing_images or has_missing_image_files(existing_images):
-            # Delete broken image records
             for image in existing_images:
                 session.delete(image)
             session.commit()
 
-            # Add images only if minimum news without images has been reached
             if news_without_images_count >= min_news_without_images:
                 add_images_to_news(session, existing_news.id, existing_news.title)
 
         logger.info(f"News '{news_title}' already exists, skipping")
         return
 
-    # Alternate between published and unpublished news
-    is_published = index % 2 == 1
+    is_published = index % 5 != 0  # Every 5th news is unpublished
 
     news_in = NewsCreate(
         title=news_title,
-        content=f"This is the content of news item number {index}. Any text and information can be here.",
+        content=news_data["content"],
         is_published=is_published,
     )
 
@@ -96,13 +156,10 @@ def create_news_item(
     session.commit()
     session.refresh(news)
 
-    # Determine if images should be added
     should_add_images = False
     if news_without_images_count < min_news_without_images:
-        # First few news items without images
         should_add_images = False
     else:
-        # For remaining news, add images with probability
         should_add_images = random.random() < IMAGE_PROBABILITY
 
     if should_add_images:
@@ -124,13 +181,14 @@ def create_test_news(session: Session) -> None:
 
     news_without_images_count = 0
 
-    for i in range(1, NUM_NEWS_ITEMS + 1):
+    for i, news_data in enumerate(NEWS_DATA, start=1):
         if news_without_images_count < MIN_NEWS_WITHOUT_IMAGES:
             news_without_images_count += 1
 
         create_news_item(
             session=session,
             superuser=superuser,
+            news_data=news_data,
             index=i,
             news_without_images_count=news_without_images_count,
             min_news_without_images=MIN_NEWS_WITHOUT_IMAGES,

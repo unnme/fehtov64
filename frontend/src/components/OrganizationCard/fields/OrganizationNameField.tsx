@@ -98,7 +98,7 @@ export const OrganizationNameField = ({
 						<Button variant="ghost" onClick={onCloseEditDialog}>
 							Отменить
 						</Button>
-						<Button onClick={onSave}>Сохранить</Button>
+						<Button onClick={onSave}>ОК</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

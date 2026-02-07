@@ -8,7 +8,6 @@ import { ImagesService, type NewsImagePublic, type NewsPublic } from "@/client"
 import { unwrapResponse } from "@/utils"
 import { cn } from "@/lib/utils"
 import { getImageFileUrl } from "@/utils/fileUrls"
-import { extractTextFromHTML } from "@/utils/html"
 import { NewsActionsMenu } from "./NewsActionsMenu"
 
 // Cell component for displaying news preview image
@@ -79,20 +78,6 @@ export const columns: ColumnDef<NewsPublic>[] = [
     cell: ({ row }) => (
       <span className="font-medium">{row.original.title}</span>
     ),
-  },
-  {
-    accessorKey: "content",
-    header: "Текст",
-    cell: ({ row }) => {
-      const content = row.original.content
-      // Extract text without tables
-      const textContent = extractTextFromHTML(content)
-      return (
-        <span className={cn("max-w-xs truncate block text-muted-foreground")}>
-          {textContent || '...'}
-        </span>
-      )
-    },
   },
   {
     accessorKey: "is_published",
