@@ -151,6 +151,7 @@ class OrganizationCard(SQLModel, table=True):
     """Organization card model."""
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None)
     phones: list[dict] = Field(
         sa_column=sa.Column(sa.JSON, nullable=False),
         default_factory=list,

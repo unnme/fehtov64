@@ -147,7 +147,7 @@ function AddPerson() {
           Добавить сотрудника
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Добавить сотрудника</DialogTitle>
           <DialogDescription>

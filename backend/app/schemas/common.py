@@ -1,4 +1,5 @@
 """Common validation utilities for schemas."""
+
 import re
 
 _NAME_PART_PATTERN = re.compile(r"^[A-Za-zА-Яа-яЁё]+$")
@@ -14,7 +15,9 @@ def normalize_optional_str(value: str | None) -> str | None:
     return trimmed if trimmed else None
 
 
-def normalize_phone_list(*, value: list[dict | str], allow_empty: bool = False) -> list[dict]:
+def normalize_phone_list(
+    *, value: list[dict | str], allow_empty: bool = False
+) -> list[dict]:
     """Normalizes phone list to format {phone: str, description: str | None}."""
     if not isinstance(value, list):
         raise ValueError("Телефоны должны быть списком")
@@ -37,7 +40,12 @@ def normalize_phone_list(*, value: list[dict | str], allow_empty: bool = False) 
             if item:
                 if " - " in item:
                     parts = item.split(" - ", 1)
-                    normalized.append({"phone": parts[0].strip(), "description": parts[1].strip() or None})
+                    normalized.append(
+                        {
+                            "phone": parts[0].strip(),
+                            "description": parts[1].strip() or None,
+                        }
+                    )
                 else:
                     normalized.append({"phone": item, "description": None})
 
@@ -89,3 +97,4 @@ def normalize_position_name(*, value: str) -> str:
         raise ValueError("Название: допускаются только буквы и пробелы, без тире")
     first = normalized[0]
     return first.upper() + normalized[1:]
+

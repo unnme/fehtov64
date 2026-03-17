@@ -27,7 +27,6 @@ import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-passw
 import { Route as AuthRecoverPasswordRouteImport } from './routes/auth/recover-password'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as LayoutUsersRouteImport } from './routes/_layout/users'
-import { Route as LayoutPositionsRouteImport } from './routes/_layout/positions'
 import { Route as LayoutPersonsRouteImport } from './routes/_layout/persons'
 import { Route as LayoutOrganizationCardRouteImport } from './routes/_layout/organization-card'
 import { Route as LayoutManageNewsRouteImport } from './routes/_layout/manage-news'
@@ -123,11 +122,6 @@ const LayoutUsersRoute = LayoutUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutPositionsRoute = LayoutPositionsRouteImport.update({
-  id: '/positions',
-  path: '/positions',
-  getParentRoute: () => LayoutRoute,
-} as any)
 const LayoutPersonsRoute = LayoutPersonsRouteImport.update({
   id: '/persons',
   path: '/persons',
@@ -166,7 +160,6 @@ export interface FileRoutesByFullPath {
   '/manage-news': typeof LayoutManageNewsRoute
   '/organization-card': typeof LayoutOrganizationCardRoute
   '/persons': typeof LayoutPersonsRoute
-  '/positions': typeof LayoutPositionsRoute
   '/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -191,7 +184,6 @@ export interface FileRoutesByTo {
   '/manage-news': typeof LayoutManageNewsRoute
   '/organization-card': typeof LayoutOrganizationCardRoute
   '/persons': typeof LayoutPersonsRoute
-  '/positions': typeof LayoutPositionsRoute
   '/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -218,7 +210,6 @@ export interface FileRoutesById {
   '/_layout/manage-news': typeof LayoutManageNewsRoute
   '/_layout/organization-card': typeof LayoutOrganizationCardRoute
   '/_layout/persons': typeof LayoutPersonsRoute
-  '/_layout/positions': typeof LayoutPositionsRoute
   '/_layout/users': typeof LayoutUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover-password': typeof AuthRecoverPasswordRoute
@@ -245,7 +236,6 @@ export interface FileRouteTypes {
     | '/manage-news'
     | '/organization-card'
     | '/persons'
-    | '/positions'
     | '/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -270,7 +260,6 @@ export interface FileRouteTypes {
     | '/manage-news'
     | '/organization-card'
     | '/persons'
-    | '/positions'
     | '/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -296,7 +285,6 @@ export interface FileRouteTypes {
     | '/_layout/manage-news'
     | '/_layout/organization-card'
     | '/_layout/persons'
-    | '/_layout/positions'
     | '/_layout/users'
     | '/auth/login'
     | '/auth/recover-password'
@@ -452,13 +440,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUsersRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/positions': {
-      id: '/_layout/positions'
-      path: '/positions'
-      fullPath: '/positions'
-      preLoaderRoute: typeof LayoutPositionsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
     '/_layout/persons': {
       id: '/_layout/persons'
       path: '/persons'
@@ -503,7 +484,6 @@ interface LayoutRouteChildren {
   LayoutManageNewsRoute: typeof LayoutManageNewsRoute
   LayoutOrganizationCardRoute: typeof LayoutOrganizationCardRoute
   LayoutPersonsRoute: typeof LayoutPersonsRoute
-  LayoutPositionsRoute: typeof LayoutPositionsRoute
   LayoutUsersRoute: typeof LayoutUsersRoute
 }
 
@@ -513,7 +493,6 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutManageNewsRoute: LayoutManageNewsRoute,
   LayoutOrganizationCardRoute: LayoutOrganizationCardRoute,
   LayoutPersonsRoute: LayoutPersonsRoute,
-  LayoutPositionsRoute: LayoutPositionsRoute,
   LayoutUsersRoute: LayoutUsersRoute,
 }
 

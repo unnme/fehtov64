@@ -18,6 +18,7 @@ function getBaseColumns(): ColumnDef<PersonPublic>[] {
     {
       accessorKey: "image",
       header: () => <span className="sr-only">Фото</span>,
+      meta: { className: "hidden sm:table-cell" },
       cell: ({ row }) => {
         const imageUrl = row.original.image
           ? getPersonImageFileUrl(row.original.id)
@@ -75,6 +76,7 @@ function getBaseColumns(): ColumnDef<PersonPublic>[] {
     {
       accessorKey: "phone",
       header: "Телефон",
+      meta: { className: "hidden md:table-cell" },
       cell: ({ row }) => (
         <span className="text-muted-foreground">{row.original.phone}</span>
       ),
@@ -82,6 +84,7 @@ function getBaseColumns(): ColumnDef<PersonPublic>[] {
     {
       accessorKey: "email",
       header: "Почта",
+      meta: { className: "hidden lg:table-cell" },
       cell: ({ row }) => (
         <span className="text-muted-foreground">{row.original.email}</span>
       ),

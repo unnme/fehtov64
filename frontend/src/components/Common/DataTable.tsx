@@ -31,10 +31,15 @@ import {
 	TableHeader,
 	TableRow
 } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[]
 	data: TData[]
+}
+
+type ColumnMeta = {
+	className?: string
 }
 
 export function DataTable<TData, TValue>({
@@ -50,8 +55,8 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div className="flex flex-col flex-1 overflow-auto min-h-0">
-			<div className="flex-1 overflow-auto min-h-0">
-				<Table>
+			<div className="flex-1 overflow-auto min-h-0 overflow-x-auto">
+				<Table className="min-w-[600px]">
 					<TableHeader className="sticky top-0 z-10">
 						{table.getHeaderGroups().map(headerGroup => (
 							<TableRow
@@ -59,10 +64,11 @@ export function DataTable<TData, TValue>({
 								className="hover:bg-transparent"
 							>
 								{headerGroup.headers.map(header => {
+									const meta = header.column.columnDef.meta as ColumnMeta | undefined
 									return (
 										<TableHead
 											key={header.id}
-											className="sticky top-0 bg-muted/50 z-10"
+											className={cn("sticky top-0 bg-muted/50 z-10", meta?.className)}
 										>
 											{header.isPlaceholder
 												? null
@@ -80,14 +86,17 @@ export function DataTable<TData, TValue>({
 						{table.getRowModel().rows.length ? (
 							table.getRowModel().rows.map(row => (
 								<TableRow key={row.id}>
-									{row.getVisibleCells().map(cell => (
-										<TableCell key={cell.id}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
-										</TableCell>
-									))}
+									{row.getVisibleCells().map(cell => {
+										const meta = cell.column.columnDef.meta as ColumnMeta | undefined
+										return (
+											<TableCell key={cell.id} className={meta?.className}>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext()
+												)}
+											</TableCell>
+										)
+									})}
 								</TableRow>
 							))
 						) : (
@@ -105,7 +114,7 @@ export function DataTable<TData, TValue>({
 			</div>
 
 			<div className="shrink-0">
-				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t bg-muted/20">
+				<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 border-t bg-muted/20">
 					<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 						<div className="text-sm text-muted-foreground">
 							Показано{' '}

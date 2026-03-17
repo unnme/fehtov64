@@ -61,9 +61,9 @@ function UsersTable() {
 function Users() {
 	return (
 		<div className="flex flex-col h-full">
-			<div className="flex items-center justify-between shrink-0 px-4 py-2 h-21">
+			<div className="flex items-center justify-between shrink-0 px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
 				<div>
-					<h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
 						<UsersIcon className="h-6 w-6" />
 						Пользователи
 					</h1>

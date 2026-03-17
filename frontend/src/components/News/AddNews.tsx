@@ -63,7 +63,7 @@ function PendingImageUploader({
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors hover:border-primary"
+        className="border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer transition-colors hover:border-primary"
       >
         <input
           type="file"
@@ -90,7 +90,7 @@ function PendingImageUploader({
       </div>
 
       {pendingImages.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {pendingImages.map((file, index) => {
             const previewUrl = URL.createObjectURL(file)
             return (
@@ -290,7 +290,7 @@ const AddNews = () => {
           Добавить новость
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Добавить новость</DialogTitle>
           <DialogDescription>

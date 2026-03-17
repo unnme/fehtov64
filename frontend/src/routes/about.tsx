@@ -3,9 +3,11 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
 	Apple,
 	Award,
+	Swords,
 	BookMarked,
 	BookOpen,
 	Building2,
+	ChevronLeft,
 	ClipboardCheck,
 	ClipboardList,
 	Clock,
@@ -15,7 +17,7 @@ import {
 	GraduationCap,
 	Handshake,
 	Heart,
-	HeartHandshake,
+	LifeBuoy,
 	Landmark,
 	ListChecks,
 	Mail,
@@ -56,7 +58,8 @@ const SECTIONS = [
 		icon: Building2,
 		subsections: [
 			{ id: 'basic', name: 'Основные сведения', icon: FileText },
-			{ id: 'structure', name: 'Структура и органы управления', icon: Network }
+			{ id: 'structure', name: 'Структура и органы управления', icon: Network },
+			{ id: 'biography', name: 'Биография Г.И. Шварца', icon: Swords }
 		]
 	},
 	{
@@ -82,9 +85,9 @@ const SECTIONS = [
 	{
 		id: 'student-support',
 		name: 'Поддержка обучающихся',
-		icon: HeartHandshake,
+		icon: LifeBuoy,
 		subsections: [
-			{ id: 'scholarships', name: 'Стипендии и меры поддержки', icon: Award },
+			{ id: 'scholarships', name: 'Стипендии и меры поддержки обучающихся', icon: Award },
 			{ id: 'catering', name: 'Организация питания', icon: Apple },
 			{ id: 'accessibility', name: 'Доступная среда', icon: Heart }
 		]
@@ -146,7 +149,7 @@ function PersonCard({ person }: PersonCardProps) {
 
 	return (
 		<div className="group flex gap-4 p-4 rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20">
-			<div className="w-32 h-40 shrink-0 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
+			<div className="w-24 h-32 sm:w-32 sm:h-40 shrink-0 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
 				{imageUrl ? (
 					<img
 						src={imageUrl}
@@ -294,6 +297,15 @@ function AboutPage() {
 		return null
 	}, [search.subsection])
 
+	const parentSection = useMemo(() => {
+		if (!currentSubsection) return null
+		return SECTIONS.find(s =>
+			s.subsections.some(sub => sub.id === currentSubsection)
+		) ?? null
+	}, [currentSubsection])
+
+	const currentSectionData = SECTIONS.find(s => s.id === currentSection)
+
 	const handleSectionSelect = (sectionId: SectionId) => {
 		navigate({
 			search: {
@@ -312,7 +324,9 @@ function AboutPage() {
 		})
 	}
 
-	const currentSectionData = SECTIONS.find(s => s.id === currentSection)
+	const handleBack = () => {
+		navigate({ search: {} })
+	}
 
 	const renderSubsectionContent = () => {
 		if (isLoading) {
@@ -340,7 +354,7 @@ function AboutPage() {
 					{ label: 'БИК', value: data?.bank_bik }
 				].filter(r => r.value)
 
-				const hasContent = data?.name || director || requisites.length > 0 || bankDetails.length > 0
+				const hasContent = data?.name || data?.description || director || requisites.length > 0 || bankDetails.length > 0
 
 				if (!hasContent) {
 					return <PlaceholderContent title="Основные сведения" />
@@ -362,25 +376,17 @@ function AboutPage() {
 
 				return (
 					<div className="space-y-8">
-						{/* Organization name - hero block */}
-						{data?.name && (
-							<div className="rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border border-primary/10 p-6 sm:p-8">
-								<div className="flex items-start gap-4">
-									<div className="rounded-xl bg-primary/10 p-3 shrink-0">
-										<Building2 className="size-6 text-primary" />
-									</div>
-									<div>
-										<p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Полное наименование</p>
+						<div className="grid gap-6 lg:grid-cols-2">
+							<div className="flex flex-col gap-6">
+								{data?.name && (
+									<div className="flex items-center gap-3 rounded-2xl bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border border-primary/10 px-5 py-3.5">
+										<div className="rounded-xl bg-primary/10 p-2.5 shrink-0">
+											<Building2 className="size-5 text-primary" />
+										</div>
 										<h2 className="text-lg sm:text-xl font-semibold leading-tight">{data.name}</h2>
 									</div>
-								</div>
-							</div>
-						)}
-
-						{/* Director and requisites grid */}
-						<div className="grid gap-6 lg:grid-cols-2">
-							{/* Director card */}
-							{director && (
+								)}
+								{director && (
 								<div className="rounded-2xl border bg-muted/50 p-6 sm:p-8 transition-all hover:shadow-md hover:border-primary/20">
 									<div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
 										<div className="shrink-0 mx-auto sm:mx-0">
@@ -391,18 +397,20 @@ function AboutPage() {
 													className="w-48 sm:w-56 rounded-2xl"
 												/>
 											) : (
-												<div className="w-full h-full bg-muted flex items-center justify-center">
+												<div className="w-48 sm:w-56 aspect-[3/4] rounded-2xl bg-muted flex items-center justify-center">
 													<Users className="size-16 text-muted-foreground/30" />
 												</div>
 											)}
 										</div>
-										<div className="flex flex-col min-w-0 text-center sm:text-left">
-											<h3 className="text-lg sm:text-xl font-semibold text-primary leading-tight">
-												{director.last_name} {director.first_name} {director.middle_name}
-											</h3>
-											<p className="text-sm text-muted-foreground mt-1">{director.position.name}</p>
+										<div className="flex flex-col justify-between min-w-0 text-center sm:text-left">
+											<div>
+												<h3 className="text-lg sm:text-xl font-semibold text-primary leading-tight">
+													{director.last_name} {director.first_name} {director.middle_name}
+												</h3>
+												<p className="text-sm text-muted-foreground mt-1">{director.position.name}</p>
+											</div>
 
-											<div className="flex flex-col gap-4 mt-6">
+											<div className="flex flex-col gap-4 mt-4">
 												{director.phone && (
 													<div>
 														<p className="font-semibold mb-0.5">Телефон</p>
@@ -436,37 +444,47 @@ function AboutPage() {
 									</div>
 								</div>
 							)}
+							</div>
 
-							{/* Requisites card */}
-							{requisites.length > 0 && (
+							{(requisites.length > 0 || bankDetails.length > 0) && (
 								<div className="rounded-2xl border bg-card p-5 sm:p-6 transition-all hover:shadow-md hover:border-primary/20">
-									<div className="flex items-center gap-2 mb-4">
-										<FileText className="size-4 text-primary" />
-										<h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Реквизиты</h3>
-									</div>
-									<div className="space-y-2">
-										{requisites.map(r => (
-											<RequisiteRow key={r.label} label={r.label} value={r.value!} multiline={r.multiline} />
-										))}
-									</div>
+									{requisites.length > 0 && (
+										<>
+											<div className="flex items-center gap-2 mb-4">
+												<FileText className="size-4 text-primary" />
+												<h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Реквизиты</h3>
+											</div>
+											<div className="space-y-2">
+												{requisites.map(r => (
+													<RequisiteRow key={r.label} label={r.label} value={r.value!} multiline={r.multiline} />
+												))}
+											</div>
+										</>
+									)}
+									{bankDetails.length > 0 && (
+										<>
+											<div className={cn("flex items-center gap-2 mb-4", requisites.length > 0 && "mt-6")}>
+												<Wallet className="size-4 text-primary" />
+												<h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Банковские реквизиты</h3>
+											</div>
+											<div className="space-y-2">
+												{bankDetails.map(r => (
+													<RequisiteRow key={r.label} label={r.label} value={r.value!} multiline={r.multiline} />
+												))}
+											</div>
+										</>
+									)}
 								</div>
 							)}
 						</div>
 
-						{/* Bank details */}
-						{bankDetails.length > 0 && (
-							<div className="rounded-2xl border bg-card p-5 sm:p-6 transition-all hover:shadow-md hover:border-primary/20">
-								<div className="flex items-center gap-2 mb-4">
-									<Wallet className="size-4 text-primary" />
-									<h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Банковские реквизиты</h3>
-								</div>
-								<div className="space-y-2 max-w-xl">
-									{bankDetails.map(r => (
-										<RequisiteRow key={r.label} label={r.label} value={r.value!} multiline={r.multiline} />
-									))}
-								</div>
-							</div>
+						{data?.description && (
+							<div
+								className="prose prose-sm max-w-none dark:prose-invert"
+								dangerouslySetInnerHTML={{ __html: data.description }}
+							/>
 						)}
+
 					</div>
 				)
 			}
@@ -505,6 +523,29 @@ function AboutPage() {
 
 			case 'structure':
 				return <OrganizationStructure />
+			case 'biography':
+				return (
+					<div className="rounded-2xl border bg-card p-6 sm:p-8">
+						<h3 className="text-lg font-semibold mb-6">Григорий Ильич Шварц (1924–2010)</h3>
+						<div className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+							<p>
+								Григорий Ильич Шварц — советский и российский тренер по фехтованию, заслуженный тренер РСФСР (1960), заслуженный тренер СССР (1964). Организатор и первый директор Саратовской детско-юношеской спортивной школы олимпийского резерва по фехтованию.
+							</p>
+							<p>
+								Родился 16 марта 1924 года в Саратове. Вырос в многодетной семье в Глебучевом овраге. С 1940 года серьёзно занялся фехтованием у тренера Н. Акимова, бывшего офицера царской армии. В 1942 году окончил Саратовский техникум физической культуры и был призван в армию.
+							</p>
+							<p>
+								Участник Великой Отечественной войны — оборона Кавказа (1942–1944), Курская битва. Награждён орденом Отечественной войны и медалями. В 1958 году заочно окончил Московский институт физической культуры.
+							</p>
+							<p>
+								Подготовил олимпийских чемпионов и заслуженных мастеров спорта — Юрия Сисикина, Валентину Прудскову, Юрия Шарова, Евгения Нефёдова, а также около 40 мастеров спорта по фехтованию.
+							</p>
+							<p>
+								С 2002 года в Саратове ежегодно проводится турнир на кубок имени Г.И. Шварца. 16 марта 2011 года на доме, в котором жил тренер, была установлена мемориальная доска.
+							</p>
+						</div>
+					</div>
+				)
 			case 'vacancies':
 				return <PlaceholderContent title="Вакансии" />
 			case 'programs':
@@ -514,9 +555,19 @@ function AboutPage() {
 			case 'admission':
 				return <PlaceholderContent title="Вакантные места для приёма" />
 			case 'scholarships':
-				return <PlaceholderContent title="Стипендии и меры поддержки" />
+				return (
+					<div className="rounded-xl border bg-card p-6 text-center">
+						<h3 className="font-medium text-lg mb-2">Стипендии и меры поддержки обучающихся</h3>
+						<p className="text-sm text-muted-foreground">Отсутствуют</p>
+					</div>
+				)
 			case 'catering':
-				return <PlaceholderContent title="Организация питания" />
+				return (
+					<div className="rounded-xl border bg-card p-6 text-center">
+						<h3 className="font-medium text-lg mb-2">Организация питания</h3>
+						<p className="text-sm text-muted-foreground">Не предусмотрено</p>
+					</div>
+				)
 			case 'accessibility': {
 				const accessibilityData = [
 					{ question: 'Наличие специально оборудованных учебных кабинетов', answer: 'Не имеется' },
@@ -567,13 +618,11 @@ function AboutPage() {
 		}
 	}
 
-	const renderSectionContent = () => {
+	const renderDesktopSectionContent = () => {
 		if (currentSubsection) {
 			return renderSubsectionContent()
 		}
-
 		if (!currentSectionData) return null
-
 		return (
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{currentSectionData.subsections.map(subsection => {
@@ -594,6 +643,10 @@ function AboutPage() {
 		)
 	}
 
+	const mobileSubsectionTitle = currentSubsection
+		? SECTIONS.flatMap(s => s.subsections).find(s => s.id === currentSubsection)?.name
+		: null
+
 	return (
 		<div className="flex min-h-screen flex-col">
 			<Navbar />
@@ -605,36 +658,88 @@ function AboutPage() {
 							Сведения об образовательной организации
 						</h1>
 					</div>
-					{currentSubsection ? (
-						<div>{renderSectionContent()}</div>
-					) : (
-						<div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-							<div className="space-y-1">
+
+					{/* Mobile: accordion or subsection content */}
+					<div className="lg:hidden">
+						{currentSubsection ? (
+							<div className="space-y-4">
+								<button
+									type="button"
+									onClick={handleBack}
+									className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+								>
+									<ChevronLeft className="size-4" />
+									{parentSection?.name ?? 'Назад'}
+								</button>
+								{mobileSubsectionTitle && (
+									<h2 className="text-xl font-semibold">{mobileSubsectionTitle}</h2>
+								)}
+								{renderSubsectionContent()}
+							</div>
+						) : (
+							<Accordion type="multiple" className="border rounded-xl">
 								{SECTIONS.map(section => {
-									const isActive = section.id === currentSection
-									const Icon = section.icon
+									const SectionIcon = section.icon
 									return (
-										<button
-											key={section.id}
-											type="button"
-											aria-pressed={isActive}
-											onClick={() => handleSectionSelect(section.id)}
-											className={cn(
-												'w-full text-left rounded-lg px-4 py-2.5 text-sm font-medium transition-colors border flex items-center gap-3',
-												isActive
-													? 'bg-primary/10 text-primary border-primary/20'
-													: 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-											)}
-										>
-											<Icon className="size-4 shrink-0" />
-											{section.name}
-										</button>
+										<AccordionItem key={section.id} value={section.id} className="border-b last:border-b-0">
+											<AccordionTrigger className="px-4 py-3 text-sm font-medium hover:no-underline">
+												<div className="flex items-center gap-3">
+													<SectionIcon className="size-4 text-primary shrink-0" />
+													<span>{section.name}</span>
+												</div>
+											</AccordionTrigger>
+											<AccordionContent className="px-4 pb-3 pt-0">
+												<div className="space-y-0.5">
+													{section.subsections.map(subsection => {
+														const SubIcon = subsection.icon
+														return (
+															<button
+																key={subsection.id}
+																type="button"
+																onClick={() => handleSubsectionSelect(section.id, subsection.id as SubsectionId)}
+																className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground text-left"
+															>
+																<SubIcon className="size-4 shrink-0" />
+																<span>{subsection.name}</span>
+															</button>
+														)
+													})}
+												</div>
+											</AccordionContent>
+										</AccordionItem>
 									)
 								})}
-							</div>
-							<div>{renderSectionContent()}</div>
+							</Accordion>
+						)}
+					</div>
+
+					{/* Desktop: sidebar + content */}
+					<div className="hidden lg:grid gap-6 lg:grid-cols-[280px_1fr]">
+						<div className="space-y-1">
+							{SECTIONS.map(section => {
+								const isActive = section.id === currentSection
+								const Icon = section.icon
+								return (
+									<button
+										key={section.id}
+										type="button"
+										aria-pressed={isActive}
+										onClick={() => handleSectionSelect(section.id)}
+										className={cn(
+											'w-full text-left rounded-lg px-4 py-2.5 text-sm font-medium transition-colors border flex items-center gap-3',
+											isActive
+												? 'bg-primary/10 text-primary border-primary/20'
+												: 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+										)}
+									>
+										<Icon className="size-4 shrink-0" />
+										{section.name}
+									</button>
+								)
+							})}
 						</div>
-					)}
+						<div>{renderDesktopSectionContent()}</div>
+					</div>
 				</div>
 			</main>
 		</div>

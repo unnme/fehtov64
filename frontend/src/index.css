@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @font-face {
   font-family: "Montserrat";
@@ -193,6 +194,24 @@
   to {
     height: 0;
   }
+}
+
+/* Prose table overrides */
+.prose table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  border: 2px solid var(--color-border);
+}
+.prose table td,
+.prose table th {
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  vertical-align: top;
+  font-weight: normal;
+}
+.prose table thead tr {
+  border-bottom: 2px solid var(--color-border);
 }
 
 /* Accessibility styles */

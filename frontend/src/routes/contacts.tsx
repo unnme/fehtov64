@@ -96,23 +96,23 @@ function Contacts() {
 						</p>
 					</div>
 
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-[1.2fr_1fr]">
+					<div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
 						<div className="space-y-6">
 							<Card>
-								<CardHeader>
+								<CardHeader className="px-4 sm:px-6">
 									<CardTitle className="text-xl">
 										Контактная информация
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="p-0">
 									{isLoading ? (
-										<div className="flex items-center justify-center py-8 px-6">
+										<div className="flex items-center justify-center py-8 px-4 sm:px-6">
 											<p className="text-sm text-muted-foreground">
 												Загрузка...
 											</p>
 										</div>
 									) : data ? (
-										<div className="space-y-4 px-6 pb-6">
+										<div className="space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
 											{data.name && (
 												<ContactField
 													icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
@@ -154,7 +154,7 @@ function Contacts() {
 													<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
 														<div className="space-y-1">
 															{formatWorkHours(data.work_hours).map((item, index) => (
-																<div key={index} className="flex gap-2">
+																<div key={index} className="flex gap-2 flex-wrap">
 																	<span>{item.days}:</span>
 																	<span className="text-muted-foreground">{item.time}</span>
 																</div>
@@ -172,7 +172,7 @@ function Contacts() {
 													<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">
 														<div className="space-y-1">
 															{formatWorkHours(data.director_hours).map((item, index) => (
-																<div key={index} className="flex gap-2">
+																<div key={index} className="flex gap-2 flex-wrap">
 																	<span>{item.days}:</span>
 																	<span className="text-muted-foreground">{item.time}</span>
 																</div>
@@ -226,7 +226,7 @@ function Contacts() {
 												>
 													<a
 														href={`mailto:${data.email}`}
-														className="block rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary"
+														className="block rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted hover:text-primary break-all"
 													>
 														{data.email}
 													</a>
@@ -241,7 +241,7 @@ function Contacts() {
 											/>
 										</div>
 									) : (
-										<div className="flex items-center justify-center py-8 px-6">
+										<div className="flex items-center justify-center py-8 px-4 sm:px-6">
 											<p className="text-sm text-muted-foreground">
 												Контактная информация не заполнена
 											</p>
@@ -252,14 +252,14 @@ function Contacts() {
 
 							{data?.latitude && data?.longitude && (
 								<Card>
-									<CardHeader>
+									<CardHeader className="px-4 sm:px-6">
 										<CardDescription className="flex items-center gap-2">
 											<MapPin className="h-4 w-4 text-muted-foreground" />
 											Наше местоположение на карте
 										</CardDescription>
 									</CardHeader>
-									<CardContent>
-										<div className="h-52 w-full rounded-lg border-2 border-border overflow-hidden shadow-sm">
+									<CardContent className="px-4 sm:px-6">
+										<div className="h-48 sm:h-56 md:h-64 w-full rounded-lg border-2 border-border overflow-hidden shadow-sm">
 											{hasApiKey ? (
 												<div
 													ref={mapContainerRef}
@@ -276,14 +276,14 @@ function Contacts() {
 							)}
 						</div>
 
-						<Card>
-							<CardHeader>
+						<Card className="self-start">
+							<CardHeader className="px-4 sm:px-6">
 								<CardTitle className="text-xl">Форма обратной связи</CardTitle>
 								<CardDescription>
 									Заполните форму, и мы свяжемся с вами в ближайшее время
 								</CardDescription>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="px-4 sm:px-6">
 								<form className="space-y-5">
 									<div className="space-y-2">
 										<Label
@@ -324,7 +324,7 @@ function Contacts() {
 										<Textarea
 											id="message"
 											placeholder="Ваше сообщение"
-											rows={6}
+											rows={4}
 											required
 											className="resize-none"
 										/>

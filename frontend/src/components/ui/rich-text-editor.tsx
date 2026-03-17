@@ -88,7 +88,7 @@ export const RichTextEditor = ({
 		},
 		editorProps: {
 			attributes: {
-				class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-50 max-w-none px-4 py-3'
+				class: 'focus:outline-none min-h-50 max-w-none px-4 py-3 text-sm'
 			}
 		}
 	})
@@ -395,8 +395,8 @@ export const RichTextEditor = ({
 						background-color: hsl(var(--background));
 					}
 					.ProseMirror table th {
-						font-weight: 600;
-						background-color: hsl(var(--muted));
+						font-weight: normal;
+						background-color: hsl(var(--background));
 						text-align: left;
 						color: hsl(var(--foreground));
 						border: 1px solid #e5e7eb;

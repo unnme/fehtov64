@@ -20,6 +20,7 @@ export const columns: ColumnDef<DocumentPublic>[] = [
   {
     accessorKey: "category",
     header: "Категория",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="text-sm">{row.original.category?.name || "Без категории"}</span>
     ),
@@ -27,6 +28,7 @@ export const columns: ColumnDef<DocumentPublic>[] = [
   {
     accessorKey: "file_size",
     header: "Размер",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => {
       const size = row.original.file_size
       const mb = (size / 1024 / 1024).toFixed(2)
@@ -46,6 +48,7 @@ export const columns: ColumnDef<DocumentPublic>[] = [
   {
     accessorKey: "created_at",
     header: "Создан",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
       const createdAt = row.original.created_at
       return (

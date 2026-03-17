@@ -378,7 +378,7 @@ export function ManagePositionsDialog() {
             Редактировать должности
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Управление должностями</DialogTitle>
             <DialogDescription>

@@ -25,7 +25,7 @@ function Dashboard() {
 				<div className="text-center space-y-6 max-w-2xl mx-auto px-4">
 					<div className="flex items-center justify-center gap-1 mb-2">
 						<Sparkles className="h-6 w-6 text-primary animate-pulse" />
-						<h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+						<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
 							{userName ? (
 								<>
 									Добро пожаловать,{' '}
@@ -42,7 +42,7 @@ function Dashboard() {
 						</h1>
 						<Sparkles className="h-6 w-6 text-primary animate-pulse" />
 					</div>
-					<p className="text-sm md:text-base text-muted-foreground">
+					<p className="text-sm sm:text-base text-muted-foreground">
 						Рады видеть вас в панели управления
 					</p>
 				</div>

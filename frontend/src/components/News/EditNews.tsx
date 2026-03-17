@@ -419,7 +419,7 @@ const EditNews = ({ news, onSuccess }: EditNewsProps) => {
         <Pencil />
         Редактировать новость
       </DropdownMenuItem>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <Form {...form}>
           <form 
             onSubmit={form.handleSubmit(onSubmit)}

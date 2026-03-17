@@ -1,4 +1,5 @@
 """Email service for sending emails."""
+
 from pathlib import Path
 from typing import Any
 
@@ -93,7 +94,9 @@ class EmailService:
                 "link": link,
             },
         )
-        await self.send_email(email_to=email_to, subject=subject, html_content=html_content)
+        await self.send_email(
+            email_to=email_to, subject=subject, html_content=html_content
+        )
 
     async def send_new_account_email(self, *, email_to: str, username: str) -> None:
         """Send new account email."""
@@ -108,7 +111,9 @@ class EmailService:
                 "link": f"{settings.FRONTEND_HOST}/auth/login",
             },
         )
-        await self.send_email(email_to=email_to, subject=subject, html_content=html_content)
+        await self.send_email(
+            email_to=email_to, subject=subject, html_content=html_content
+        )
 
     def send_new_account_email_sync(self, *, email_to: str, username: str) -> None:
         """Send new account email (synchronous wrapper for BackgroundTasks)."""
@@ -124,9 +129,7 @@ class EmailService:
         finally:
             loop.close()
 
-    async def send_email_verification_code(
-        self, *, email_to: str, code: str
-    ) -> None:
+    async def send_email_verification_code(self, *, email_to: str, code: str) -> None:
         """Send email verification code."""
         project_name = settings.PROJECT_NAME
         subject = f"{project_name} - Email Verification Code"
@@ -140,11 +143,11 @@ class EmailService:
         </body>
         </html>
         """
-        await self.send_email(email_to=email_to, subject=subject, html_content=html_content)
+        await self.send_email(
+            email_to=email_to, subject=subject, html_content=html_content
+        )
 
-    def send_email_verification_code_sync(
-        self, *, email_to: str, code: str
-    ) -> None:
+    def send_email_verification_code_sync(self, *, email_to: str, code: str) -> None:
         """Send email verification code (synchronous wrapper for BackgroundTasks)."""
         import asyncio
         import logging
@@ -161,7 +164,10 @@ class EmailService:
             )
             logger.info(f"Verification code email sent successfully to {email_to}")
         except Exception as e:
-            logger.error(f"Failed to send verification code email to {email_to}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to send verification code email to {email_to}: {e}",
+                exc_info=True,
+            )
             raise
         finally:
             loop.close()

@@ -49,7 +49,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false)
-  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false)
+  const [isPendingDeletion, setIsPendingDeletion] = useState(false)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
@@ -113,25 +113,35 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
     },
   })
 
-  const imageUrl = person.image ? getPersonImageFileUrl(person.id) : null
+  const imageUrl = person.image && !isPendingDeletion ? getPersonImageFileUrl(person.id) : null
 
   async function handleSubmit(data: FormData) {
     try {
       await mutation.mutateAsync(data)
+      if (isPendingDeletion && person.image) {
+        try {
+          await PersonImagesService.personImagesDeletePersonImage({ path: { person_id: person.id } })
+        } catch (error) {
+          showErrorToast(
+            error instanceof Error ? error.message : "Ошибка удаления фото"
+          )
+        }
+      }
       if (photoFile) {
         setIsUploadingPhoto(true)
         try {
           await PersonImagesService.personImagesUploadPersonImage({ path: { person_id: person.id }, body: { file: photoFile } })
-          await queryClient.invalidateQueries({ queryKey: ["persons"] })
         } catch (error) {
           showErrorToast(
             error instanceof Error ? error.message : "Ошибка загрузки фото"
           )
         }
       }
+      await queryClient.invalidateQueries({ queryKey: ["persons"] })
       showSuccessToast("Сотрудник обновлен")
       setPhotoFile(null)
       setPhotoPreviewUrl(null)
+      setIsPendingDeletion(false)
       setIsOpen(false)
       onSuccess?.()
     } finally {
@@ -139,30 +149,21 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
     }
   }
 
-  const handleDeleteImage = async () => {
+  const handleDeleteImage = () => {
     if (photoPreviewUrl) {
       setPhotoFile(null)
       setPhotoPreviewUrl(null)
       return
     }
     if (!person.image) return
-    setIsDeletingPhoto(true)
-    try {
-      await PersonImagesService.personImagesDeletePersonImage({ path: { person_id: person.id } })
-      await queryClient.invalidateQueries({ queryKey: ["persons"] })
-    } catch (error) {
-      showErrorToast(
-        error instanceof Error ? error.message : "Ошибка удаления фото"
-      )
-    } finally {
-      setIsDeletingPhoto(false)
-    }
+    setIsPendingDeletion(true)
   }
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setPhotoFile(null)
       setPhotoPreviewUrl(null)
+      setIsPendingDeletion(false)
     }
     setIsOpen(open)
   }
@@ -174,7 +175,7 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
           Редактировать
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Редактировать сотрудника</DialogTitle>
           <DialogDescription>
@@ -310,9 +311,9 @@ function EditPerson({ person, onSuccess }: EditPersonProps) {
                 onSelectFile={(file, previewUrl) => {
                   setPhotoFile(file)
                   setPhotoPreviewUrl(previewUrl)
+                  setIsPendingDeletion(false)
                 }}
                 onDelete={handleDeleteImage}
-                isDeleting={isDeletingPhoto}
                 isUploading={isUploadingPhoto}
               />
 

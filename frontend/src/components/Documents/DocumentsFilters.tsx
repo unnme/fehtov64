@@ -88,7 +88,7 @@ export function DocumentsFilters({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 p-4 border-b bg-muted/20">
+    <div className="flex flex-col sm:flex-row gap-4 px-4 sm:px-6 lg:px-8 py-4 border-b">
       <div className="flex-1">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

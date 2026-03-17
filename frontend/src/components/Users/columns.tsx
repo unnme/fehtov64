@@ -37,6 +37,7 @@ export const columns: ColumnDef<UserTableData>[] = [
 	{
 		accessorKey: 'email',
 		header: 'Почта',
+		meta: { className: 'hidden md:table-cell' },
 		cell: ({ row }) => (
 			<span className="text-muted-foreground">{row.original.email}</span>
 		)
@@ -53,6 +54,7 @@ export const columns: ColumnDef<UserTableData>[] = [
 	{
 		accessorKey: 'is_active',
 		header: 'Статус',
+		meta: { className: 'hidden sm:table-cell' },
 		cell: ({ row }) => (
 			<div className="flex items-center gap-2">
 				<span

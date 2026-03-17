@@ -18,7 +18,6 @@ import {
 import type { LucideIcon } from 'lucide-react'
 
 import type { UserPublic } from '@/client'
-import { Logo } from '@/components/Common/Logo'
 import { EditProfile } from '@/components/UserSettings'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -256,12 +255,12 @@ export function AdminNavbar() {
 			className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60"
 			role="banner"
 		>
-			<div className="flex h-14 items-center px-4 sm:px-6">
+			<div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
 				{/* Mobile Menu */}
 				<Sheet>
 					<SheetTrigger asChild>
 						<Button
-							variant="ghost"
+							variant="outline"
 							size="icon"
 							className="lg:hidden mr-2"
 							aria-label="Open navigation menu"
@@ -270,7 +269,7 @@ export function AdminNavbar() {
 							<span className="sr-only">Открыть меню</span>
 						</Button>
 					</SheetTrigger>
-					<SheetContent side="left" className="w-72">
+					<SheetContent side="left" className="w-75 sm:w-100">
 						<SheetHeader>
 							<SheetTitle>Навигация</SheetTitle>
 						</SheetHeader>
@@ -286,17 +285,12 @@ export function AdminNavbar() {
 					</SheetContent>
 				</Sheet>
 
-				{/* Logo */}
-				<div className="mr-6">
-					<Logo variant="icon" />
-				</div>
-
 				{/* Desktop Navigation */}
 				<nav
 					className="hidden lg:flex items-center flex-1"
 					aria-label="Main navigation"
 				>
-					<div className="flex items-center gap-1">
+					<div className="flex items-center gap-1 -ml-3">
 						{categories.map(category => (
 							<NavCategoryDropdown
 								key={category.title}

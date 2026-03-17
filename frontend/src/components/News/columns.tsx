@@ -70,6 +70,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
   {
     id: "preview",
     header: "Превью",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => <PreviewCell newsId={row.original.id} />,
   },
   {
@@ -102,6 +103,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
   {
     accessorKey: "published_at",
     header: "Дата публикации",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
       const publishedAt = row.original.published_at
       if (!publishedAt) return <span className="text-muted-foreground">—</span>
@@ -115,6 +117,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
   {
     accessorKey: "created_at",
     header: "Создана",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => {
       const createdAt = row.original.created_at
       return (
@@ -127,6 +130,7 @@ export const columns: ColumnDef<NewsPublic>[] = [
   {
     accessorKey: "owner",
     header: "Автор",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => {
       const owner = row.original.owner
       if (!owner) {

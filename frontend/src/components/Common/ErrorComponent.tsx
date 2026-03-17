@@ -15,16 +15,16 @@ const ErrorComponent = () => {
 				className="max-w-md"
 			>
 				<AlertCircle className="h-4 w-4" />
-				<AlertTitle className="text-2xl font-bold">Oops!</AlertTitle>
+				<AlertTitle className="text-2xl font-bold">Упс!</AlertTitle>
 				<AlertDescription className="text-lg">
-					Something went wrong. Please try again.
+					Что-то пошло не так. Попробуйте ещё раз.
 				</AlertDescription>
 			</Alert>
 			<Link
 				to="/"
 				className="mt-4"
 			>
-				<Button>Go Home</Button>
+				<Button>На главную</Button>
 			</Link>
 		</div>
 	)

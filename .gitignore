@@ -99,6 +99,7 @@ Desktop.ini
 .cursor/
 .vscode/
 .idea/
+.mcp.json
 CLAUDE.md
 *.suo
 *.ntvs*

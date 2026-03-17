@@ -143,7 +143,7 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 border-b bg-muted/20">
+    <div className="flex flex-col gap-4 px-4 sm:px-6 lg:px-8 py-4 border-b">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
@@ -186,8 +186,8 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex items-center gap-2">
-          <div className="relative w-30">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-31">
             <Input
               type="text"
               placeholder="дд.мм.гггг"
@@ -263,8 +263,8 @@ export function NewsFilters({ news, onFilterChange }: NewsFiltersProps) {
 
           {showDateTo && (
             <>
-              <span className="text-muted-foreground">-</span>
-              <div className="relative w-30">
+              <span className="text-muted-foreground hidden sm:inline">-</span>
+              <div className="relative w-full sm:w-31">
                 <Input
                   type="text"
                   placeholder="дд.мм.гггг"

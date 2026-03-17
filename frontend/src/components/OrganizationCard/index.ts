@@ -1,3 +1,6 @@
+// Description
+export { DescriptionDialog } from './DescriptionDialog'
+
 // Fields
 export { ContactField } from './fields/ContactField'
 export { OrganizationEmailField } from './fields/OrganizationEmailField'

@@ -282,7 +282,7 @@ export function ManageCategoriesDialog() {
             Редактировать категории
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Управление категориями</DialogTitle>
             <DialogDescription>

@@ -44,9 +44,9 @@ export function Navbar() {
 				<Sheet>
 					<SheetTrigger asChild>
 						<Button
-							variant="ghost"
+							variant="outline"
 							size="icon"
-							className="md:hidden mr-2"
+							className="lg:hidden mr-2"
 							aria-label="Open navigation menu"
 						>
 							<Menu className="size-5" />
@@ -98,7 +98,7 @@ export function Navbar() {
 
 				{/* Desktop Navigation */}
 				<nav
-					className="hidden md:flex items-center gap-6"
+					className="hidden lg:flex items-center gap-6"
 					aria-label="Main navigation"
 				>
 					<ul

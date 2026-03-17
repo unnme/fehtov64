@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Clock, Mail, UserRound } from "lucide-react";
+import { Building2, Clock, FileText, Mail, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { OrganizationCardService, type OrganizationCardPublic } from "@/client";
+import { DescriptionDialog } from "@/components/OrganizationCard/DescriptionDialog";
 import { AddressSection, MessengersSection, PhonesSection, RequisitesSection } from "@/components/OrganizationCard/sections";
 import { WorkHoursDialog } from "@/components/OrganizationCard/work-hours";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,7 @@ function OrganizationCardPage() {
   const { showSuccessToast, showErrorToast } = useCustomToast();
   const [isWorkHoursDialogOpen, setIsWorkHoursDialogOpen] = useState(false);
   const [isDirectorHoursDialogOpen, setIsDirectorHoursDialogOpen] = useState(false);
+  const [isDescriptionDialogOpen, setIsDescriptionDialogOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: QUERY_KEY,
@@ -65,6 +67,7 @@ function OrganizationCardPage() {
     mode: "onBlur",
     defaultValues: {
       name: "",
+      description: "",
       phones: [],
       email: "",
       address: "",
@@ -115,6 +118,7 @@ function OrganizationCardPage() {
 
     form.reset({
       name: data.name || "",
+      description: data.description || "",
       phones,
       email: data.email || "",
       address: data.address || "",
@@ -158,6 +162,7 @@ function OrganizationCardPage() {
     mutationFn: async (payload: OrganizationCardFormData) => {
       const body = {
         name: payload.name?.trim() || null,
+        description: payload.description?.trim() || null,
         phones: (payload.phones || [])
           .filter((p) => p.value?.replace(/\D/g, "").length > 1)
           .map((phone) => ({
@@ -234,9 +239,9 @@ function OrganizationCardPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between shrink-0 px-4 py-2">
+      <header className="flex items-center justify-between shrink-0 px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2">
             <Building2 className="h-6 w-6" />
             Карточка организации
           </h1>
@@ -246,7 +251,7 @@ function OrganizationCardPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto px-4 pb-6">
+      <div className="flex-1 overflow-auto px-4 sm:px-6 lg:px-8 pb-6">
         <Card>
           <CardContent className="pt-6">
             {isLoading && (
@@ -416,6 +421,51 @@ function OrganizationCardPage() {
                     setValue={form.setValue}
                   />
                 </div>
+
+                <hr className="border-border" />
+
+                {/* Доп. описание */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => {
+                    const plainText = field.value
+                      ? field.value.replace(/<[^>]*>/g, "").trim()
+                      : "";
+                    return (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Доп. описание
+                        </FormLabel>
+                        <FormControl>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full justify-start text-left h-auto min-h-[58px] py-2.5"
+                            onClick={() => setIsDescriptionDialogOpen(true)}
+                          >
+                            <div className="flex flex-col items-start gap-0.5 w-full min-w-0">
+                              <span
+                                className="text-xs text-muted-foreground whitespace-normal text-left line-clamp-3"
+                                style={{ wordBreak: "break-word" }}
+                              >
+                                {plainText || "Описание не указано"}
+                              </span>
+                            </div>
+                          </Button>
+                        </FormControl>
+                        <FormMessage />
+                        <DescriptionDialog
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          isOpen={isDescriptionDialogOpen}
+                          onOpenChange={setIsDescriptionDialogOpen}
+                        />
+                      </FormItem>
+                    );
+                  }}
+                />
 
                 <div className="flex justify-end pt-4">
                   <LoadingButton type="submit" loading={mutation.isPending}>

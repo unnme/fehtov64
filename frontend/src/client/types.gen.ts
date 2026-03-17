@@ -516,6 +516,10 @@ export type OrganizationCardCreate = {
      */
     name: string;
     /**
+     * Description
+     */
+    description?: string | null;
+    /**
      * Phones
      */
     phones?: Array<{
@@ -637,6 +641,10 @@ export type OrganizationCardPublic = {
      * Name
      */
     name: string | null;
+    /**
+     * Description
+     */
+    description: string | null;
     /**
      * Phones
      */
@@ -763,6 +771,10 @@ export type OrganizationCardUpdate = {
      * Name
      */
     name?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
     /**
      * Phones
      */

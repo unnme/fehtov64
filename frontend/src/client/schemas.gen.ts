@@ -839,6 +839,17 @@ export const OrganizationCardCreateSchema = {
             minLength: 1,
             title: 'Name'
         },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
         phones: {
             items: {
                 additionalProperties: true,
@@ -1170,6 +1181,17 @@ export const OrganizationCardPublicSchema = {
             ],
             title: 'Name'
         },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
         phones: {
             items: {
                 additionalProperties: true,
@@ -1468,6 +1490,7 @@ export const OrganizationCardPublicSchema = {
     required: [
         'id',
         'name',
+        'description',
         'phones',
         'email',
         'address',
@@ -1514,6 +1537,17 @@ export const OrganizationCardUpdateSchema = {
                 }
             ],
             title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
         },
         phones: {
             anyOf: [

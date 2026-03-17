@@ -8,28 +8,22 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { type WorkHours } from '@/utils/workHours'
+import { RichTextEditor } from '@/components/ui/rich-text-editor-lazy'
 
-import { WorkHoursEditor } from './WorkHoursEditor'
-
-interface WorkHoursDialogProps {
-	value: WorkHours
-	onChange: (value: WorkHours) => void
+interface DescriptionDialogProps {
+	value: string
+	onChange: (value: string) => void
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
-	title?: string
-	includeWeekends?: boolean
 }
 
-export const WorkHoursDialog = ({
+export const DescriptionDialog = ({
 	value,
 	onChange,
 	isOpen,
 	onOpenChange,
-	title = 'Режим работы',
-	includeWeekends = true,
-}: WorkHoursDialogProps) => {
-	const [localValue, setLocalValue] = useState<WorkHours>(value)
+}: DescriptionDialogProps) => {
+	const [localValue, setLocalValue] = useState(value)
 
 	useEffect(() => {
 		if (isOpen) {
@@ -51,20 +45,31 @@ export const WorkHoursDialog = ({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogContent
-				className="max-h-[95vh] overflow-y-auto w-full max-w-[95vw] lg:max-w-[1400px]"
-			>
+			<DialogContent className="max-h-[95vh] overflow-y-auto w-full max-w-[95vw] lg:max-w-[900px]">
 				<DialogHeader>
-					<DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
+					<DialogTitle className="text-lg sm:text-xl">
+						Доп. описание
+					</DialogTitle>
 				</DialogHeader>
 				<div className="py-4 sm:py-6">
-					<WorkHoursEditor value={localValue} onChange={setLocalValue} includeWeekends={includeWeekends} />
+					<RichTextEditor
+						content={localValue}
+						onChange={setLocalValue}
+						placeholder="Дополнительное описание организации..."
+					/>
 				</div>
 				<DialogFooter className="gap-2 border-t pt-3 sm:pt-4 mt-3 sm:mt-4 flex-col sm:flex-row">
-					<Button variant="outline" onClick={() => handleOpenChange(false)} className="w-full sm:w-auto sm:min-w-25">
+					<Button
+						variant="outline"
+						onClick={() => handleOpenChange(false)}
+						className="w-full sm:w-auto sm:min-w-25"
+					>
 						Отмена
 					</Button>
-					<Button onClick={handleSave} className="w-full sm:w-auto sm:min-w-25">
+					<Button
+						onClick={handleSave}
+						className="w-full sm:w-auto sm:min-w-25"
+					>
 						ОК
 					</Button>
 				</DialogFooter>

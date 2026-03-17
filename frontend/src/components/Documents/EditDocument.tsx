@@ -96,7 +96,7 @@ export function EditDocument({ document, isOpen, onOpenChange }: EditDocumentPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Редактировать документ</DialogTitle>
           <DialogDescription>

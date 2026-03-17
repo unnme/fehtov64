@@ -143,7 +143,7 @@ export function AddDocument() {
           Загрузить документ
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Загрузить документ</DialogTitle>
           <DialogDescription>
@@ -155,7 +155,7 @@ export function AddDocument() {
             <div
               {...getRootProps()}
               className={cn(
-                "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                "border-2 border-dashed rounded-lg p-4 sm:p-8 text-center cursor-pointer transition-colors",
                 "hover:border-primary",
                 isDragActive && "border-primary bg-primary/5",
                 file && "border-green-500 bg-green-50 dark:bg-green-950",

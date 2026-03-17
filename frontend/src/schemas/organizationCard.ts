@@ -54,6 +54,7 @@ export const organizationCardSchema = z.object({
 		.string()
 		.min(1, { message: 'Укажите название организации' })
 		.transform(normalizeString),
+	description: z.string().optional().default(''),
 	phones: z
 		.array(
 			z.object({

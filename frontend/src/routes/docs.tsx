@@ -1,20 +1,39 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight, Download, Eye } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import {
+	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
+	Download,
+	Eye,
+	Search,
+	X
+} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { z } from 'zod'
 
 import { Breadcrumbs, Navbar } from '@/components/Common'
 import { FileTypeIcon } from '@/components/Documents/FileTypeIcon'
 import { SignaturePopover } from '@/components/Documents/SignaturePopover'
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger
+} from '@/components/ui/accordion'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
 	Pagination,
 	PaginationContent,
 	PaginationItem
 } from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
-import { canPreviewInBrowser, getDocumentFileUrl, getDocumentPreviewUrl } from '@/utils/fileUrls'
+import {
+	canPreviewInBrowser,
+	getDocumentFileUrl,
+	getDocumentPreviewUrl
+} from '@/utils/fileUrls'
 import type {
 	DocumentCategoriesPublic,
 	DocumentPublic,
@@ -84,9 +103,180 @@ async function fetchDocuments(
 	return response.json()
 }
 
+async function fetchDocumentsByCategory(
+	categoryId: string | null,
+	limit: number
+): Promise<DocumentsPublic> {
+	const queryParams = new URLSearchParams()
+	if (categoryId) {
+		queryParams.set('category_id', categoryId)
+	}
+	queryParams.set('skip', '0')
+	queryParams.set('limit', String(limit))
+	const query = queryParams.toString()
+	const response = await fetch(
+		`${import.meta.env.VITE_API_URL}/api/v1/documents/public?${query}`
+	)
+	if (!response.ok) {
+		throw new Error('Failed to fetch documents')
+	}
+	return response.json()
+}
+
+interface DocumentItemProps {
+	doc: DocumentPublic
+	compact?: boolean
+}
+
+function DocumentItem({ doc, compact = false }: DocumentItemProps) {
+	const previewUrl = getDocumentPreviewUrl(doc.id)
+	const downloadUrl = getDocumentFileUrl(doc.id)
+
+	if (compact) {
+		return (
+			<div className="flex items-center justify-between gap-3 py-3 px-2">
+				<div className="flex items-center gap-3.5 min-w-0 flex-1">
+					<div className="h-7 w-7 rounded-md border flex items-center justify-center shrink-0">
+						<FileTypeIcon mimeType={doc.mime_type} fileName={doc.file_name} />
+					</div>
+					<span className="text-sm truncate">{doc.name}</span>
+				</div>
+				<div className="flex items-center shrink-0">
+					<SignaturePopover documentId={doc.id} mimeType={doc.mime_type} />
+					{canPreviewInBrowser(doc.mime_type) && (
+						<Button asChild variant="ghost" size="icon" className="size-8">
+							<a href={previewUrl} target="_blank" rel="noreferrer">
+								<Eye className="size-4" />
+							</a>
+						</Button>
+					)}
+					<Button asChild variant="ghost" size="icon" className="size-8">
+						<a href={downloadUrl} download>
+							<Download className="size-4" />
+						</a>
+					</Button>
+				</div>
+			</div>
+		)
+	}
+
+	return (
+		<div className="flex items-center justify-between gap-4 px-4 py-3">
+			<div className="flex items-center gap-3 min-w-0">
+				<div className="h-9 w-9 rounded-md border flex items-center justify-center shrink-0">
+					<FileTypeIcon mimeType={doc.mime_type} fileName={doc.file_name} />
+				</div>
+				<div className="min-w-0">
+					<p className="text-sm font-medium truncate">{doc.name}</p>
+				</div>
+			</div>
+			<div className="flex items-center gap-2 shrink-0">
+				<SignaturePopover documentId={doc.id} mimeType={doc.mime_type} />
+				{canPreviewInBrowser(doc.mime_type) && (
+					<Button asChild variant="ghost" size="icon" className="h-8 w-8">
+						<a href={previewUrl} target="_blank" rel="noreferrer">
+							<Eye className="h-4 w-4" />
+						</a>
+					</Button>
+				)}
+				<Button asChild variant="ghost" size="icon" className="h-8 w-8">
+					<a href={downloadUrl} download>
+						<Download className="h-4 w-4" />
+					</a>
+				</Button>
+				<span className="text-xs text-muted-foreground whitespace-nowrap min-w-[60px] text-right hidden sm:block">
+					{formatFileSize(doc.file_size)}
+				</span>
+			</div>
+		</div>
+	)
+}
+
+const MOBILE_DOCS_PER_PAGE = 10
+
+interface MobileCategoryAccordionProps {
+	category: CategoryOption
+	searchQuery: string
+}
+
+function MobileCategoryAccordion({
+	category,
+	searchQuery
+}: MobileCategoryAccordionProps) {
+	const categoryId = category.id === 'all' ? null : category.id
+	const [limit, setLimit] = useState(MOBILE_DOCS_PER_PAGE)
+
+	const { data: documentsData, isLoading } = useQuery({
+		queryKey: ['public-documents-accordion', categoryId, limit],
+		queryFn: () => fetchDocumentsByCategory(categoryId, limit)
+	})
+
+	const allDocuments = documentsData?.data ?? []
+	const filteredDocuments = useMemo(() => {
+		if (!searchQuery.trim()) return allDocuments
+		const query = searchQuery.toLowerCase()
+		return allDocuments.filter(
+			doc =>
+				doc.name.toLowerCase().includes(query) ||
+				doc.file_name.toLowerCase().includes(query)
+		)
+	}, [allDocuments, searchQuery])
+
+	const totalCount = documentsData?.count ?? 0
+	const hasMore = allDocuments.length < totalCount
+
+	const handleShowMore = () => {
+		setLimit(prev => prev + MOBILE_DOCS_PER_PAGE)
+	}
+
+	return (
+		<AccordionItem value={category.id} className="border-b">
+			<AccordionTrigger className="px-3 py-3 text-sm font-medium hover:no-underline">
+				<div className="flex items-center justify-between w-full pr-2">
+					<span>{category.name}</span>
+					{!isLoading && (
+						<span className="text-xs text-muted-foreground">
+							{searchQuery ? filteredDocuments.length : totalCount}
+						</span>
+					)}
+				</div>
+			</AccordionTrigger>
+			<AccordionContent className="px-3 pb-3">
+				{isLoading ? (
+					<div className="text-muted-foreground text-sm py-2">Загрузка...</div>
+				) : filteredDocuments.length === 0 ? (
+					<div className="text-muted-foreground text-sm py-2">
+						{searchQuery ? 'Ничего не найдено' : 'Документы не найдены'}
+					</div>
+				) : (
+					<div className="space-y-3">
+						<div className="divide-y">
+							{filteredDocuments.map((doc: DocumentPublic) => (
+								<DocumentItem key={doc.id} doc={doc} compact />
+							))}
+						</div>
+						{hasMore && !searchQuery && (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleShowMore}
+								className="w-full"
+							>
+								<ChevronDown className="size-4 mr-1" />
+								Показать ещё ({totalCount - allDocuments.length})
+							</Button>
+						)}
+					</div>
+				)}
+			</AccordionContent>
+		</AccordionItem>
+	)
+}
+
 function DocsPage() {
 	const navigate = useNavigate({ from: '/docs' })
 	const search = Route.useSearch()
+	const [searchQuery, setSearchQuery] = useState('')
 	const { data: categoriesData } = useQuery({
 		queryKey: ['public-document-categories'],
 		queryFn: fetchCategories
@@ -121,8 +311,18 @@ function DocsPage() {
 		]
 	}, [categoriesData])
 
-	const documents = documentsData?.data ?? []
-	const totalCount = documentsData?.count ?? documents.length
+	const allDocuments = documentsData?.data ?? []
+	const filteredDocuments = useMemo(() => {
+		if (!searchQuery.trim()) return allDocuments
+		const query = searchQuery.toLowerCase()
+		return allDocuments.filter(
+			doc =>
+				doc.name.toLowerCase().includes(query) ||
+				doc.file_name.toLowerCase().includes(query)
+		)
+	}, [allDocuments, searchQuery])
+
+	const totalCount = documentsData?.count ?? allDocuments.length
 	const hasDocumentsData = Boolean(documentsData)
 	const totalPages = hasDocumentsData
 		? Math.max(1, Math.ceil(totalCount / DOCS_PER_PAGE))
@@ -166,15 +366,47 @@ function DocsPage() {
 			<Breadcrumbs />
 			<main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 				<div className="w-full space-y-6">
-					<div className="flex flex-col gap-2">
-						<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-							Документы по категориям
-						</h1>
+					<h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+						Документы
+					</h1>
+
+					{/* Search */}
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+						<Input
+							placeholder="Поиск по названию документа..."
+							value={searchQuery}
+							onChange={e => setSearchQuery(e.target.value)}
+							className="pl-9 pr-9"
+						/>
+						{searchQuery && (
+							<button
+								onClick={() => setSearchQuery('')}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+							>
+								<X className="size-4" />
+							</button>
+						)}
 					</div>
-					<div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+
+					{/* Mobile: Accordion view */}
+					<div className="lg:hidden">
+						<Accordion type="multiple" className="border rounded-xl">
+							{categories.map(category => (
+								<MobileCategoryAccordion
+									key={category.id}
+									category={category}
+									searchQuery={searchQuery}
+								/>
+							))}
+						</Accordion>
+					</div>
+
+					{/* Desktop: Sidebar + List view */}
+					<div className="hidden lg:grid gap-6 lg:grid-cols-[240px_1fr]">
 						<div className="space-y-3">
 							<div className="text-sm text-muted-foreground">
-								Найдено: {documentsData?.count ?? 0}
+								Найдено: {searchQuery ? filteredDocuments.length : (documentsData?.count ?? 0)}
 							</div>
 							<div className="space-y-2">
 								{categories.map(category => {
@@ -207,74 +439,15 @@ function DocsPage() {
 								<div className="text-muted-foreground text-sm py-6">
 									Загрузка...
 								</div>
-							) : documents.length === 0 ? (
+							) : filteredDocuments.length === 0 ? (
 								<div className="text-muted-foreground text-sm py-6">
-									Документы не найдены
+									{searchQuery ? 'Ничего не найдено' : 'Документы не найдены'}
 								</div>
 							) : (
 								<div className="divide-y border rounded-xl">
-									{documents.map((doc: DocumentPublic) => {
-										const previewUrl = getDocumentPreviewUrl(doc.id)
-										const downloadUrl = getDocumentFileUrl(doc.id)
-										return (
-											<div
-												key={doc.id}
-												className="flex items-center justify-between gap-4 px-4 py-3"
-											>
-												<div className="flex items-center gap-3 min-w-0">
-													<div className="h-9 w-9 rounded-md border flex items-center justify-center">
-														<FileTypeIcon
-															mimeType={doc.mime_type}
-															fileName={doc.file_name}
-														/>
-													</div>
-													<div className="min-w-0">
-														<p className="text-sm font-medium truncate">
-															{doc.name}
-														</p>
-													</div>
-												</div>
-												<div className="flex items-center gap-2">
-													<SignaturePopover
-														documentId={doc.id}
-														mimeType={doc.mime_type}
-													/>
-													{canPreviewInBrowser(doc.mime_type) && (
-														<Button
-															asChild
-															variant="ghost"
-															size="icon"
-															className="h-8 w-8"
-														>
-															<a
-																href={previewUrl}
-																target="_blank"
-																rel="noreferrer"
-															>
-																<Eye className="h-4 w-4" />
-															</a>
-														</Button>
-													)}
-													<Button
-														asChild
-														variant="ghost"
-														size="icon"
-														className="h-8 w-8"
-													>
-														<a
-															href={downloadUrl}
-															download
-														>
-															<Download className="h-4 w-4" />
-														</a>
-													</Button>
-													<span className="text-xs text-muted-foreground whitespace-nowrap min-w-[60px] text-right">
-														{formatFileSize(doc.file_size)}
-													</span>
-												</div>
-											</div>
-										)
-									})}
+									{filteredDocuments.map((doc: DocumentPublic) => (
+										<DocumentItem key={doc.id} doc={doc} />
+									))}
 								</div>
 							)}
 							{totalPages > 1 && (

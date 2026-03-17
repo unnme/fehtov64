@@ -35,6 +35,7 @@ def _validate_digits_only(value: str | None, field_name: str, exact_length: int 
 class OrganizationCardCreate(SQLModel):
     """Schema for creating organization card."""
     name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = Field(default=None)
     phones: list[dict] = Field(default_factory=list)
     email: str | None = Field(default=None, max_length=255)
     address: str | None = Field(default=None, max_length=500)
@@ -158,6 +159,7 @@ class OrganizationCardCreate(SQLModel):
 class OrganizationCardUpdate(SQLModel):
     """Schema for updating organization card (all fields optional)."""
     name: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None)
     phones: list[dict] | None = None
     email: str | None = Field(default=None, max_length=255)
     address: str | None = Field(default=None, max_length=500)
@@ -284,6 +286,7 @@ class OrganizationCardPublic(SQLModel):
     """Public organization card schema."""
     id: uuid.UUID
     name: str | None
+    description: str | None
     phones: list[dict]
     email: str | None
     address: str | None
