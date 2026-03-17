@@ -131,7 +131,7 @@ def create_news_item(
             select(NewsImage).where(NewsImage.news_id == existing_news.id)
         ).all()
 
-        if not existing_images or has_missing_image_files(existing_images):
+        if not existing_images or has_missing_image_files(list(existing_images)):
             for image in existing_images:
                 session.delete(image)
             session.commit()

@@ -26,7 +26,7 @@ def read_positions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     count = session.exec(count_statement).one()
     statement = select(Position).offset(skip).limit(limit).order_by(Position.name)
     positions = session.exec(statement).all()
-    return PositionsPublic(data=positions, count=count)
+    return PositionsPublic(data=list(positions), count=count)
 
 
 @router.post(

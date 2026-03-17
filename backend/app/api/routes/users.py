@@ -78,7 +78,7 @@ def read_users(
 
     users = session.exec(statement).all()
 
-    return UsersPublic(data=users, count=count)
+    return UsersPublic(data=list(users), count=count)
 
 
 @router.post(

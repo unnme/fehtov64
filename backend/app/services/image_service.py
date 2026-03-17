@@ -74,7 +74,7 @@ class ImageService:
         upload_path = cls.get_upload_path(news_id)
         file_path = upload_path / file_name
 
-        temp_path = upload_path / f"{unique_id}_temp{Path(file.filename).suffix}"
+        temp_path = upload_path / f"{unique_id}_temp{Path(file.filename or '').suffix}"
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -142,7 +142,7 @@ class ImageService:
         upload_path = cls.get_person_upload_path(person_id)
         file_path = upload_path / file_name
 
-        temp_path = upload_path / f"{unique_id}_temp{Path(file.filename).suffix}"
+        temp_path = upload_path / f"{unique_id}_temp{Path(file.filename or '').suffix}"
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 

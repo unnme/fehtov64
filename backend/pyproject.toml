@@ -74,6 +74,8 @@ keep-runtime-typing = true
 [tool.pyright]
 pythonVersion = "3.10"
 typeCheckingMode = "basic"
+exclude = ["app/alembic/**"]
+reportUnusedVariable = "none"
 
 [tool.ruff.format]
 # Use double quotes for strings

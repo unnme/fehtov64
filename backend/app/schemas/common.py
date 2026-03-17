@@ -9,7 +9,7 @@ def normalize_optional_str(value: str | None) -> str | None:
     """Normalize optional string value."""
     if value is None:
         return None
-    if not isinstance(value, str):
+    if not isinstance(value, str):  # type: ignore[unreachable]
         raise ValueError("Значение должно быть строкой")
     trimmed = value.strip()
     return trimmed if trimmed else None
@@ -19,7 +19,7 @@ def normalize_phone_list(
     *, value: list[dict | str], allow_empty: bool = False
 ) -> list[dict]:
     """Normalizes phone list to format {phone: str, description: str | None}."""
-    if not isinstance(value, list):
+    if not isinstance(value, list):  # type: ignore[unreachable]
         raise ValueError("Телефоны должны быть списком")
 
     normalized = []
@@ -64,7 +64,7 @@ def capitalize_name_part(value: str) -> str:
 
 def normalize_person_name(*, value: str, allow_hyphen: bool) -> str:
     """Normalize person name part."""
-    if not isinstance(value, str):
+    if not isinstance(value, str):  # type: ignore[unreachable]
         raise ValueError("Имя должно быть строкой")
     trimmed = value.strip()
     if not trimmed:
@@ -87,7 +87,7 @@ def normalize_person_name(*, value: str, allow_hyphen: bool) -> str:
 
 def normalize_position_name(*, value: str) -> str:
     """Normalize position name."""
-    if not isinstance(value, str):
+    if not isinstance(value, str):  # type: ignore[unreachable]
         raise ValueError("Название должно быть строкой")
     trimmed = value.strip()
     if not trimmed:

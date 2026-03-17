@@ -79,12 +79,12 @@ def get_images(
     statement = (
         select(NewsImage)
         .where(NewsImage.news_id == news_id)
-        .order_by(NewsImage.is_main.desc(), NewsImage.order)
+        .order_by(NewsImage.is_main.desc(), NewsImage.order)  # type: ignore[union-attr, arg-type]
     )
     images = session.exec(statement).all()
     count = len(images)
 
-    return NewsImageList(data=images, count=count)
+    return NewsImageList(data=list(images), count=count)
 
 
 @public_router.get("/{image_id}/file")
@@ -225,7 +225,7 @@ def reorder_image(
     session.commit()
     session.refresh(image)
 
-    return image
+    return image  # type: ignore[return-value]
 
 
 @router.put("/{image_id}/set-main", response_model=NewsImagePublic)
@@ -258,5 +258,5 @@ def set_main_image(
     session.commit()
     session.refresh(image)
 
-    return image
+    return image  # type: ignore[return-value]
 

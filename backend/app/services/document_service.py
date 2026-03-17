@@ -160,7 +160,7 @@ class DocumentService:
             return SignatureInfo(is_signed=False)
 
         try:
-            from pypdf import PdfReader
+            from pypdf import PdfReader  # type: ignore[import-not-found]
 
             reader = PdfReader(str(full_path))
 

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import FileResponse
 from sqlmodel import Session, func, select
 
@@ -210,14 +210,14 @@ def read_documents(
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
 
-    statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)
+    statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)  # type: ignore[union-attr]
     documents = session.exec(statement).all()
 
     # Load relationships
     for doc in documents:
         if doc.category_id:
-            doc.category = session.get(DocumentCategory, doc.category_id)
-        doc.owner = session.get(type(current_user), doc.owner_id)
+            doc.category = session.get(DocumentCategory, doc.category_id)  # type: ignore[assignment]
+        doc.owner = session.get(type(current_user), doc.owner_id)  # type: ignore[assignment]
 
     return DocumentsPublic(
         data=[
@@ -263,12 +263,12 @@ def read_public_documents(
     count_statement = select(func.count()).select_from(statement.subquery())
     count = session.exec(count_statement).one()
 
-    statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)
+    statement = statement.order_by(Document.created_at.desc()).offset(skip).limit(limit)  # type: ignore[union-attr]
     documents = session.exec(statement).all()
 
     for doc in documents:
         if doc.category_id:
-            doc.category = session.get(DocumentCategory, doc.category_id)
+            doc.category = session.get(DocumentCategory, doc.category_id)  # type: ignore[assignment]
 
     return DocumentsPublic(
         data=[

@@ -36,14 +36,14 @@ def read_public_news(skip: int = 0, limit: int = 10) -> Any:
 
     with Session(engine) as session:
         count_statement = (
-            select(func.count()).select_from(News).where(News.is_published.is_(True))
+            select(func.count()).select_from(News).where(News.is_published.is_(True))  # type: ignore[union-attr]
         )
         count = session.exec(count_statement).one()
 
         statement = (
             select(News)
-            .where(News.is_published.is_(True))
-            .order_by(News.published_at.desc().nulls_last(), News.created_at.desc())
+            .where(News.is_published.is_(True))  # type: ignore[union-attr]
+            .order_by(News.published_at.desc().nulls_last(), News.created_at.desc())  # type: ignore[union-attr]
             .offset(skip)
             .limit(limit)
         )
@@ -73,7 +73,7 @@ def read_public_news(skip: int = 0, limit: int = 10) -> Any:
                 images_statement = (
                     select(NewsImage)
                     .where(NewsImage.news_id == news_item.id)
-                    .order_by(NewsImage.order)
+                    .order_by(NewsImage.order)  # type: ignore[arg-type]
                 )
                 images = session.exec(images_statement).all()
             except Exception:
@@ -113,7 +113,7 @@ def read_public_news_item(id: uuid.UUID) -> Any:
     with Session(engine) as session:
         statement = select(News).where(
             News.id == id,
-            News.is_published.is_(True),
+            News.is_published.is_(True),  # type: ignore[union-attr]
         )
         news_item = session.exec(statement).first()
         if not news_item:
@@ -169,7 +169,7 @@ def read_news(
     """
     count_statement = select(func.count()).select_from(News)
     count = session.exec(count_statement).one()
-    statement = select(News).order_by(News.created_at.desc()).offset(skip).limit(limit)
+    statement = select(News).order_by(News.created_at.desc()).offset(skip).limit(limit)  # type: ignore[union-attr]
     news_list = session.exec(statement).all()
 
     from app.models import User

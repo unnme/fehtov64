@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from pydantic import SecretStr
 from jinja2 import Template
 
 from app.core.config import settings
@@ -24,10 +25,10 @@ class EmailService:
         has_credentials = bool(settings.SMTP_USER and settings.SMTP_PASSWORD)
         conf = ConnectionConfig(
             MAIL_USERNAME=settings.SMTP_USER or "",
-            MAIL_PASSWORD=settings.SMTP_PASSWORD or "",
-            MAIL_FROM=settings.EMAILS_FROM_EMAIL,
+            MAIL_PASSWORD=SecretStr(settings.SMTP_PASSWORD or ""),
+            MAIL_FROM=settings.EMAILS_FROM_EMAIL or "",  # type: ignore[arg-type]
             MAIL_PORT=settings.SMTP_PORT,
-            MAIL_SERVER=settings.SMTP_HOST,
+            MAIL_SERVER=settings.SMTP_HOST or "",
             MAIL_STARTTLS=settings.SMTP_TLS,
             MAIL_SSL_TLS=settings.SMTP_SSL,
             MAIL_FROM_NAME=settings.EMAILS_FROM_NAME or settings.PROJECT_NAME,
@@ -66,7 +67,7 @@ class EmailService:
         try:
             message = MessageSchema(
                 subject=subject,
-                recipients=[email_to],
+                recipients=[email_to],  # type: ignore[arg-type]
                 body=html_content,
                 subtype=MessageType.html,
             )
